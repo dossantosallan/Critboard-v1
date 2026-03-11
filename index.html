@@ -6,7 +6,7 @@
   <meta name="author" content="HRO UTI Geral">
   <meta name="version" content="1.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>CritBoard v1 — HRO UTI</title>
+<title>CritBoard v2 — HRO UTI</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap');
 
@@ -938,6 +938,8 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
   #painel_charts { margin-top: 14px; }
 }
 
+.hint{background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:12px 16px;margin-top:12px;font-size:12px;color:var(--muted);line-height:1.7;}
+.hint strong{color:var(--accent2);}
 </style>
 </head>
 <body>
@@ -980,55 +982,47 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
       <div class="logo-sub">Hospital Regional do Oeste &nbsp;·&nbsp; UTI Geral</div>
     </div>
   </div>
-  <div class="badge"><div class="dot"></div>LOCAL &middot; SEM API</div>
+  <div class="badge"><div class="dot"></div>v2 &middot; LOCAL &middot; SEM API</div>
 </header>
 
 <main>
   <div class="nav-tabs">
-    <button class="nav-tab on" id="navLab" onclick="switchNav('lab')">&#x1F9EA; Labs</button>
-    <button class="nav-tab" id="navVit" onclick="switchNav('vit')">&#x1F493; Vitais</button>
-    <button class="nav-tab" id="navResume" onclick="switchNav('resume')">&#x1F4CB; Passagem</button>
-    <button class="nav-tab" id="navPresc" onclick="switchNav('presc')">&#x1F48A; Prescrição</button>
-    <button class="nav-tab" id="navCalc" onclick="switchNav('calc')">&#x1F9EE; Calculadoras</button>
-    <button class="nav-tab" id="navAtbDose" onclick="switchNav('atbdose')">&#x1F489; Doses</button>
-    <button class="nav-tab" id="navIOT" onclick="switchNav('iot')">&#x1F4A8; IOT</button>
-    <button class="nav-tab" id="navRef" onclick="switchNav('ref')">&#x1F4D0; Referência</button>
-    <button class="nav-tab" id="navPainel" onclick="switchNav('painel')">&#x1F4CA; Painel</button>
+    <button class="nav-tab on" data-tab="lab" id="navLab">&#x1F9EA; Labs</button>
+    <button class="nav-tab" data-tab="vit" id="navVit">&#x1F493; Vitais</button>
+    <button class="nav-tab" data-tab="resume" id="navResume">&#x1F4CB; Passagem</button>
+    <button class="nav-tab" data-tab="presc" id="navPresc">&#x1F48A; Prescrição</button>
+    <button class="nav-tab" data-tab="calc" id="navCalc">&#x1F9EE; Calculadoras</button>
+    <button class="nav-tab" data-tab="atbdose" id="navAtbDose">&#x1F489; Doses</button>
+    <button class="nav-tab" data-tab="iot" id="navIOT">&#x1F4A8; IOT</button>
+    <button class="nav-tab" data-tab="ref" id="navRef">&#x1F4D0; Referência</button>
+    <button class="nav-tab" data-tab="painel" id="navPainel">&#x1F4CA; Painel</button>
   </div>
 
   <!-- LAB -->
   <div class="tab-page on" id="pageLab">
-  <div class="slabel">Cole o Texto dos Laudos</div>
-  <textarea class="rta" id="rta" placeholder="Cole aqui um ou vários laudos juntos. O sistema detecta automaticamente cada paciente pelo campo 'Paciente....:'&#10;&#10;Pode colar laudos de múltiplos pacientes de uma vez!" oninput="onTxt()"></textarea>
-  <div class="cc" id="cc">0 caracteres</div>
-  <div class="hint"><strong>Como usar:</strong> Cole o texto de um ou vários laudos. O sistema detecta automaticamente cada paciente pelo campo <strong>Paciente....:</strong>. Funciona 100% offline, sem internet.</div>
-  <button class="btn-go" id="goBtn" onclick="run()" disabled>🔍 Extrair Laboratorios de Todos os Pacientes</button>
-  <div class="results" id="results">
-    <div class="summary-bar" id="summaryBar"></div>
-    <div id="patientsContainer"></div>
-    <div class="global-actions">
-      <button class="btn-sec" onclick="copyAllPatients()">&#x1F4CB; Copiar Todos os Resumos</button>
-      <button class="btn-sec" onclick="expandAll()">&#x25BC; Expandir Todos</button>
-      <button class="btn-sec" onclick="collapseAll()">&#x25B2; Recolher Todos</button>
-      <button class="btn-sec" onclick="resetApp()">&#x1F504; Novo</button>
+    <div class="slabel">Cole o Texto dos Laudos</div>
+    <textarea class="rta" id="rtaLab" oninput="onTxtLab()" placeholder="Cole aqui um ou vários laudos.&#10;Detecta automaticamente cada paciente pelo campo 'Paciente....:'.&#10;Funciona 100% offline, sem internet."></textarea>
+    <div class="cc" id="ccLab">0 caracteres</div>
+    <div class="hint"><strong>Como usar:</strong> Cole laudos de um ou vários pacientes juntos. O sistema detecta automaticamente pelo campo <strong>Paciente....:</strong></div>
+    <button class="btn-go" id="btnLab" onclick="runLab()" disabled>🔍 Extrair Laboratórios</button>
+    <div class="results" id="resultsLab">
+      <div class="summary-bar" id="sbLab"></div>
+      <div id="patientsLab"></div>
+      <div class="global-actions" id="actionsLab"></div>
     </div>
-  </div>
   </div>
 
   <!-- VITAIS -->
   <div class="tab-page" id="pageVit">
     <div class="slabel">Cole o Texto dos Sinais Vitais</div>
-    <textarea class="rta" id="rtaVit" placeholder="Cole aqui o texto copiado do G-HOSP (Balanço Hídrico + Sinais Vitais)." oninput="onTxtVit()"></textarea>
+    <textarea class="rta" id="rtaVit" oninput="onTxtVit()" placeholder="Cole o texto copiado do G-HOSP (Balanço Hídrico + Sinais Vitais).&#10;&#10;Extrai: PAS/PAD/PAM, FC, SpO2, Temp, HGT, BH, Diurese, HD, Evacuações.&#10;&#10;Múltiplos pacientes: detecta pelo padrão 'Nome - RA'."></textarea>
     <div class="cc" id="ccVit">0 caracteres</div>
-    <div class="vit-hint"><strong>Formato G-HOSP:</strong> Cole o texto da tela de Balanço Hídrico. Para múltiplos pacientes, detecta pelo padrão <strong>Nome - RA</strong>.</div>
-    <button class="btn-go" id="goBtnVit" onclick="runVit()" disabled>💓 Extrair Sinais Vitais</button>
+    <div class="hint"><strong>Formato G-HOSP:</strong> Cole o texto da tela de Balanço Hídrico. Detecta pelo padrão <strong>Nome - RA</strong>.</div>
+    <button class="btn-go" id="btnVit" onclick="runVit()" disabled>💓 Extrair Sinais Vitais</button>
     <div class="results" id="resultsVit">
-      <div class="summary-bar" id="summaryBarVit"></div>
-      <div id="vitPatientsContainer"></div>
-      <div class="global-actions">
-        <button class="btn-sec" onclick="copyAllVit()">📋 Copiar Todos</button>
-        <button class="btn-sec" onclick="resetVit()">🔄 Novo</button>
-      </div>
+      <div class="summary-bar" id="sbVit"></div>
+      <div id="patientsVit"></div>
+      <div class="global-actions" id="actionsVit"></div>
     </div>
   </div>
 
@@ -1915,6 +1909,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
 </main>
 </div>
 <script>
+
 // ═══════════════════════════════════════════════════════════
 // UTILS COMPARTILHADOS
 // ═══════════════════════════════════════════════════════════
@@ -1962,319 +1957,51 @@ function flashEl(id) {
   setTimeout(function(){ el.classList.remove('on'); }, 2000);
 }
 
-// ═══════════════════════════════════════════════════════════
-// LABS
-// ═══════════════════════════════════════════════════════════
-var allPatients = [];
-function onTxt() {
-  var v = document.getElementById('rta').value;
-  document.getElementById('cc').textContent = v.length + ' caracteres';
-  document.getElementById('goBtn').disabled = v.trim().length < 30;
-}
-var EXAM_DEFS = [
-  {key:'hb', names:['Hemoglobina','Hb'], unit:'g/dL', min:12, max:17, ref:'12-17'},
-  {key:'ht', names:['Hematócrito','Ht'], unit:'%', min:36, max:52, ref:'36-52%'},
-  {key:'leuco', names:['Leucócitos totais','Leucócitos'], unit:'','min':4000, max:11000, ref:'4000-11000'},
-  {key:'plaq', names:['Plaquetas'], unit:'', min:150000, max:400000, ref:'150-400k'},
-  {key:'na', names:['Sódio','Na'], unit:'mEq/L', min:136, max:145, ref:'136-145'},
-  {key:'k', names:['Potássio','K'], unit:'mEq/L', min:3.5, max:5.0, ref:'3.5-5.0'},
-  {key:'cl', names:['Cloro','Cl'], unit:'mEq/L', min:98, max:107, ref:'98-107'},
-  {key:'cr', names:['Creatinina'], unit:'mg/dL', min:0.5, max:1.2, ref:'0.5-1.2'},
-  {key:'ur', names:['Ureia'], unit:'mg/dL', min:10, max:50, ref:'10-50'},
-  {key:'gli', names:['Glicose'], unit:'mg/dL', min:70, max:100, ref:'70-100'},
-  {key:'tgo', names:['TGO','AST'], unit:'U/L', min:0, max:40, ref:'<40'},
-  {key:'tgp', names:['TGP','ALT'], unit:'U/L', min:0, max:41, ref:'<41'},
-  {key:'ggt', names:['Gama-GT','GGT'], unit:'U/L', min:0, max:50, ref:'<50'},
-  {key:'fa', names:['Fosfatase alcalina','FA'], unit:'U/L', min:40, max:130, ref:'40-130'},
-  {key:'bt', names:['Bilirrubina total','BT'], unit:'mg/dL', min:0, max:1.2, ref:'<1.2'},
-  {key:'bd', names:['Bilirrubina direta','BD'], unit:'mg/dL', min:0, max:0.4, ref:'<0.4'},
-  {key:'bi', names:['Bilirrubina indireta','BI'], unit:'mg/dL', min:0, max:0.8, ref:'<0.8'},
-  {key:'pt', names:['Proteínas totais','PT'], unit:'g/dL', min:6.0, max:8.5, ref:'6.0-8.5'},
-  {key:'alb', names:['Albumina'], unit:'g/dL', min:3.5, max:5.0, ref:'3.5-5.0'},
-  {key:'amy', names:['Amilase'], unit:'U/L', min:0, max:100, ref:'<100'},
-  {key:'lip', names:['Lipase'], unit:'U/L', min:0, max:60, ref:'<60'},
-  {key:'ca', names:['Cálcio total','Ca total'], unit:'mg/dL', min:8.5, max:10.5, ref:'8.5-10.5'},
-  {key:'cai', names:['Cálcio iônico','Ca iônico','Ca++'], unit:'mmol/L', min:1.12, max:1.32, ref:'1.12-1.32'},
-  {key:'mg', names:['Magnésio'], unit:'mEq/L', min:1.7, max:2.4, ref:'1.7-2.4'},
-  {key:'p', names:['Fósforo'], unit:'mg/dL', min:2.5, max:4.5, ref:'2.5-4.5'},
-  {key:'pcr', names:['Proteína C reativa','PCR'], unit:'mg/L', min:0, max:5, ref:'<5'},
-  {key:'ddim', names:['D-dímero'], unit:'ng/mL', min:0, max:500, ref:'<500'},
-  {key:'tni', names:['Troponina I','Troponina'], unit:'ng/mL', min:0, max:0.04, ref:'<0.04'},
-  {key:'bnp', names:['BNP','Pro-BNP'], unit:'pg/mL', min:0, max:100, ref:'<100'},
-  {key:'lac', names:['Lactato'], unit:'mmol/L', min:0, max:2.0, ref:'<2.0'},
-  {key:'inr', names:['INR','RNI'], unit:'', min:0.8, max:1.2, ref:'0.8-1.2'},
-  {key:'ttpa', names:['TTPA','TTPa'], unit:'s', min:25, max:35, ref:'25-35s'},
-  {key:'tp', names:['Tempo de protrombina','TP'], unit:'%', min:70, max:100, ref:'70-100%'},
-  {key:'fibri', names:['Fibrinogênio'], unit:'mg/dL', min:200, max:400, ref:'200-400'},
-  {key:'ph', names:['pH'], unit:'', min:7.35, max:7.45, ref:'7.35-7.45'},
-  {key:'pco2', names:['pCO2','PCO2'], unit:'mmHg', min:35, max:45, ref:'35-45'},
-  {key:'po2', names:['pO2','PO2'], unit:'mmHg', min:80, max:100, ref:'80-100'},
-  {key:'hco3', names:['HCO3','Bicarbonato'], unit:'mEq/L', min:22, max:26, ref:'22-26'},
-  {key:'be', names:['BE','Base excess'], unit:'', min:-2, max:2, ref:'-2 a +2'},
-  {key:'sato2', names:['SatO2','SpO2'], unit:'%', min:94, max:100, ref:'94-100%'},
-  {key:'tsh', names:['TSH'], unit:'mUI/L', min:0.4, max:4.0, ref:'0.4-4.0'},
-  {key:'t4l', names:['T4 livre'], unit:'ng/dL', min:0.8, max:1.8, ref:'0.8-1.8'},
-  {key:'cortisol', names:['Cortisol'], unit:'μg/dL', min:6, max:23, ref:'6-23'},
-  {key:'ptn', names:['Procalcitonina','PCT'], unit:'ng/mL', min:0, max:0.5, ref:'<0.5'},
-  {key:'ldh', names:['LDH'], unit:'U/L', min:100, max:240, ref:'100-240'},
-  {key:'ck', names:['CK total','Creatinoquinase'], unit:'U/L', min:0, max:200, ref:'<200'},
-  {key:'ferro', names:['Ferro sérico','Ferro'], unit:'μg/dL', min:65, max:175, ref:'65-175'},
-  {key:'ferri', names:['Ferritina'], unit:'ng/mL', min:15, max:200, ref:'15-200'},
-  {key:'ac_ur', names:['Ácido úrico'], unit:'mg/dL', min:3.5, max:7.2, ref:'3.5-7.2'},
-];
-function parsePatient(text, patientName) {
-  var exams = [];
-  EXAM_DEFS.forEach(function(def) {
-    for (var ni = 0; ni < def.names.length; ni++) {
-      var esc = def.names[ni].replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      var re = new RegExp(esc + '\\s*[:\\|]\\s*([\\d][\\d,.]*)\\s*(' + (def.unit || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')?', 'i');
-      var m = text.match(re);
-      if (m) {
-        var raw = m[1].replace(',', '.');
-        var val = parseFloat(raw);
-        if (!isNaN(val)) {
-          var status = (val < def.min) ? 'low' : (val > def.max) ? 'high' : 'normal';
-          exams.push({name: def.names[0], val: raw, unit: def.unit, ref: def.ref, status: status, def: def});
-        }
-        break;
-      }
-    }
-  });
-  return {name: patientName, text: text, exams: exams};
-}
-function splitByPatient(text) {
-  var re = /Paciente\s*[\w\s]*\s*:/gi;
-  var matches = [];
-  var m;
-  while ((m = re.exec(text)) !== null) { matches.push({idx: m.index, header: m[0]}); }
-  if (!matches.length) return [{name: 'Paciente', text: text}];
-  var patients = [];
-  for (var i = 0; i < matches.length; i++) {
-    var start = matches[i].idx;
-    var end = i + 1 < matches.length ? matches[i+1].idx : text.length;
-    var chunk = text.substring(start, end);
-    var nameMatch = chunk.match(/Paciente[\w\s]*:\s*([^\n]+)/i);
-    var name = nameMatch ? nameMatch[1].trim() : 'Paciente ' + (i+1);
-    patients.push({name: name, text: chunk});
-  }
-  return patients;
-}
-function run() {
-  var text = document.getElementById('rta').value;
-  var patientTexts = splitByPatient(text);
-  allPatients = patientTexts.map(function(p){ return parsePatient(p.text, p.name); });
-  var nAlerts = allPatients.reduce(function(s,p){ return s + p.exams.filter(function(e){return e.status!=='normal';}).length; }, 0);
-  var nHigh   = allPatients.reduce(function(s,p){ return s + p.exams.filter(function(e){return e.status==='high';}).length; }, 0);
-  var sbHtml = mkSbItem(allPatients.length, 'Pacientes', 'var(--accent)');
-  sbHtml += '<div class="sb-div"></div>';
-  sbHtml += mkSbItem(nAlerts, 'Alterados', nAlerts > 0 ? 'var(--danger)' : 'var(--ok)');
-  sbHtml += '<div class="sb-div"></div>';
-  sbHtml += mkSbItem(nHigh, 'Elevados', nHigh > 0 ? 'var(--warning)' : 'var(--ok)');
-  sbHtml += '<div class="sb-actions"><button class="btn-sm" onclick="expandAll()">▼ Todos</button><button class="btn-sm" onclick="resetApp()">↺ Novo</button></div>';
-  document.getElementById('summaryBar').innerHTML = sbHtml;
-  var html = '';
-  allPatients.forEach(function(p, pi) {
-    var hasAlert = p.exams.some(function(e){ return e.status === 'high'; });
-    var hasWarn  = p.exams.some(function(e){ return e.status === 'low'; });
-    var cls = hasAlert ? 'patient-block has-critical' : hasWarn ? 'patient-block has-warning' : 'patient-block';
-    html += '<div class="'+cls+'" id="pb'+pi+'">';
-    html += '<div class="patient-header" onclick="togglePatient('+pi+')">';
-    html += '<span class="patient-num">'+(pi+1)+'</span>';
-    html += '<span class="patient-name">'+p.name+'</span>';
-    html += '<span class="patient-meta">';
-    html += '<span>'+p.exams.length+' exames</span>';
-    var nalts = p.exams.filter(function(e){return e.status!=='normal';}).length;
-    if (nalts) html += '<span style="color:var(--danger);">'+nalts+' alterados</span>';
-    html += '</span>';
-    html += '<span class="chevron" id="chev'+pi+'">&#x25BC;</span>';
-    html += '</div>';
-    html += '<div class="patient-body" id="body'+pi+'">';
-    var alts = p.exams.filter(function(e){ return e.status !== 'normal'; });
-    if (alts.length) {
-      html += '<div class="apanel"><div class="atitle">⚠ Valores Alterados ('+alts.length+')</div>';
-      alts.forEach(function(e){
-        var icon = e.status === 'high' ? '↑' : '↓';
-        var col  = e.status === 'high' ? 'var(--danger)' : '#60a5fa';
-        html += '<div class="aitem"><span style="color:'+col+';font-weight:700;font-size:14px;">'+icon+'</span><div><span style="font-weight:600;">'+e.name+'</span>: <span style="color:'+col+';font-family:var(--mono);">'+e.val+(e.unit?' '+e.unit:'')+'</span><br><span style="font-size:10px;color:var(--muted);">ref: '+e.ref+'</span></div></div>';
-      });
-      html += '</div>';
-    }
-    var norms = p.exams.filter(function(e){ return e.status === 'normal'; });
-    if (norms.length) {
-      html += '<div class="pgrid2">';
-      html += '<div class="panel"><div class="ph"><span class="pi">&#x2705;</span><span class="pt">Valores Normais</span><span class="pc">'+norms.length+'</span></div><div class="pb">';
-      norms.forEach(function(e){
-        html += '<div class="lr"><div class="li li-n"></div><div class="ln">'+e.name+'</div><div><div class="lv lv-n">'+e.val+(e.unit?' '+e.unit:'')+'</div><div class="lref">ref: '+e.ref+'</div></div></div>';
-      });
-      html += '</div></div></div>';
-    }
-    if (p.exams.length) {
-      var sumLine = p.exams.map(function(e){ return e.name+': '+e.val+(e.unit?' '+e.unit:''); }).join(' | ');
-      html += '<div class="slcard"><div class="sl-lbl">&#x26A1; Linha única — Labs</div><div class="sl-text" id="sl'+pi+'">'+sumLine+'</div><div class="sl-actions"><button class="btn-copy" onclick="copyLine('+pi+')">Copiar Linha</button><span class="flash" id="flash'+pi+'">&#x2713; Copiado!</span></div></div>';
-    }
-    html += '</div></div>';
-  });
-  document.getElementById('patientsContainer').innerHTML = html || '<div style="text-align:center;padding:40px;color:var(--muted);">Nenhum exame reconhecido.</div>';
-  document.getElementById('results').classList.add('on');
-  document.getElementById('results').scrollIntoView({behavior:'smooth'});
-}
-function togglePatient(i) {
-  var body = document.getElementById('body'+i);
-  var chev = document.getElementById('chev'+i);
-  var open = body.classList.toggle('open');
-  if (chev) chev.classList.toggle('open', open);
-}
-function expandAll() {
-  document.querySelectorAll('.patient-body').forEach(function(b){ b.classList.add('open'); });
-  document.querySelectorAll('.chevron').forEach(function(c){ c.classList.add('open'); });
-}
-function collapseAll() {
-  document.querySelectorAll('.patient-body').forEach(function(b){ b.classList.remove('open'); });
-  document.querySelectorAll('.chevron').forEach(function(c){ c.classList.remove('open'); });
-}
-function copyLine(i) {
-  var el = document.getElementById('sl'+i);
-  if (!el) return;
-  copyToClipboard(el.textContent, function(){ flashEl('flash'+i); });
-}
-function copyAllPatients() {
-  var lines = allPatients.map(function(p){
-    return p.name + ':\n' + p.exams.map(function(e){ return '  '+e.name+': '+e.val+(e.unit?' '+e.unit:''); }).join('\n');
-  }).join('\n\n');
-  copyToClipboard(lines, function(){ alert('Copiado!'); });
-}
-function resetApp() {
-  document.getElementById('rta').value = '';
-  document.getElementById('cc').textContent = '0 caracteres';
-  document.getElementById('results').classList.remove('on');
-  document.getElementById('goBtn').disabled = true;
-  allPatients = [];
-}
+// LABS + VITAIS
+function copyToClipboard(text,onSuccess){if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(text).then(onSuccess).catch(function(){fallbackCopy(text,onSuccess)});}else{fallbackCopy(text,onSuccess);}}
+function fallbackCopy(text,onSuccess){var ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0;top:0;left:0';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy');if(onSuccess)onSuccess();}catch(e){alert('Copie manualmente.');}document.body.removeChild(ta);}
+function flashEl(id){var el=document.getElementById(id);if(!el)return;el.classList.add('on');setTimeout(function(){el.classList.remove('on');},2000);}
+var EXAMS=[{key:'sodio',abbr:'Na',unit:'mEq/L',panel:'Eletrólitos',low:135,high:145,cLow:125,cHigh:155,names:['SODIO','SÓDIO']},{key:'potassio',abbr:'K',unit:'mEq/L',panel:'Eletrólitos',low:3.5,high:5.0,cLow:3.0,cHigh:6.5,names:['POTASSIO','POTÁSSIO']},{key:'cloro',abbr:'Cl',unit:'mEq/L',panel:'Eletrólitos',low:98,high:106,cLow:90,cHigh:115,names:['CLORO','CLORETO']},{key:'magnesio',abbr:'Mg',unit:'mg/dL',panel:'Eletrólitos',low:1.6,high:2.6,cLow:1.0,cHigh:3.5,names:['MAGNESIO','MAGNÉSIO']},{key:'calcio_i',abbr:'Ca-i',unit:'mmol/L',panel:'Eletrólitos',low:1.06,high:1.35,cLow:0.9,cHigh:1.5,names:['CALCIO IONIZADO','CÁLCIO IONIZADO']},{key:'calcio_t',abbr:'Ca',unit:'mg/dL',panel:'Eletrólitos',low:8.5,high:10.5,cLow:7.0,cHigh:12.0,names:['CALCIO TOTAL','CÁLCIO TOTAL']},{key:'fosforo',abbr:'P',unit:'mg/dL',panel:'Eletrólitos',low:2.5,high:4.5,cLow:1.5,cHigh:6.0,names:['FOSFORO','FÓSFORO']},{key:'creatinina',abbr:'Cr',unit:'mg/dL',panel:'Função Renal',low:0.6,high:1.2,cLow:null,cHigh:5.0,names:['CREATININA']},{key:'ureia',abbr:'Ur',unit:'mg/dL',panel:'Função Renal',low:12.9,high:42.9,cLow:null,cHigh:150,names:['UREIA','URÉIA']},{key:'hb',abbr:'Hb',unit:'g/dL',panel:'Hemograma',low:11.0,high:16.0,cLow:7.0,cHigh:18.0,names:['HEMOGLOBINA']},{key:'ht',abbr:'Ht',unit:'%',panel:'Hemograma',low:33.0,high:47.0,cLow:21.0,cHigh:55.0,names:['HEMATOCRITO','HEMATÓCRITO']},{key:'rdw',abbr:'RDW',unit:'%',panel:'Hemograma',low:10.0,high:15.0,cLow:null,cHigh:20.0,names:['RDW']},{key:'vcm',abbr:'VCM',unit:'fL',panel:'Hemograma',low:80.0,high:100.0,cLow:null,cHigh:null,names:['VCM','V.C.M']},{key:'leuco',abbr:'Leuco',unit:'/mm³',panel:'Hemograma',low:5000,high:11000,cLow:2000,cHigh:30000,names:['LEUCOCITO','LEUCÓCITO','LEUCOCITOS','LEUCÓCITOS']},{key:'plaq',abbr:'Plaq',unit:'/mm³',panel:'Hemograma',low:140000,high:400000,cLow:50000,cHigh:700000,names:['PLAQUETA','PLAQUETAS']},{key:'neutro',abbr:'Neut',unit:'/mm³',panel:'Hemograma',low:1800,high:7000,cLow:500,cHigh:20000,names:['SEGMENTADOS','SEGMENTADO'],diff:true},{key:'linf',abbr:'Linf',unit:'/mm³',panel:'Hemograma',low:1000,high:5000,cLow:500,cHigh:10000,names:['LINFOCITO TIPICO','LINFÓCITO TÍPICO','LINFOCITO','LINFÓCITO'],diff:true},{key:'mono',abbr:'Mono',unit:'/mm³',panel:'Hemograma',low:80,high:1200,cLow:null,cHigh:2000,names:['MONÓCITOS','MONOCITOS','MONÓCITO'],diff:true},{key:'ph',abbr:'pH',unit:'',panel:'Gasometria',low:7.35,high:7.45,cLow:7.2,cHigh:7.6,names:['pH','PH']},{key:'pco2',abbr:'pCO2',unit:'mmHg',panel:'Gasometria',low:35.0,high:45.0,cLow:20.0,cHigh:70.0,names:['pCO2','PCO2']},{key:'po2',abbr:'pO2',unit:'mmHg',panel:'Gasometria',low:80.0,high:100.0,cLow:50.0,cHigh:null,names:['pO2','PO2']},{key:'hco3',abbr:'HCO3',unit:'mmol/L',panel:'Gasometria',low:22.0,high:26.0,cLow:15.0,cHigh:35.0,names:['HCO3','BICARBONATO']},{key:'be',abbr:'BE',unit:'mmol/L',panel:'Gasometria',low:-2.0,high:2.0,cLow:-10.0,cHigh:10.0,names:['BASE EM EXCESSO','EXCESSO DE BASE']},{key:'sato2',abbr:'SatO2',unit:'%',panel:'Gasometria',low:95.0,high:100.0,cLow:88.0,cHigh:null,names:['O2 SATURAÇÃO','SATURAÇÃO']},{key:'lactato',abbr:'Lact',unit:'mmol/L',panel:'Metabólico',low:0.5,high:2.0,cLow:null,cHigh:4.0,names:['LACTATO','ACIDO LATICO','ÁCIDO LÁTICO']},{key:'glicose',abbr:'Glic',unit:'mg/dL',panel:'Metabólico',low:70.0,high:99.0,cLow:50.0,cHigh:400,names:['GLICOSE','GLICEMIA']},{key:'albumina',abbr:'Alb',unit:'g/dL',panel:'Metabólico',low:3.5,high:5.0,cLow:2.0,cHigh:null,names:['ALBUMINA']},{key:'pcr',abbr:'PCR',unit:'mg/L',panel:'Inflamação',low:null,high:6.0,cLow:null,cHigh:96.0,names:['PROTEINA C REATIVA','PROTEÍNA C REATIVA','PCR']},{key:'pct',abbr:'PCT',unit:'ng/mL',panel:'Inflamação',low:null,high:0.5,cLow:null,cHigh:2.0,names:['PROCALCITONINA']},{key:'ferritina',abbr:'Ferr',unit:'ng/mL',panel:'Inflamação',low:10.0,high:291.0,cLow:null,cHigh:1000,names:['FERRITINA']},{key:'tgo',abbr:'TGO',unit:'U/L',panel:'Função Hepática',low:null,high:40.0,cLow:null,cHigh:200,names:['TGO','AST ']},{key:'tgp',abbr:'TGP',unit:'U/L',panel:'Função Hepática',low:null,high:41.0,cLow:null,cHigh:200,names:['TGP','ALT ']},{key:'biliT',abbr:'BiliT',unit:'mg/dL',panel:'Função Hepática',low:null,high:1.2,cLow:null,cHigh:10.0,names:['BILIRRUBINA TOTAL']},{key:'inr',abbr:'INR',unit:'',panel:'Coagulação',low:0.8,high:1.2,cLow:null,cHigh:3.0,names:['INR','RNI']},{key:'tap',abbr:'TAP',unit:'%',panel:'Coagulação',low:70.0,high:100.0,cLow:40.0,cHigh:null,names:['ATIVIDADE DE PROTROMBINA','TAP ']},{key:'ddimero',abbr:'D-Dim',unit:'ng/mL',panel:'Coagulação',low:null,high:500.0,cLow:null,cHigh:2000,names:['D-DIMERO','D-DÍMERO','D DIMERO']},{key:'fibri',abbr:'Fibrin',unit:'mg/dL',panel:'Coagulação',low:200,high:400,cLow:100,cHigh:700,names:['FIBRINOGENIO','FIBRINOGÊNIO']},];
+var PANEL_ORDER=['Hemograma','Gasometria','Função Renal','Eletrólitos','Coagulação','Inflamação','Função Hepática','Metabólico'];
+var PANEL_ICON={Hemograma:'🩸',Gasometria:'💨','Função Renal':'🫘',Eletrólitos:'⚗️',Coagulação:'🩹',Inflamação:'🔥','Função Hepática':'🫀',Metabólico:'🍬'};
+function parseNum(r){r=r.trim();if(r.indexOf(',')!==-1&&r.indexOf('.')!==-1)r=r.replace(/\./g,'').replace(',','.');else if(r.indexOf(',')!==-1)r=r.replace(',','.');else if(r.indexOf('.')!==-1){var p=r.split('.');if(p.length===2&&p[1].length===3&&p[0].length>=2)r=r.replace('.','');}var n=parseFloat(r);return isNaN(n)?null:n;}
+function extractFromLine(text,names){var lines=text.split('\n');for(var si=0;si<names.length;si++){var needle=names[si].toUpperCase();for(var li=0;li<lines.length;li++){if(lines[li].toUpperCase().indexOf(needle)!==-1&&lines[li].indexOf(':')!==-1){var after=lines[li].split(':').slice(1).join(':').trim();var m=after.match(/^([+\-]?\d[\d.,]*)/);if(m){var v=parseNum(m[1]);if(v!==null)return v;}}}}return null;}
+function extractResultado(text,names){var upper=text.toUpperCase();for(var si=0;si<names.length;si++){var needle=names[si].toUpperCase();var idx=upper.indexOf(needle);while(idx!==-1){var sec=text.substring(idx,idx+500);var m=sec.match(/Resultado[\s.]*:\s*([+\-]?\d[\d.,]*)/i);if(m){var v=parseNum(m[1]);if(v!==null)return v;}idx=upper.indexOf(needle,idx+1);}}return null;}
+function extractPlaquetas(text){var m=text.match(/PLAQUETAS\s+([\d.,]+)\s*\//i);if(m)return parseNum(m[1]);return extractFromLine(text,['PLAQUETA','PLAQUETAS']);}
+function extractDiffAbsolute(text,names){var lines=text.split('\n');for(var si=0;si<names.length;si++){for(var li=0;li<lines.length;li++){if(lines[li].toUpperCase().indexOf(names[si].toUpperCase())!==-1&&lines[li].indexOf(':')!==-1){var after=lines[li].split(':').slice(1).join(':').trim();var mA=after.match(/[\d.,]+\s*%\s*([\d.,]+)\s*\/mm/i);if(mA){var v=parseNum(mA[1]);if(v!==null)return v;}var mF=after.match(/^([+\-]?\d[\d.,]*)/);if(mF){var v2=parseNum(mF[1]);if(v2!==null)return v2;}}}}return null;}
+function parseExams(text){var results=[],seen={};for(var i=0;i<EXAMS.length;i++){var exam=EXAMS[i];if(seen[exam.key])continue;var val=null;if(exam.key==='plaq')val=extractPlaquetas(text);else if(exam.diff)val=extractDiffAbsolute(text,exam.names);else{val=extractFromLine(text,exam.names);if(val===null)val=extractResultado(text,exam.names);}if(val!==null){seen[exam.key]=true;results.push({exam:exam,value:val});}}return results;}
+function extractMeta(text){var meta={name:'',sector:'',date:'',doctor:''},m;m=text.match(/Paciente[\.\s]*:\s*([A-Za-zÀ-ÖØ-öø-ÿ\s]+?)(?:\s{2,}|RQ|RA|\n)/i);if(m)meta.name=m[1].trim();m=text.match(/Setor coleta[\.\s]*:\s*(.+)/i);if(m)meta.sector=m[1].trim();m=text.match(/Data da coleta[\.\s]*:\s*(\d{2}\/\d{2}\/\d{4})/i);if(m)meta.date=m[1];m=text.match(/Solicitante[\.\s]*:\s*([A-Za-zÀ-ÖØ-öø-ÿ\s]+?)(?:\s{2,}|\n)/i);if(m)meta.doctor=m[1].trim();return meta;}
+function splitPatients(text){var regex=/Paciente[\.\s]*:/gi,positions=[],m;while((m=regex.exec(text))!==null)positions.push(m.index);if(!positions.length)return[text];var blocks={},order=[];for(var i=0;i<positions.length;i++){var chunk=text.substring(i===0?0:positions[i],i+1<positions.length?positions[i+1]:text.length);var nm=chunk.match(/Paciente[\.\s]*:\s*([A-Za-zÀ-ÖØ-öø-ÿ\s]+?)(?:\s{2,}|RQ|RA|\n)/i);var pname=nm?nm[1].trim():'Paciente '+(i+1);if(!blocks[pname]){blocks[pname]='';order.push(pname);}blocks[pname]+='\n'+chunk;}return order.map(function(n){return{name:n,text:blocks[n]};});}
+function classify(e,v){if(e.cLow!==null&&v<e.cLow)return'critical';if(e.cHigh!==null&&v>e.cHigh)return'critical';if(e.low!==null&&v<e.low)return'warning';if(e.high!==null&&v>e.high)return'warning';return'normal';}
+function formatNum(e,v){if(v>=10000)return Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');if(v>=1000)return Math.round(v).toString();if(e.unit===''||e.key==='ph')return v.toFixed(3);if(v<1)return v.toFixed(3);return v.toFixed(1);}
+function arrowStr(e,v,s){if(s==='normal')return'';var h=(e.high!==null&&v>e.high)||(e.cHigh!==null&&v>e.cHigh);var d=h?'↑':'↓';return s==='critical'?d+d:d;}
+function buildLine(results){return results.map(function(f){var st=classify(f.exam,f.value);return f.exam.abbr+' '+formatNum(f.exam,f.value)+arrowStr(f.exam,f.value,st);}).join(' | ');}
+function sbItem(val,lbl,color){return'<div class="sb-item"><div class="sb-val" style="color:'+color+'">'+val+'</div><div class="sb-lbl">'+lbl+'</div></div>';}
+var labPatients=[];
+function onTxtLab(){var v=document.getElementById('rtaLab').value;document.getElementById('ccLab').textContent=v.length+' caracteres';document.getElementById('btnLab').disabled=v.trim().length<20;}
+function runLab(){var text=document.getElementById('rtaLab').value;var blocks=splitPatients(text);labPatients=[];if(typeof blocks[0]==='string'){var results=parseExams(blocks[0]),meta=extractMeta(blocks[0]);if(results.length)labPatients.push({meta:meta,results:results});}else{blocks.forEach(function(b){var results=parseExams(b.text),meta=extractMeta(b.text);if(!meta.name)meta.name=b.name;if(results.length)labPatients.push({meta:meta,results:results});});}if(!labPatients.length){alert('Nenhum exame reconhecido.');return;}renderLab();}
+function renderLab(){var tc=0,tw=0,te=0;labPatients.forEach(function(p){p.results.forEach(function(f){var s=classify(f.exam,f.value);if(s==='critical')tc++;else if(s==='warning')tw++;te++;});});document.getElementById('sbLab').innerHTML=sbItem(labPatients.length,'Pacientes','var(--accent2)')+'<div class="sb-div"></div>'+sbItem(te,'Exames','var(--text)')+sbItem(tc,'Críticos','var(--danger)')+sbItem(tw,'Alterados','var(--warning)')+'<div class="sb-actions"><button class="btn-sm" onclick="copyAllLab()">📋 Copiar Todos</button><span class="flash" id="flashAllLab">✓ Copiado!</span></div>';var html='';labPatients.forEach(function(pd,idx){var crits=pd.results.filter(function(f){return classify(f.exam,f.value)==='critical';});var warns=pd.results.filter(function(f){return classify(f.exam,f.value)==='warning';});var rt=crits.length?'alto':warns.length?'medio':'normal';var rl=crits.length?'Risco Alto':warns.length?'Atenção':'Estável';var bc=crits.length?' has-critical':warns.length?' has-warning':'';var line=buildLine(pd.results);var panels={};pd.results.forEach(function(f){if(!panels[f.exam.panel])panels[f.exam.panel]=[];panels[f.exam.panel].push(f);});var ph='';PANEL_ORDER.forEach(function(pn){if(!panels[pn]||!panels[pn].length)return;var rows='';panels[pn].forEach(function(f,i){var st=classify(f.exam,f.value);var cls=st==='critical'?'c':st==='warning'?'w':'n';var ref='';if(f.exam.low!==null&&f.exam.high!==null)ref=f.exam.low+'–'+f.exam.high+' '+f.exam.unit;else if(f.exam.high!==null)ref='&lt; '+f.exam.high+' '+f.exam.unit;else if(f.exam.low!==null)ref='&gt; '+f.exam.low+' '+f.exam.unit;var nm=f.exam.names[0];nm=nm.charAt(0)+nm.slice(1).toLowerCase();rows+='<div class="lab-row"><div class="lab-bar '+cls+'"></div><div class="lab-name">'+nm+'</div><div><div class="lab-val '+cls+'">'+formatNum(f.exam,f.value)+' '+f.exam.unit+'</div><div class="lab-ref">'+ref+'</div></div></div>';});ph+='<div class="panel"><div class="panel-head"><span>'+(PANEL_ICON[pn]||'🔬')+'</span><span class="panel-title">'+pn+'</span><span class="panel-count">'+panels[pn].length+' exam.</span></div>'+rows+'</div>';});var ah='';if(crits.length){ah='<div class="apanel"><div class="atitle">⚠️ Alertas Críticos</div>';crits.forEach(function(f){var ih=f.exam.cHigh!==null&&f.value>f.exam.cHigh;ah+='<div class="aitem"><span style="font-size:14px;flex-shrink:0">🚨</span><div><strong>'+f.exam.abbr+'</strong>: '+formatNum(f.exam,f.value)+' '+f.exam.unit+' — '+(ih?'Acima do limite crítico (ref &lt; '+f.exam.cHigh+')':'Abaixo do limite crítico (ref &gt; '+f.exam.cLow+')')+'</div></div>';});ah+='</div>';}html+='<div class="patient-block'+bc+'" id="patLab_'+idx+'"><div class="patient-header" onclick="toggleLab('+idx+')"><span class="patient-num">#'+(idx+1)+'</span><div style="flex:1"><div class="patient-name">'+(pd.meta.name||'Paciente')+'</div><div class="patient-meta">'+(pd.meta.sector?'<span>'+pd.meta.sector+'</span>':'')+(pd.meta.date?'<span>'+pd.meta.date+'</span>':'')+(pd.meta.doctor?'<span>Sol.: '+pd.meta.doctor+'</span>':'')+'</div></div><div class="patient-badges"><span class="pbadge pb-'+rt+'">'+rl+'</span><span class="pbadge-count">'+pd.results.length+' exames</span></div><span class="chevron open" id="chevLab_'+idx+'">▼</span></div><div class="patient-body open" id="bodyLab_'+idx+'"><div class="line-card"><div class="line-lbl">⚡ Linha Única</div><div class="line-text" id="lineLab_'+idx+'">'+line+'</div><div class="line-actions"><button class="btn-copy" onclick="copyLineLab('+idx+')">Copiar Linha</button><span class="flash" id="flashLab_'+idx+'">✓ Copiado!</span></div></div>'+ah+'<div class="pgrid2">'+ph+'</div><div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;"><button class="btn-sec" onclick="copyPatLab('+idx+')">📋 Copiar resumo completo</button><span class="flash" id="flashPat_'+idx+'">✓ Copiado!</span></div></div></div>';});document.getElementById('patientsLab').innerHTML=html;document.getElementById('actionsLab').innerHTML='<button class="btn-sec" onclick="expandAllLab()">▼ Expandir Todos</button><button class="btn-sec" onclick="collapseAllLab()">▲ Recolher Todos</button><button class="btn-sec" onclick="resetLab()">🔄 Novo</button>';document.getElementById('resultsLab').classList.add('on');document.getElementById('resultsLab').scrollIntoView({behavior:'smooth'});}
+function toggleLab(idx){var b=document.getElementById('bodyLab_'+idx);var c=document.getElementById('chevLab_'+idx);var o=b.classList.toggle('open');c.classList.toggle('open',o);}
+function expandAllLab(){labPatients.forEach(function(_,i){document.getElementById('bodyLab_'+i).classList.add('open');document.getElementById('chevLab_'+i).classList.add('open');});}
+function collapseAllLab(){labPatients.forEach(function(_,i){document.getElementById('bodyLab_'+i).classList.remove('open');document.getElementById('chevLab_'+i).classList.remove('open');});}
+function copyLineLab(idx){copyToClipboard(document.getElementById('lineLab_'+idx).textContent,function(){flashEl('flashLab_'+idx);});}
+function copyPatLab(idx){var pd=labPatients[idx];var line=document.getElementById('lineLab_'+idx).textContent;var crits=pd.results.filter(function(f){return classify(f.exam,f.value)==='critical';});var t='=== '+pd.meta.name+' ===\n'+(pd.meta.date?'Data: '+pd.meta.date+'\n':'')+'\nResumo:\n'+line;if(crits.length)t+='\n\nAlertas:\n'+crits.map(function(f){return'  * '+f.exam.abbr+': '+formatNum(f.exam,f.value)+' '+f.exam.unit;}).join('\n');copyToClipboard(t,function(){flashEl('flashPat_'+idx);});}
+function copyAllLab(){var t=labPatients.map(function(p,i){return'=== '+p.meta.name+' ===\n'+document.getElementById('lineLab_'+i).textContent;}).join('\n\n');copyToClipboard(t,function(){flashEl('flashAllLab');});}
+function resetLab(){document.getElementById('rtaLab').value='';document.getElementById('ccLab').textContent='0 caracteres';document.getElementById('btnLab').disabled=true;document.getElementById('resultsLab').classList.remove('on');labPatients=[];window.scrollTo({top:0,behavior:'smooth'});}
+function parseTabRow(text,label){var re=new RegExp('^'+label+'\\t(.+)$','mi');var m=text.match(re);if(!m)return[];var vals=[];m[1].split('\t').forEach(function(cell){var n=parseFloat(cell.trim().replace('%','').replace(',','.'));if(!isNaN(n))vals.push(n);});return vals;}
+function splitVitPatients(text){var lines=text.replace(/\r/g,'').split('\n');var positions=[];for(var i=0;i<lines.length;i++){var m=lines[i].trim().match(/^([A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ\s]{2,}?)\s*-\s*(\d{4,})\s*$/);if(m)positions.push({lineIdx:i,name:m[1].trim()});}if(!positions.length)return[{name:'Paciente',text:text}];return positions.map(function(p,i){return{name:p.name,text:lines.slice(p.lineIdx,i+1<positions.length?positions[i+1].lineIdx:lines.length).join('\n')};});}
+function parseVitals(text){var mx=function(a){return a.length?Math.max.apply(null,a):null;};var mn=function(a){return a.length?Math.min.apply(null,a):null;};var pas=parseTabRow(text,'PAS'),pad=parseTabRow(text,'PAD'),pam=parseTabRow(text,'PAM'),fc=parseTabRow(text,'FC'),spo2=parseTabRow(text,'SPO2'),temp=parseTabRow(text,'TEMP'),hgt=parseTabRow(text,'HGT').filter(function(v){return v>0;});var bhM=text.match(/BH\s+Dia:\s*([+\-]?[\d.,]+)/i);var bhDia=bhM?parseFloat(bhM[1].replace(',','.')):null;var bhAM=text.match(/BH\s+Total:\s*([+\-]?[\d.,]+)/i);var bhAcum=bhAM?parseFloat(bhAM[1].replace(',','.')):null;var dRow=text.match(/^DIURESE\t([\t\d.\s]+)/mi);var diureseTotal=null,diureseParciais=[];if(dRow){var nums=(dRow[1].match(/\d+\.?\d*/g)||[]).map(parseFloat).filter(function(n){return n>0;});if(nums.length){diureseTotal=nums[nums.length-1];diureseParciais=nums.slice(0,-1);}}var evRow=text.match(/^EVAC\t([\t\d.\s]+)/mi);var evacua=null;if(evRow){var ns=(evRow[1].match(/\d+\.?\d*/g)||[]).map(parseFloat).filter(function(n){return n>0;});if(ns.length)evacua=ns[ns.length-1];}var hdRow=text.match(/^HD\t([\t\d.\s]+)/mi);var hd=null;if(hdRow){var ns2=(hdRow[1].match(/\d+\.?\d*/g)||[]).map(parseFloat).filter(function(n){return n>0;});if(ns2.length)hd=ns2[ns2.length-1];}var lM=text.match(/Leito:\s*([\d\-]+)/i);var dM=text.match(/(\d{2}\/\d{2}\/\d{4})\s+\d+:\d+\s+até/);return{leito:lM?lM[1]:'',date:dM?dM[1]:'',hgtMax:mx(hgt),hgtMin:mn(hgt),pasMax:mx(pas),pasMin:mn(pas),padMax:mx(pad),padMin:mn(pad),pamMax:mx(pam),pamMin:mn(pam),fcMax:mx(fc),fcMin:mn(fc),spo2Min:mn(spo2),tempMax:mx(temp),bhDia:bhDia,bhAcum:bhAcum,diureseTotal:diureseTotal,diureseParciais:diureseParciais,evacua:evacua,hd:hd};}
+function buildVitLine(v){var parts=[];if(v.diureseTotal!==null)parts.push('Diurese '+(v.diureseParciais.length?v.diureseParciais.join(' + ')+' / '+v.diureseTotal+' mL':v.diureseTotal+' mL em 24h'));if(v.bhDia!==null)parts.push('BH '+(v.bhDia>=0?'+':'')+v.bhDia);if(v.tempMax!==null)parts.push('T.max '+v.tempMax+'°C');if(v.hgtMax!==null)parts.push('HGT max '+v.hgtMax+(v.hgtMin?' min '+v.hgtMin:''));if(v.evacua!==null)parts.push(v.evacua+' evacuaç'+(v.evacua===1?'ão':'ões'));if(v.hd!==null&&v.hd>0)parts.push('HD '+v.hd+' mL');if(v.pasMax!==null)parts.push('PAS max '+v.pasMax+' min '+v.pasMin);if(v.fcMax!==null)parts.push('FC max '+v.fcMax+' min '+v.fcMin);if(v.spo2Min!==null)parts.push('SpO2 min '+v.spo2Min+'%');return parts.join(' | ');}
+var vitPatients=[];
+function onTxtVit(){var v=document.getElementById('rtaVit').value;document.getElementById('ccVit').textContent=v.length+' caracteres';document.getElementById('btnVit').disabled=v.trim().length<10;}
+function runVit(){var text=document.getElementById('rtaVit').value;var blocks=splitVitPatients(text);vitPatients=[];blocks.forEach(function(b){var v=parseVitals(b.text);var hd=v.bhDia!==null||v.diureseTotal!==null||v.tempMax!==null||v.hgtMax!==null||v.pasMax!==null;if(hd)vitPatients.push({name:b.name,vitals:v,line:buildVitLine(v)});});if(!vitPatients.length){alert('Nenhum sinal vital reconhecido.');return;}renderVit();}
+function renderVit(){document.getElementById('sbVit').innerHTML=sbItem(vitPatients.length,'Pacientes','var(--accent2)')+'<div class="sb-actions"><button class="btn-sm" onclick="copyAllVit()">📋 Copiar Todos</button><span class="flash" id="flashAllVit">✓ Copiado!</span></div>';var html='';vitPatients.forEach(function(pd,idx){var v=pd.vitals;var ha=v.bhDia!==null&&v.bhDia<-500;function vc(val,lbl,sub,color,cls){return'<div class="vcard'+(cls?' '+cls:'')+'"><div class="vcard-val" style="color:'+color+'">'+val+'</div><div class="vcard-lbl">'+lbl+'</div>'+(sub?'<div class="vcard-sub">'+sub+'</div>':'')+'</div>';}var cards='';if(v.diureseTotal!==null)cards+=vc(v.diureseTotal+' mL','Diurese 24h',v.diureseParciais.length?v.diureseParciais.join(' + ')+' / '+v.diureseTotal+' mL':'','var(--accent2)','');if(v.bhDia!==null)cards+=vc((v.bhDia>=0?'+':'')+v.bhDia,'BH Dia',v.bhAcum!==null?'acum: '+v.bhAcum:'',v.bhDia<-500?'var(--danger)':v.bhDia<0?'var(--warning)':'var(--ok)',v.bhDia<-800?'alert':v.bhDia<-300?'warn':'');if(v.tempMax!==null)cards+=vc(v.tempMax+'°C','Temp. Máxima','',v.tempMax>=38.5?'var(--danger)':v.tempMax>=37.5?'var(--warning)':'var(--ok)',v.tempMax>=38.5?'alert':v.tempMax>=37.5?'warn':'');if(v.hgtMax!==null)cards+=vc(v.hgtMax,'HGT Máximo',v.hgtMin?'mín: '+v.hgtMin:'',v.hgtMax>250?'var(--danger)':v.hgtMax>180?'var(--warning)':'var(--ok)',v.hgtMax>250?'alert':v.hgtMax>180?'warn':'');if(v.evacua!==null)cards+=vc(v.evacua,'Evacuações','','var(--text)','');if(v.hd!==null&&v.hd>0)cards+=vc(v.hd+' mL','HD','','var(--accent2)','');if(v.pasMax!==null)cards+=vc(v.pasMax+'/'+v.padMax,'PA máx (mmHg)','mín: '+v.pasMin+'/'+v.padMin,v.pasMin<90?'var(--danger)':v.pasMax>180?'var(--warning)':'var(--ok)',v.pasMin<90?'alert':v.pasMax>180?'warn':'');if(v.pamMin!==null)cards+=vc(v.pamMin+'–'+v.pamMax,'PAM (mmHg)','min–max','var(--text)','');if(v.fcMax!==null)cards+=vc(v.fcMax,'FC máx (bpm)','mín: '+v.fcMin,v.fcMax>120?'var(--warning)':v.fcMin<50?'var(--danger)':'var(--ok)',v.fcMax>150?'alert':v.fcMax>120?'warn':'');if(v.spo2Min!==null)cards+=vc(v.spo2Min+'%','SpO2 mín','',v.spo2Min<90?'var(--danger)':v.spo2Min<94?'var(--warning)':'var(--ok)',v.spo2Min<90?'alert':v.spo2Min<94?'warn':'');html+='<div class="patient-block'+(ha?' has-critical':'')+'"><div class="patient-header" onclick="toggleVit('+idx+')"><span class="patient-num">#'+(idx+1)+'</span><div style="flex:1"><div class="patient-name">'+pd.name+'</div><div class="patient-meta">'+(v.leito?'<span>Leito: '+v.leito+'</span>':'')+(v.date?'<span>'+v.date+'</span>':'')+'</div></div><span class="chevron open" id="chevVit_'+idx+'">▼</span></div><div class="patient-body open" id="bodyVit_'+idx+'"><div class="line-card"><div class="line-lbl">⚡ Linha Única — Sinais Vitais</div><div class="line-text" id="lineVit_'+idx+'">'+pd.line+'</div><div class="line-actions"><button class="btn-copy" onclick="copyLineVit('+idx+')">Copiar Linha</button><span class="flash" id="flashVit_'+idx+'">✓ Copiado!</span></div></div><div class="vgrid">'+cards+'</div></div></div>';});document.getElementById('patientsVit').innerHTML=html;document.getElementById('actionsVit').innerHTML='<button class="btn-sec" onclick="resetVit()">🔄 Novo</button>';document.getElementById('resultsVit').classList.add('on');document.getElementById('resultsVit').scrollIntoView({behavior:'smooth'});}
+function toggleVit(idx){var b=document.getElementById('bodyVit_'+idx);var c=document.getElementById('chevVit_'+idx);var o=b.classList.toggle('open');c.classList.toggle('open',o);}
+function copyLineVit(idx){copyToClipboard(document.getElementById('lineVit_'+idx).textContent,function(){flashEl('flashVit_'+idx);});}
+function copyAllVit(){var t=vitPatients.map(function(p,i){return'=== '+p.name+' ===\n'+document.getElementById('lineVit_'+i).textContent;}).join('\n\n');copyToClipboard(t,function(){flashEl('flashAllVit');});}
+function resetVit(){document.getElementById('rtaVit').value='';document.getElementById('ccVit').textContent='0 caracteres';document.getElementById('btnVit').disabled=true;document.getElementById('resultsVit').classList.remove('on');vitPatients=[];window.scrollTo({top:0,behavior:'smooth'});}
 
-// ═══════════════════════════════════════════════════════════
-// VITAIS
-// ═══════════════════════════════════════════════════════════
-var vitPatients = [];
-function onTxtVit() {
-  var v = document.getElementById('rtaVit').value;
-  document.getElementById('ccVit').textContent = v.length + ' caracteres';
-  document.getElementById('goBtnVit').disabled = v.trim().length < 20;
-}
-function parseVitBlock(text, name) {
-  var pas = text.match(/P\.A[:\s]*([\d]+\/[\d]+)/i);
-  var fc  = text.match(/F\.C[:\s]*([\d]+)/i) || text.match(/\bFC[:\s]*([\d]+)/i);
-  var fr  = text.match(/F\.R[:\s]*([\d]+)/i) || text.match(/\bFR[:\s]*([\d]+)/i);
-  var spo2 = text.match(/SpO2[:\s]*([\d]+)/i) || text.match(/Sat[:\s]*([\d]+)/i);
-  var temp = text.match(/T(?:emp)?[:\s]*([\d]{2}[,.]\d)\s*°?C?/i);
-  var diur = text.match(/Diurese[:\s]*([\d]+(?:[,.]\d+)?)\s*m[Ll]/i);
-  var bh   = text.match(/BH\s*([+\-]?\s*[\d.,]+)\s*m[Ll]/i);
-  return {
-    name: name,
-    pa: pas ? pas[1] : null,
-    fc: fc ? fc[1] : null,
-    fr: fr ? fr[1] : null,
-    spo2: spo2 ? spo2[1] : null,
-    temp: temp ? temp[1].replace(',','.') : null,
-    diur: diur ? diur[1] : null,
-    bh: bh ? bh[1].replace(/\s+/,'') : null,
-  };
-}
-function splitVitPatients(text) {
-  var re = /([A-ZÁÉÍÓÚÀÃÕ][A-ZÁÉÍÓÚÀÃÕÂÊÎÔÛÇ\s]{5,})\s*-\s*RA[\s:]*(\d+)/gi;
-  var matches = [];
-  var m;
-  while ((m = re.exec(text)) !== null) { matches.push({idx: m.index, name: m[1].trim(), ra: m[2]}); }
-  if (!matches.length) return [{name: 'Paciente', text: text}];
-  var patients = [];
-  for (var i = 0; i < matches.length; i++) {
-    var start = matches[i].idx;
-    var end = i + 1 < matches.length ? matches[i+1].idx : text.length;
-    patients.push({name: matches[i].name + ' (RA ' + matches[i].ra + ')', text: text.substring(start, end)});
-  }
-  return patients;
-}
-function runVit() {
-  var text = document.getElementById('rtaVit').value;
-  var splits = splitVitPatients(text);
-  vitPatients = splits.map(function(p){ return parseVitBlock(p.text, p.name); });
-  var nAlert = vitPatients.filter(function(p){
-    return (p.spo2 && parseInt(p.spo2) < 92) || (p.temp && parseFloat(p.temp) > 37.8) ||
-           (p.fc && (parseInt(p.fc) > 120 || parseInt(p.fc) < 50));
-  }).length;
-  var sbHtml = mkSbItem(vitPatients.length, 'Pacientes', 'var(--accent)');
-  sbHtml += '<div class="sb-div"></div>';
-  sbHtml += mkSbItem(nAlert, 'Alertas', nAlert > 0 ? 'var(--danger)' : 'var(--ok)');
-  sbHtml += '<div class="sb-actions"><button class="btn-sm" onclick="resetVit()">↺ Novo</button></div>';
-  document.getElementById('summaryBarVit').innerHTML = sbHtml;
-  var html = '';
-  vitPatients.forEach(function(p, pi) {
-    var hasAlert = (p.spo2 && parseInt(p.spo2) < 92) || (p.temp && parseFloat(p.temp) > 37.8) || (p.fc && (parseInt(p.fc) > 120 || parseInt(p.fc) < 50));
-    html += '<div class="vpatient-block'+(hasAlert?' has-alert':'')+'">';
-    html += '<div class="patient-header"><span class="patient-num">'+(pi+1)+'</span><span class="patient-name">'+p.name+'</span></div>';
-    html += '<div class="patient-body open"><div class="vgrid">';
-    function vcard(label, val, unit, alert, warn) {
-      if (!val) return '';
-      var cls = 'vcard'+(alert?' alert':warn?' warn':'');
-      var col = alert ? 'var(--danger)' : warn ? 'var(--warning)' : 'var(--accent)';
-      return '<div class="'+cls+'"><div class="vcard-val" style="color:'+col+'">'+val+'</div><div class="vcard-sub">'+unit+'</div><div class="vcard-lbl">'+label+'</div></div>';
-    }
-    html += vcard('PA', p.pa, 'mmHg', false, false);
-    html += vcard('FC', p.fc, 'bpm', p.fc && (parseInt(p.fc) > 120 || parseInt(p.fc) < 50), false);
-    html += vcard('FR', p.fr, 'irpm', false, false);
-    html += vcard('SpO2', p.spo2, '%', p.spo2 && parseInt(p.spo2) < 90, p.spo2 && parseInt(p.spo2) < 94);
-    html += vcard('Temp', p.temp, '°C', false, p.temp && parseFloat(p.temp) > 37.8);
-    if (p.diur) html += '<div class="vcard"><div class="vcard-val" style="color:var(--accent2);">'+p.diur+'</div><div class="vcard-sub">mL</div><div class="vcard-lbl">Diurese</div></div>';
-    if (p.bh) {
-      var bhNum = parseFloat(p.bh.replace(',','.'));
-      var bhCls = bhNum >= 0 ? 'vcard-val bh-pos' : 'vcard-val bh-neg';
-      var bhSign = bhNum >= 0 ? '+' : '';
-      html += '<div class="vcard"><div class="'+bhCls+'">'+bhSign+p.bh+'</div><div class="vcard-sub">mL/24h</div><div class="vcard-lbl">BH</div></div>';
-    }
-    html += '</div></div></div>';
-  });
-  document.getElementById('vitPatientsContainer').innerHTML = html || '<div style="text-align:center;padding:40px;color:var(--muted);">Nenhum dado identificado.</div>';
-  document.getElementById('resultsVit').classList.add('on');
-  document.getElementById('resultsVit').scrollIntoView({behavior:'smooth'});
-}
-function copyAllVit() {
-  var lines = vitPatients.map(function(p){
-    var parts = [p.name];
-    if (p.pa)  parts.push('PA: '+p.pa+' mmHg');
-    if (p.fc)  parts.push('FC: '+p.fc+' bpm');
-    if (p.fr)  parts.push('FR: '+p.fr+' irpm');
-    if (p.spo2) parts.push('SpO2: '+p.spo2+'%');
-    if (p.temp) parts.push('T: '+p.temp+'°C');
-    if (p.diur) parts.push('Diurese: '+p.diur+' mL');
-    if (p.bh)   parts.push('BH: '+p.bh+' mL');
-    return parts.join(' | ');
-  }).join('\n');
-  copyToClipboard(lines, function(){ alert('Copiado!'); });
-}
-function resetVit() {
-  document.getElementById('rtaVit').value = '';
-  document.getElementById('ccVit').textContent = '0 caracteres';
-  document.getElementById('resultsVit').classList.remove('on');
-  document.getElementById('goBtnVit').disabled = true;
-  vitPatients = [];
-}
 
-// ════════════════════════════════════════════════════
-//  PASSAGEM DE PLANTÃO — Parser v2 (ICUTab engine)
-// ════════════════════════════════════════════════════
-var plantaoPatients = [];
-
-function onTxtResume() {
-  var v = document.getElementById('rtaResume').value;
-  document.getElementById('ccResume').textContent = v.length + ' caracteres';
-  document.getElementById('goBtnResume').disabled = v.trim().length < 50;
-}
-
-// ── Helpers ──────────────────────────────────────────
-function extractSection(text, tag) {
-  var re = new RegExp('#' + tag + '[\\s\\S]*?(?=#[A-ZÁÉÍÓÚ]|$)', 'i');
-  var m = text.match(re);
-  return m ? m[0] : '';
-}
 
 function parseAtbFromSection(section) {
   if (!section) return [];
@@ -2477,6 +2204,17 @@ function parseDiagLines(block) {
   return diagLines.slice(0, 3);
 }
 
+function extractSection(block, headerPattern) {
+  if (!block) return '';
+  var re = new RegExp('#\\s*' + headerPattern + '[^\\n]*\\n([\\s\\S]*?)(?=\\n#|$)', 'i');
+  var m = block.match(re);
+  if (m) return m[1].trim();
+  // fallback: look without # prefix
+  var re2 = new RegExp('(?:^|\\n)' + headerPattern + '[^\\n]*\\n([\\s\\S]*?)(?=\\n[A-Z#]|$)', 'i');
+  var m2 = block.match(re2);
+  return m2 ? m2[1].trim() : '';
+}
+
 function parsePlantaoPatient(block, fullText) {
   var REF = new Date();
 
@@ -2576,18 +2314,38 @@ function splitEvolutions(text) {
   return blocks;
 }
 
+var plantaoPatients = [];
+
+function onTxtResume() {
+  var v = document.getElementById('rtaResume').value;
+  var cc = document.getElementById('ccResume');
+  if (cc) cc.textContent = v.length + ' caracteres';
+  var btn = document.getElementById('goBtnResume');
+  if (btn) btn.disabled = v.trim().length < 20;
+}
+
+function goBtnResume() {
+  runResume();
+}
+
 function runResume() {
-  var text = document.getElementById('rtaResume').value;
-  var blocks = splitEvolutions(text);
-  plantaoPatients = blocks
-    .map(function(b){ return parsePlantaoPatient(b, text); })
-    .filter(function(p){ return p.name && p.name !== '—'; });
+  try {
+    var text = document.getElementById('rtaResume').value;
+    if (!text || text.trim().length < 10) { alert('Cole o texto da evolução primeiro.'); return; }
+    var blocks = splitEvolutions(text);
+    plantaoPatients = blocks
+      .map(function(b){ return parsePlantaoPatient(b, text); })
+      .filter(function(p){ return p.name && p.name !== '—'; });
 
-  if (!plantaoPatients.length) {
-    plantaoPatients = [parsePlantaoPatient(text, text)];
+    if (!plantaoPatients.length) {
+      plantaoPatients = [parsePlantaoPatient(text, text)];
+    }
+
+    renderPlantao();
+  } catch(e) {
+    alert('Erro ao processar: ' + e.message);
+    console.error('runResume crash:', e);
   }
-
-  renderPlantao();
 }
 
 var SEV_COLORS = {
@@ -5375,6 +5133,21 @@ function syncExecute() {
 // INIT
 // ═══════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function() {
+  // Robust nav for Safari iOS file:// — bind touch AND click
+  document.querySelectorAll('.nav-tab[data-tab]').forEach(function(btn) {
+    function handleNav(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      switchNav(btn.getAttribute('data-tab'));
+    }
+    btn.addEventListener('touchend', handleNav, {passive: false});
+    btn.addEventListener('click', handleNav, false);
+  });
+
+  // Ensure pageLab is visible on load
+  var pageLab = document.getElementById('pageLab');
+  if (pageLab) { pageLab.style.display = 'block'; }
+
   calcGCS();
   calcSAPS3();
   initCalcCollapse();
@@ -5406,6 +5179,7 @@ function initCalcCollapse() {
     });
   });
 }
+
 </script>
 </body>
 </html>
