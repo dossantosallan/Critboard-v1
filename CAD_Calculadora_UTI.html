@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAD — Calculadora UTI</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --red: #8B0000;
+    --red-light: #c0392b;
+    --red-pale: #fdf2f2;
+    --red-border: #e8c5c5;
+    --amber: #92400e;
+    --amber-bg: #fffbeb;
+    --amber-border: #fde68a;
+    --green: #14532d;
+    --green-bg: #f0fdf4;
+    --green-border: #86efac;
+    --blue: #1e3a5f;
+    --blue-bg: #eff6ff;
+    --blue-border: #bfdbfe;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-500: #6b7280;
+    --gray-700: #374151;
+    --gray-900: #111827;
+    --bg: #f8f7f5;
+    --card: #ffffff;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--gray-900);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--red);
+    color: white;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(139,0,0,0.3);
+  }
+  .header-badge {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .header h1 {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .header p {
+    font-size: 11px;
+    opacity: 0.8;
+    margin-top: 1px;
+  }
+  .header-right {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    opacity: 0.7;
+    text-align: right;
+  }
+
+  /* PROGRESS STEPS */
+  .steps-bar {
+    background: white;
+    border-bottom: 1px solid var(--gray-200);
+    padding: 0 24px;
+    display: flex;
+    overflow-x: auto;
+  }
+  .step-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 16px 14px 0;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+    margin-right: 4px;
+  }
+  .step-item:hover { border-bottom-color: var(--red-border); }
+  .step-item.active { border-bottom-color: var(--red); }
+  .step-item.done { opacity: 0.7; }
+  .step-item.locked { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+  .step-num {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--gray-200);
+    color: var(--gray-500);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--mono);
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .step-item.active .step-num { background: var(--red); color: white; }
+  .step-item.done .step-num { background: var(--green); color: white; }
+  .step-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gray-700);
+  }
+  .step-item.active .step-label { color: var(--red); font-weight: 600; }
+
+  /* MAIN CONTENT */
+  .main { max-width: 900px; margin: 0 auto; padding: 24px 20px 80px; }
+
+  /* CARDS */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--red-border);
+  }
+
+  /* INPUTS */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--gray-500);
+  }
+  .form-group .hint {
+    font-size: 10px;
+    color: var(--gray-500);
+    margin-top: -4px;
+    font-family: var(--mono);
+  }
+  .input-wrap { position: relative; }
+  .input-wrap .unit {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    color: var(--gray-500);
+    font-family: var(--mono);
+    pointer-events: none;
+  }
+  input[type=number], input[type=text], select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: var(--mono);
+    color: var(--gray-900);
+    background: var(--gray-50);
+    transition: all 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  input[type=number]:focus, input[type=text]:focus, select:focus {
+    outline: none;
+    border-color: var(--red);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(139,0,0,0.08);
+  }
+  input.error { border-color: #ef4444; background: #fff5f5; }
+  .with-unit input { padding-right: 50px; }
+
+  /* ALERTS */
+  .alert {
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 14px;
+    display: flex;
+    gap: 12px;
+  }
+  .alert-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .alert-red { background: var(--red-pale); border: 1px solid var(--red-border); color: var(--red); }
+  .alert-amber { background: var(--amber-bg); border: 1px solid var(--amber-border); color: var(--amber); }
+  .alert-green { background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green); }
+  .alert-blue { background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue); }
+  .alert strong { font-weight: 700; }
+
+  /* RESULT BOXES */
+  .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .result-box {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .result-box.highlight {
+    background: var(--red-pale);
+    border-color: var(--red-border);
+  }
+  .result-box.green-box {
+    background: var(--green-bg);
+    border-color: var(--green-border);
+  }
+  .result-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    margin-bottom: 6px;
+  }
+  .result-box.highlight .result-label { color: var(--red); }
+  .result-box.green-box .result-label { color: var(--green); }
+  .result-value {
+    font-size: 22px;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: var(--gray-900);
+    letter-spacing: -0.5px;
+  }
+  .result-box.highlight .result-value { color: var(--red); }
+  .result-box.green-box .result-value { color: var(--green); }
+  .result-sub {
+    font-size: 11px;
+    color: var(--gray-500);
+    margin-top: 4px;
+    font-family: var(--mono);
+  }
+
+  /* TABLE */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table th {
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    border-bottom: 2px solid var(--gray-200);
+    background: var(--gray-50);
+  }
+  .data-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: var(--gray-50); }
+  .data-table .mono { font-family: var(--mono); font-weight: 600; }
+  .data-table .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .tag-red { background: var(--red-pale); color: var(--red); border: 1px solid var(--red-border); }
+  .tag-amber { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+  .tag-green { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+  .tag-blue { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+
+  /* BUTTONS */
+  .btn {
+    padding: 11px 22px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    font-family: var(--sans);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-primary { background: var(--red); color: white; }
+  .btn-primary:hover { background: #7a0000; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(139,0,0,0.25); }
+  .btn-secondary { background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-200); }
+  .btn-secondary:hover { background: var(--gray-200); }
+  .btn-success { background: #15803d; color: white; }
+  .btn-success:hover { background: #166534; }
+  .btn-row { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+
+  /* MONITOR SECTION */
+  .hgt-entry {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: 80px 1fr 1fr 1fr auto;
+    gap: 12px;
+    align-items: center;
+    font-size: 13px;
+  }
+  .hgt-entry .time-label {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--gray-500);
+  }
+  .hgt-result-tag {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: var(--mono);
+  }
+  .hgt-result-tag.ok { background: var(--green-bg); color: var(--green); }
+  .hgt-result-tag.low { background: var(--blue-bg); color: var(--blue); }
+  .hgt-result-tag.high { background: var(--amber-bg); color: var(--amber); }
+  .hgt-result-tag.crit { background: var(--red-pale); color: var(--red); }
+
+  .protocol-box {
+    background: white;
+    border: 1.5px solid var(--red-border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 14px;
+  }
+  .protocol-box-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 10px;
+  }
+  .protocol-item {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    align-items: flex-start;
+  }
+  .protocol-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--red);
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+
+  /* STATUS BAR */
+  .status-bar {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .status-item { display: flex; flex-direction: column; gap: 2px; }
+  .status-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--gray-500); }
+  .status-val { font-size: 14px; font-weight: 700; font-family: var(--mono); color: var(--gray-900); }
+  .status-divider { width: 1px; height: 32px; background: var(--gray-200); }
+
+  /* RESOLUTION */
+  .resolution-check {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    border: 1px solid var(--gray-200);
+  }
+  .check-icon { font-size: 18px; }
+  .resolution-check.met { background: var(--green-bg); border-color: var(--green-border); }
+  .resolution-check.not-met { background: var(--red-pale); border-color: var(--red-border); }
+
+  /* SECTION HIDDEN */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* DIVIDER */
+  .divider { height: 1px; background: var(--gray-200); margin: 20px 0; }
+
+  /* MONO DISPLAY */
+  .mono-display {
+    font-family: var(--mono);
+    font-size: 13px;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    padding: 14px;
+    line-height: 1.8;
+  }
+  .mono-display .line { display: flex; gap: 8px; }
+  .mono-display .key { color: var(--gray-500); min-width: 180px; }
+  .mono-display .val { color: var(--gray-900); font-weight: 600; }
+  .mono-display .val.danger { color: var(--red); }
+  .mono-display .val.warn { color: var(--amber); }
+  .mono-display .val.ok { color: var(--green); }
+
+  /* FOOTNOTE */
+  .footnote {
+    font-size: 10px;
+    color: var(--gray-500);
+    font-family: var(--mono);
+    border-top: 1px solid var(--gray-200);
+    padding-top: 12px;
+    margin-top: 16px;
+    line-height: 1.7;
+  }
+
+  @media (max-width: 640px) {
+    .form-grid, .form-grid-3, .result-grid { grid-template-columns: 1fr; }
+    .hgt-entry { grid-template-columns: 1fr 1fr; }
+    .header h1 { font-size: 15px; }
+    .main { padding: 16px 12px 80px; }
+    .status-bar { gap: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-badge">UTI · Protocolo</div>
+  </div>
+  <div>
+    <h1>Calculadora CAD — Fluxograma Guiado</h1>
+    <p>Cetoacidose Diabética Grave · Diretriz SBD 2023</p>
+  </div>
+  <div class="header-right">
+    Diretriz SBD 2023<br>Uso exclusivo clínico
+  </div>
+</div>
+
+<div class="steps-bar" id="stepsBar">
+  <div class="step-item active" onclick="goToStep(0)" id="step-tab-0">
+    <div class="step-num">1</div>
+    <div class="step-label">Avaliação Inicial</div>
+  </div>
+  <div class="step-item locked" onclick="goToStep(1)" id="step-tab-1">
+    <div class="step-num">2</div>
+    <div class="step-label">Classificação & Potássio</div>
+  </div>
+  <div class="step-item locked" onclick="goToStep(2)" id="step-tab-2">
+    <div class="step-num">3</div>
+    <div class="step-label">Hidratação</div>
+  </div>
+  <div class="step-item locked" onclick="goToStep(3)" id="step-tab-3">
+    <div class="step-num">4</div>
+    <div class="step-label">Insulinoterapia</div>
+  </div>
+  <div class="step-item locked" onclick="goToStep(4)" id="step-tab-4">
+    <div class="step-num">5</div>
+    <div class="step-label">Monitoramento</div>
+  </div>
+  <div class="step-item locked" onclick="goToStep(5)" id="step-tab-5">
+    <div class="step-num">6</div>
+    <div class="step-label">Resolução / Transição</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- STEP 0: INITIAL ASSESSMENT -->
+  <div class="section active" id="section-0">
+    <div class="card">
+      <div class="card-title">Dados do Paciente e Exames de Admissão</div>
+
+      <div class="form-grid" style="margin-bottom:16px;">
+        <div class="form-group">
+          <label>Peso do Paciente</label>
+          <div class="input-wrap with-unit">
+            <input type="number" id="peso" placeholder="70" min="30" max="250">
+            <span class="unit">kg</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>HGT Inicial</label>
+          <div class="input-wrap with-unit">
+            <input type="number" id="hgt0" placeholder="450" min="50" max="1000">
+            <span class="unit">mg/dL</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-grid-3" style="margin-bottom:16px;">
+        <div class="form-group">
+          <label>pH Venoso</label>
+          <div class="input-wrap">
+            <input type="number" id="pH" placeholder="7.10" step="0.01" min="6.5" max="7.5">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Bicarbonato (HCO₃)</label>
+          <div class="input-wrap with-unit">
+            <input type="number" id="hco3" placeholder="8" min="1" max="30">
+            <span class="unit">mEq/L</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>K⁺ Plasmático</label>
+          <div class="input-wrap with-unit">
+            <input type="number" id="kplus" placeholder="4.2" step="0.1" min="1" max="8">
+            <span class="unit">mEq/L</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-grid-3" style="margin-bottom:16px;">
+        <div class="form-group">
+          <label>Na⁺ Aferido</label>
+          <div class="input-wrap with-unit">
+            <input type="number" id="naFer" placeholder="138" min="100" max="180">
+            <span class="unit">mEq/L</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Cl⁻</label>
+          <div class="input-wrap with-unit">
+            <input type="number" id="cl" placeholder="102" min="70" max="140">
+            <span class="unit">mEq/L</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Ureia</label>
+          <div class="input-wrap with-unit">
+            <input type="number" id="ureia" placeholder="60" min="10" max="500">
+            <span class="unit">mg/dL</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-grid" style="margin-bottom:20px;">
+        <div class="form-group">
+          <label>Estado Hemodinâmico</label>
+          <select id="hemoDin">
+            <option value="estavel">Estável (PA e perfusão normais)</option>
+            <option value="choque">Choque hipovolêmico (PA baixa / hipoperfusão)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Função Cardíaca / Renal</label>
+          <select id="funcCard">
+            <option value="normal">Sem comprometimento</option>
+            <option value="comprometida">Comprometida (ICC / IRA)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="alert alert-amber">
+        <span class="alert-icon">⚠️</span>
+        <div><strong>Atenção:</strong> O K⁺ da gasometria <strong>NÃO substitui</strong> a dosagem plasmática. Use sempre o K⁺ plasmático nesta calculadora. Considere CAD euglicêmica em usuários de iSGLT2, gestantes e etilistas mesmo com HGT < 200 mg/dL.</div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="calcularInicial()">Calcular e Avançar →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 1: CLASSIFICATION & POTASSIUM -->
+  <div class="section" id="section-1">
+    <div class="card">
+      <div class="card-title">Classificação de Gravidade e Balanço Eletrolítico</div>
+
+      <div class="result-grid" id="classGrid"></div>
+      <div id="classAlerts"></div>
+
+      <div class="divider"></div>
+      <div class="card-title">Cálculos Laboratoriais</div>
+      <div class="mono-display" id="labCalcs"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Protocolo de Potássio</div>
+      <div id="kProtocol"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep(0)">← Voltar</button>
+      <button class="btn btn-primary" onclick="goToStep(2)">Hidratação →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: HYDRATION -->
+  <div class="section" id="section-2">
+    <div class="card">
+      <div class="card-title">Protocolo de Hidratação</div>
+      <div id="hidratacaoContent"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep(1)">← Voltar</button>
+      <button class="btn btn-primary" onclick="goToStep(3)">Insulinoterapia →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: INSULIN -->
+  <div class="section" id="section-3">
+    <div class="card">
+      <div class="card-title">Insulinoterapia IV em BIC</div>
+      <div id="insulinaContent"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep(2)">← Voltar</button>
+      <button class="btn btn-primary" onclick="goToStep(4)">Monitoramento →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: MONITORING -->
+  <div class="section" id="section-4">
+
+    <div class="status-bar" id="statusBar"></div>
+
+    <div class="card">
+      <div class="card-title">Registrar HGT Horário</div>
+
+      <div class="form-grid-3" style="margin-bottom:16px;">
+        <div class="form-group">
+          <label>HGT Atual</label>
+          <div class="input-wrap with-unit">
+            <input type="number" id="hgtNew" placeholder="350" min="30" max="800">
+            <span class="unit">mg/dL</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Taxa atual da bomba</label>
+          <div class="input-wrap with-unit">
+            <input type="number" id="taxaAtual" placeholder="7.0" step="0.1" min="0.1" max="50">
+            <span class="unit">mL/h</span>
+          </div>
+          <span class="hint" id="concHint"></span>
+        </div>
+        <div class="form-group">
+          <label>SG5% correndo?</label>
+          <select id="sg5Running">
+            <option value="nao">Não</option>
+            <option value="sim">Sim</option>
+          </select>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:0;">
+        <button class="btn btn-primary" onclick="adicionarHGT()">Registrar HGT e Calcular Ajuste</button>
+      </div>
+    </div>
+
+    <div id="hgtHistory"></div>
+
+    <div id="lastProtocol"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep(3)">← Voltar</button>
+      <button class="btn btn-success" onclick="goToStep(5)">Avaliar Resolução →</button>
+    </div>
+  </div>
+
+  <!-- STEP 5: RESOLUTION -->
+  <div class="section" id="section-5">
+    <div class="card">
+      <div class="card-title">Critérios de Resolução da CAD</div>
+
+      <p style="font-size:13px;color:var(--gray-700);margin-bottom:18px;line-height:1.6;">Insira os valores laboratoriais atuais para verificar se a CAD foi resolvida e calcular a transição para insulina SC.</p>
+
+      <div class="form-grid-3" style="margin-bottom:16px;">
+        <div class="form-group">
+          <label>HGT Atual</label>
+          <div class="input-wrap with-unit">
+            <input type="number" id="resHgt" placeholder="180">
+            <span class="unit">mg/dL</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>pH Venoso</label>
+          <div class="input-wrap">
+            <input type="number" id="resPh" placeholder="7.32" step="0.01">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Bicarbonato</label>
+          <div class="input-wrap with-unit">
+            <input type="number" id="resHco3" placeholder="16">
+            <span class="unit">mEq/L</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-grid" style="margin-bottom:16px;">
+        <div class="form-group">
+          <label>Ânion Gap Atual</label>
+          <div class="input-wrap">
+            <input type="number" id="resAG" placeholder="11" step="0.1">
+          </div>
+          <span class="hint">AG = Na − (Cl + HCO₃)</span>
+        </div>
+        <div class="form-group">
+          <label>Tolerando VO?</label>
+          <select id="resVO">
+            <option value="nao">Não</option>
+            <option value="sim">Sim</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:20px;">
+        <label>Contexto da Insulinoterapia Prévia</label>
+        <select id="contextInsulina">
+          <option value="primo">Primo-descompensação (nunca usou insulina antes)</option>
+          <option value="previa">Já usava insulina antes do episódio</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-bottom:20px;" id="dosePreviaGroup" style="display:none;">
+        <label>Dose prévia total de insulina (UI/dia)</label>
+        <div class="input-wrap with-unit">
+          <input type="number" id="dosePreviaUI" placeholder="40" step="1" min="1" max="300">
+          <span class="unit">UI/dia</span>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="calcularResolucao()">Avaliar Resolução</button>
+    </div>
+
+    <div id="resolutionResult"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep(4)">← Voltar ao Monitoramento</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// =========================================================
+// STATE
+// =========================================================
+const state = {
+  step: 0,
+  maxStep: 0,
+  peso: 0, hgt0: 0, pH: 0, hco3: 0, kplus: 0,
+  naFer: 0, cl: 0, ureia: 0, hemoDin: '', funcCard: '',
+  naCorr: 0, osmEf: 0, ag: 0,
+  gravidade: '',
+  insulinaConc: 1, // UI/mL (50UI in 50mL)
+  taxaInicial: 0,
+  hgtHistory: [],
+  currentTaxa: 0,
+};
+
+// =========================================================
+// NAVIGATION
+// =========================================================
+function goToStep(n) {
+  if (n > state.maxStep) return;
+  document.querySelectorAll('.section').forEach((s,i) => {
+    s.classList.toggle('active', i === n);
+  });
+  document.querySelectorAll('.step-item').forEach((s,i) => {
+    s.classList.remove('active','done','locked');
+    if (i === n) s.classList.add('active');
+    else if (i < state.maxStep) s.classList.add('done');
+    else if (i <= state.maxStep) s.classList.remove('locked');
+    else s.classList.add('locked');
+  });
+  state.step = n;
+  window.scrollTo(0,0);
+}
+
+function unlockStep(n) {
+  state.maxStep = Math.max(state.maxStep, n);
+  document.querySelectorAll('.step-item').forEach((s,i) => {
+    if (i <= state.maxStep) s.classList.remove('locked');
+  });
+}
+
+// =========================================================
+// HELPERS
+// =========================================================
+function fNum(n, dec=1) { return Number(n).toFixed(dec); }
+
+function gravidadeTag(g) {
+  if (g === 'Grave') return '<span class="tag tag-red">GRAVE</span>';
+  if (g === 'Moderada') return '<span class="tag tag-amber">MODERADA</span>';
+  return '<span class="tag tag-green">LEVE</span>';
+}
+
+function kTag(k) {
+  if (k < 3.3) return '<span class="tag tag-red">< 3,3 — HIPOCALEMIA GRAVE</span>';
+  if (k <= 5.2) return '<span class="tag tag-green">3,3–5,2 — NORMAL/ADEQ.</span>';
+  return '<span class="tag tag-amber">> 5,2 — HIPERCALEMIA</span>';
+}
+
+// =========================================================
+// STEP 0 → CALCULATE
+// =========================================================
+function calcularInicial() {
+  const campos = ['peso','hgt0','pH','hco3','kplus','naFer','cl','ureia'];
+  let ok = true;
+  campos.forEach(id => {
+    const el = document.getElementById(id);
+    const val = parseFloat(el.value);
+    el.classList.remove('error');
+    if (isNaN(val) || val <= 0) { el.classList.add('error'); ok = false; }
+  });
+  if (!ok) { alert('Preencha todos os campos obrigatórios.'); return; }
+
+  state.peso  = parseFloat(document.getElementById('peso').value);
+  state.hgt0  = parseFloat(document.getElementById('hgt0').value);
+  state.pH    = parseFloat(document.getElementById('pH').value);
+  state.hco3  = parseFloat(document.getElementById('hco3').value);
+  state.kplus = parseFloat(document.getElementById('kplus').value);
+  state.naFer = parseFloat(document.getElementById('naFer').value);
+  state.cl    = parseFloat(document.getElementById('cl').value);
+  state.ureia = parseFloat(document.getElementById('ureia').value);
+  state.hemoDin = document.getElementById('hemoDin').value;
+  state.funcCard = document.getElementById('funcCard').value;
+
+  // Cálculos
+  const fator = state.hgt0 > 400 ? 2.4 : 1.6;
+  state.naCorr  = state.naFer + fator * ((state.hgt0 - 100) / 100);
+  state.osmEf   = 2 * state.naFer + state.hgt0 / 18;
+  state.ag      = state.naFer - (state.cl + state.hco3);
+
+  // Gravidade
+  if (state.pH < 7.0 || state.hco3 < 10) state.gravidade = 'Grave';
+  else if (state.pH < 7.25 || state.hco3 < 15) state.gravidade = 'Moderada';
+  else state.gravidade = 'Leve';
+
+  state.taxaInicial = parseFloat((0.1 * state.peso).toFixed(1));
+  state.currentTaxa = state.taxaInicial;
+  state.hgtHistory  = [{ hgt: state.hgt0, taxa: state.taxaInicial, hora: 'Admissão', action: 'Dose inicial calculada' }];
+
+  renderStep1();
+  renderStep2();
+  renderStep3();
+  renderStatusBar();
+  renderHintConc();
+  unlockStep(5);
+  goToStep(1);
+}
+
+// =========================================================
+// STEP 1: CLASSIFICATION
+// =========================================================
+function renderStep1() {
+  const k = state.kplus;
+  const g = state.gravidade;
+
+  // Result boxes
+  let boxes = `
+    <div class="result-box highlight">
+      <div class="result-label">Gravidade da CAD</div>
+      <div class="result-value">${g}</div>
+      <div class="result-sub">pH ${fNum(state.pH,2)} · HCO₃ ${fNum(state.hco3,1)} mEq/L</div>
+    </div>
+    <div class="result-box ${k < 3.3 ? 'highlight' : k > 5.2 ? '' : 'green-box'}">
+      <div class="result-label">K⁺ Plasmático</div>
+      <div class="result-value">${fNum(k,1)} mEq/L</div>
+      <div class="result-sub">${k < 3.3 ? '⚠️ Adiar insulina!' : k > 5.2 ? 'Não repor K⁺' : 'Repor K⁺ conforme protocolo'}</div>
+    </div>
+    <div class="result-box">
+      <div class="result-label">Na⁺ Corrigido</div>
+      <div class="result-value">${fNum(state.naCorr,1)} mEq/L</div>
+      <div class="result-sub">Fator ${state.hgt0 > 400 ? '2,4' : '1,6'} · HGT ${state.hgt0}</div>
+    </div>
+    <div class="result-box ${state.naCorr >= 150 ? 'highlight' : ''}">
+      <div class="result-label">Osm. Efetiva</div>
+      <div class="result-value">${fNum(state.osmEf,0)} mOsm/L</div>
+      <div class="result-sub">Normal: 270–295 mOsm/L</div>
+    </div>
+  `;
+  document.getElementById('classGrid').innerHTML = boxes;
+
+  // Alerts
+  let alerts = '';
+  if (g === 'Grave') alerts += `<div class="alert alert-red"><span class="alert-icon">🚨</span><div><strong>CAD GRAVE:</strong> pH < 7,0 ou HCO₃ < 10 mEq/L. Prioridade máxima. Monitoramento rigoroso a cada 1h.</div></div>`;
+  if (state.hemoDin === 'choque') alerts += `<div class="alert alert-red"><span class="alert-icon">🚨</span><div><strong>CHOQUE HIPOVOLÊMICO:</strong> Iniciar ressuscitação imediata com NaCl 0,9% 1L/h. Considerar norepinefrina se não responder ao volume.</div></div>`;
+  if (state.naCorr >= 150) alerts += `<div class="alert alert-amber"><span class="alert-icon">⚠️</span><div><strong>HIPERNATREMIA CORRIGIDA (Na ${fNum(state.naCorr,1)} mEq/L ≥ 150):</strong> Usar NaCl 0,45% na fase de manutenção.</div></div>`;
+  if (state.ag > 20) alerts += `<div class="alert alert-amber"><span class="alert-icon">⚠️</span><div><strong>Ânion Gap muito elevado (${fNum(state.ag,1)}):</strong> Investigar diagnóstico diferencial (acidose lática, intoxicação).</div></div>`;
+  if (k < 3.3) alerts += `<div class="alert alert-red"><span class="alert-icon">🚨</span><div><strong>K⁺ < 3,3 mEq/L: NÃO iniciar insulina.</strong> Repor KCl 19,1% 10-30 mEq/h até K > 3,3. Checar K⁺ a cada 1h. Risco de arritmia e PCR.</div></div>`;
+  document.getElementById('classAlerts').innerHTML = alerts;
+
+  // Lab calcs
+  document.getElementById('labCalcs').innerHTML = `
+    <div class="line"><span class="key">Ânion Gap:</span> <span class="val ${state.ag > 12 ? 'danger':'ok'}">${fNum(state.ag,1)} mEq/L ${state.ag > 12 ? '↑ (normal 4–12)':''}</span></div>
+    <div class="line"><span class="key">Na⁺ Aferido:</span> <span class="val">${state.naFer} mEq/L</span></div>
+    <div class="line"><span class="key">Na⁺ Corrigido:</span> <span class="val ${state.naCorr >= 150 ? 'danger':'ok'}">${fNum(state.naCorr,1)} mEq/L ${state.naCorr >= 150 ? '(≥150 → usar NaCl 0,45%)':''}</span></div>
+    <div class="line"><span class="key">Osmolaridade Efetiva:</span> <span class="val ${state.osmEf > 320 ? 'warn':'ok'}">${fNum(state.osmEf,0)} mOsm/L</span></div>
+    <div class="line"><span class="key">Déficit hídrico estimado:</span> <span class="val">${fNum(state.peso * 100,0)} mL (~100 mL/kg)</span></div>
+    <div class="line"><span class="key">HGT Inicial:</span> <span class="val">${state.hgt0} mg/dL</span></div>
+    <div class="line"><span class="key">pH / HCO₃:</span> <span class="val ${state.pH < 7.0 ? 'danger': state.pH < 7.25 ? 'warn':'ok'}">${fNum(state.pH,2)} / ${fNum(state.hco3,1)} mEq/L</span></div>
+  `;
+
+  // K protocol
+  let kProto = '';
+  if (k < 3.3) {
+    kProto = `
+      <div class="alert alert-red"><span class="alert-icon">🚨</span><div><strong>K⁺ < 3,3 mEq/L — ADIAR INSULINA</strong><br>
+      Infundir KCl 19,1%: 10–30 mEq/h IV diluído em SF 0,9%.<br>
+      Checar K⁺ plasmático a cada 1h.<br>
+      <strong>Só iniciar insulina quando K⁺ ≥ 3,3 mEq/L.</strong></div></div>`;
+  } else if (k <= 5.2) {
+    kProto = `
+      <div class="alert alert-green"><span class="alert-icon">✅</span><div><strong>K⁺ 3,3–5,2 mEq/L — INICIAR INSULINA</strong><br>
+      Repor KCl 19,1%: 10–20 mEq em cada 1L de SF 0,9%.<br>
+      Meta: manter K⁺ entre 4–5 mEq/L.<br>
+      Checar K⁺ plasmático a cada 2h.</div></div>`;
+  } else {
+    kProto = `
+      <div class="alert alert-amber"><span class="alert-icon">⚠️</span><div><strong>K⁺ > 5,2 mEq/L — INICIAR INSULINA SEM REPOR K⁺</strong><br>
+      Não administrar KCl neste momento.<br>
+      Checar K⁺ plasmático a cada 2h.<br>
+      Iniciar reposição apenas quando K⁺ ≤ 5,2 mEq/L.</div></div>`;
+  }
+
+  // K table
+  kProto += `
+    <div style="overflow-x:auto;margin-top:12px;">
+    <table class="data-table">
+      <thead><tr><th>K⁺ Sérico</th><th>Insulina</th><th>Reposição K⁺</th><th>Monitorar</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="mono">< 3,3 mEq/L</td>
+          <td><span class="tag tag-red">NÃO INICIAR</span></td>
+          <td>KCl 10–30 mEq/h até K > 3,3</td>
+          <td>A cada 1h</td>
+        </tr>
+        <tr style="${k>=3.3&&k<=5.2?'background:var(--green-bg);':''}">
+          <td class="mono">3,3–5,2 mEq/L</td>
+          <td><span class="tag tag-green">INICIAR</span></td>
+          <td>KCl 10–20 mEq/L de SF</td>
+          <td>A cada 2h</td>
+        </tr>
+        <tr>
+          <td class="mono">> 5,2 mEq/L</td>
+          <td><span class="tag tag-green">INICIAR</span></td>
+          <td>Não repor</td>
+          <td>A cada 2h</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>`;
+  document.getElementById('kProtocol').innerHTML = kProto;
+}
+
+// =========================================================
+// STEP 2: HYDRATION
+// =========================================================
+function renderStep2() {
+  const peso = state.peso;
+  const vol1h = Math.round(peso * 17.5); // 15-20 mL/kg midpoint
+  const volMin1h = Math.round(peso * 15);
+  const volMax1h = Math.round(peso * 20);
+  const defTotal = Math.round(peso * 100);
+  const naCorr = state.naCorr;
+  const choque = state.hemoDin === 'choque';
+  const compromet = state.funcCard === 'comprometida';
+
+  let content = '';
+
+  if (choque) {
+    content += `<div class="alert alert-red"><span class="alert-icon">🚨</span><div><strong>CHOQUE HIPOVOLÊMICO:</strong> Iniciar NaCl 0,9% 1.000 mL/h até estabilização hemodinâmica. Considerar norepinefrina 0,1–0,3 mcg/kg/min se não responder. Após estabilização, seguir protocolo abaixo.</div></div>`;
+  }
+
+  if (compromet) {
+    content += `<div class="alert alert-amber"><span class="alert-icon">⚠️</span><div><strong>Função cardíaca/renal comprometida:</strong> Reduzir volume e velocidade de infusão. Monitorar sinais de sobrecarga (crepitações, PVC, pressão pulmonar). Considerar avaliação hemodinâmica.</div></div>`;
+  }
+
+  content += `
+    <div class="result-grid">
+      <div class="result-box highlight">
+        <div class="result-label">1ª Hora — Expansão</div>
+        <div class="result-value">${volMin1h}–${volMax1h} mL</div>
+        <div class="result-sub">NaCl 0,9% em 60 min (15–20 mL/kg)</div>
+      </div>
+      <div class="result-box">
+        <div class="result-label">Déficit Total Estimado</div>
+        <div class="result-value">${defTotal} mL</div>
+        <div class="result-sub">~100 mL/kg · repor em 24h</div>
+      </div>
+    </div>
+  `;
+
+  content += `
+    <div class="card-title" style="margin-top:18px;">Manutenção (após 1ª hora)</div>
+    <div style="overflow-x:auto;">
+    <table class="data-table">
+      <thead><tr><th>Situação</th><th>Solução</th><th>Taxa</th><th>Obs</th></tr></thead>
+      <tbody>
+        <tr style="${naCorr < 150 ? 'background:var(--green-bg);' : ''}">
+          <td>Na corrigido < 150 mEq/L</td>
+          <td class="mono">NaCl 0,9%<br><span style="font-size:11px;color:var(--green);font-family:var(--mono)">ou Ringer Lactato ✓</span></td>
+          <td class="mono">250–500 mL/h</td>
+          <td style="font-size:11px;">RL = resolução mais rápida, menos acidose hiperclorêmica (Classe IIa/A)</td>
+        </tr>
+        <tr style="${naCorr >= 150 ? 'background:var(--amber-bg);' : ''}">
+          <td>Na corrigido ≥ 150 mEq/L ${naCorr >= 150 ? '<span class="tag tag-amber" style="font-size:9px;margin-left:4px;">SEU CASO</span>' : ''}</td>
+          <td class="mono">NaCl 0,45%</td>
+          <td class="mono">250–500 mL/h</td>
+          <td style="font-size:11px;">Na corrigido = ${fNum(naCorr,1)} mEq/L</td>
+        </tr>
+        <tr>
+          <td>HGT ≤ 250 mg/dL</td>
+          <td class="mono">Glicofisiológico<br>ou NaCl 0,45% + SG5%</td>
+          <td class="mono">150–250 mL/h</td>
+          <td style="font-size:11px;">Manter insulina IV! Só trocar o soro.</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="alert alert-blue" style="margin-top:14px;">
+      <span class="alert-icon">💧</span>
+      <div><strong>Na corrigido atual: ${fNum(naCorr,1)} mEq/L</strong> → Solução recomendada na manutenção: <strong>${naCorr >= 150 ? 'NaCl 0,45%' : 'NaCl 0,9% ou Ringer Lactato'}</strong></div>
+    </div>
+    <div class="footnote">* Na⁺ corrigido calculado com fator ${state.hgt0 > 400 ? '2,4' : '1,6'} (HGT ${state.hgt0 > 400 ? '> 400' : '≤ 400'} mg/dL). Bicarbonato NÃO recomendado de rotina — considerar APENAS se pH < 6,9 (50–100 mmol em 200–400 mL NaCl isotônico em 2h). Fosfato: repor só se < 1 mg/dL ou ICC/IRA/anemia hemolítica.</div>
+  `;
+
+  document.getElementById('hidratacaoContent').innerHTML = content;
+}
+
+// =========================================================
+// STEP 3: INSULIN
+// =========================================================
+function renderStep3() {
+  const peso = state.peso;
+  const k = state.kplus;
+  const taxa = state.taxaInicial; // UI/h = mL/h (conc 1UI/mL)
+
+  let content = '';
+
+  if (k < 3.3) {
+    content += `<div class="alert alert-red"><span class="alert-icon">🚨</span><div><strong>K⁺ < 3,3 mEq/L — NÃO INICIAR INSULINA AINDA.</strong> Repor potássio e reavalie. Só iniciar insulina quando K⁺ ≥ 3,3 mEq/L.</div></div>`;
+  }
+
+  content += `
+    <div class="result-grid">
+      <div class="result-box highlight">
+        <div class="result-label">Dose Inicial BIC</div>
+        <div class="result-value">${fNum(taxa,1)} UI/h</div>
+        <div class="result-sub">0,1 UI/kg/h · Peso ${peso} kg</div>
+      </div>
+      <div class="result-box">
+        <div class="result-label">Taxa na Bomba</div>
+        <div class="result-value">${fNum(taxa,1)} mL/h</div>
+        <div class="result-sub">Concentração: 1 UI/mL</div>
+      </div>
+    </div>
+
+    <div class="card-title" style="margin-top:18px;">Preparo da Bomba de Insulina</div>
+    <div class="mono-display">
+      <div class="line"><span class="key">Solução:</span><span class="val">Insulina Regular 50 UI + SF 0,9% 49,5 mL</span></div>
+      <div class="line"><span class="key">Concentração:</span><span class="val ok">1 UI = 1 mL</span></div>
+      <div class="line"><span class="key">Taxa inicial:</span><span class="val">${fNum(taxa,1)} mL/h (= ${fNum(taxa,1)} UI/h)</span></div>
+      <div class="line"><span class="key">Descarte inicial:</span><span class="val warn">Desprezar 10% do volume (= 5 mL) antes de conectar</span></div>
+      <div class="line"><span class="key">Troca do equipo:</span><span class="val">A cada 6 horas</span></div>
+      <div class="line"><span class="key">Bolus inicial:</span><span class="val ok">NÃO recomendado (Classe IIa/B)</span></div>
+    </div>
+
+    <div class="card-title" style="margin-top:18px;">Algoritmo de Titulação (HGT horário)</div>
+    <div style="overflow-x:auto;">
+    <table class="data-table">
+      <thead><tr><th>Queda do HGT em 1h</th><th>Conduta na Bomba</th><th>Nova Taxa (exemplo)</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>> 70 mg/dL/h</strong></td>
+          <td>Reduzir progressivamente:<br>→ 0,07 UI/kg/h → 0,05 → 0,02</td>
+          <td class="mono">${fNum(0.07*peso,1)} → ${fNum(0.05*peso,1)} → ${fNum(0.02*peso,1)} mL/h</td>
+        </tr>
+        <tr style="background:var(--green-bg);">
+          <td><strong>50–70 mg/dL/h</strong></td>
+          <td>✅ Manter taxa atual</td>
+          <td class="mono">Sem alteração</td>
+        </tr>
+        <tr>
+          <td><strong>< 50 mg/dL/h (na 1ª h)</strong></td>
+          <td>1. Checar acesso IV e equipo<br>2. Dobrar taxa a cada 1h até atingir meta</td>
+          <td class="mono">${fNum(taxa*2,1)} mL/h → ${fNum(taxa*4,1)} mL/h</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="alert alert-amber" style="margin-top:14px;">
+      <span class="alert-icon">⚠️</span>
+      <div><strong>HGT ≤ 250 mg/dL:</strong> Adicionar SG5% em paralelo e reduzir insulina para 0,02–0,05 UI/kg/h (${fNum(0.02*peso,1)}–${fNum(0.05*peso,1)} UI/h). <strong>NÃO desligar a insulina IV</strong> — manter até resolução completa da CAD.</div>
+    </div>
+    <div class="alert alert-red" style="margin-top:8px;">
+      <span class="alert-icon">🚨</span>
+      <div><strong>Hipoglicemia (HGT < 70 mg/dL):</strong> Parar insulina. Administrar SG50% 20 mL IV. Reiniciar insulina em dose reduzida quando HGT > 150 mg/dL. Investigar causa.</div>
+    </div>
+  `;
+
+  document.getElementById('insulinaContent').innerHTML = content;
+}
+
+// =========================================================
+// STEP 4: MONITORING
+// =========================================================
+function renderStatusBar() {
+  document.getElementById('statusBar').innerHTML = `
+    <div class="status-item">
+      <div class="status-label">Peso</div>
+      <div class="status-val">${state.peso} kg</div>
+    </div>
+    <div class="status-divider"></div>
+    <div class="status-item">
+      <div class="status-label">HGT Admissão</div>
+      <div class="status-val">${state.hgt0} mg/dL</div>
+    </div>
+    <div class="status-divider"></div>
+    <div class="status-item">
+      <div class="status-label">Gravidade</div>
+      <div class="status-val" style="color:var(--red)">${state.gravidade}</div>
+    </div>
+    <div class="status-divider"></div>
+    <div class="status-item">
+      <div class="status-label">Dose Inicial</div>
+      <div class="status-val">${fNum(state.taxaInicial,1)} UI/h</div>
+    </div>
+    <div class="status-divider"></div>
+    <div class="status-item">
+      <div class="status-label">Na⁺ Corrigido</div>
+      <div class="status-val" style="${state.naCorr>=150?'color:var(--red)':''}">${fNum(state.naCorr,1)} mEq/L</div>
+    </div>
+  `;
+}
+
+function renderHintConc() {
+  document.getElementById('concHint').textContent = `Concentração: 1 UI = 1 mL`;
+}
+
+function adicionarHGT() {
+  const hgtEl = document.getElementById('hgtNew');
+  const taxaEl = document.getElementById('taxaAtual');
+  const hgtVal = parseFloat(hgtEl.value);
+  const taxaVal = parseFloat(taxaEl.value);
+
+  if (isNaN(hgtVal) || isNaN(taxaVal) || hgtVal <= 0 || taxaVal <= 0) {
+    alert('Informe o HGT atual e a taxa atual da bomba.');
+    return;
+  }
+
+  const sg5 = document.getElementById('sg5Running').value === 'sim';
+  const lastHgt = state.hgtHistory[state.hgtHistory.length - 1].hgt;
+  const queda = lastHgt - hgtVal;
+  const hora = `H+${state.hgtHistory.length}`;
+
+  // Decision
+  let action = '';
+  let novaTaxa = taxaVal;
+  let alertClass = 'alert-blue';
+  let alertIcon = 'ℹ️';
+
+  if (hgtVal < 70) {
+    action = '🚨 HIPOGLICEMIA: Pausar insulina. SG50% 20 mL IV. Reiniciar quando HGT > 150 mg/dL em dose reduzida.';
+    novaTaxa = 0;
+    alertClass = 'alert-red';
+    alertIcon = '🚨';
+  } else if (hgtVal <= 250 && !sg5) {
+    action = `⚠️ HGT ≤ 250 mg/dL: Adicionar SG5% em paralelo. Reduzir insulina para 0,02–0,05 UI/kg/h (${fNum(0.02*state.peso,1)}–${fNum(0.05*state.peso,1)} mL/h). NÃO desligar a bomba.`;
+    novaTaxa = parseFloat(fNum(0.03 * state.peso, 1));
+    alertClass = 'alert-amber';
+    alertIcon = '⚠️';
+  } else if (hgtVal <= 250 && sg5) {
+    // already on sg5, maintain/titrate
+    if (queda > 70) {
+      novaTaxa = Math.max(parseFloat(fNum(taxaVal * 0.7, 1)), parseFloat(fNum(0.02*state.peso,1)));
+      action = `Queda ${queda} mg/dL/h > 70: Reduzir insulina → ${novaTaxa} mL/h. Manter SG5%.`;
+      alertClass = 'alert-amber'; alertIcon = '⚠️';
+    } else if (queda >= 30) {
+      action = `Queda ${queda} mg/dL/h adequada. Manter taxa ${taxaVal} mL/h e SG5%.`;
+      alertClass = 'alert-green'; alertIcon = '✅';
+    } else {
+      novaTaxa = parseFloat(fNum(Math.min(taxaVal * 1.3, 0.1*state.peso), 1));
+      action = `Queda ${queda} mg/dL/h pequena. Aumentar insulina → ${novaTaxa} mL/h. Manter SG5%.`;
+      alertClass = 'alert-blue'; alertIcon = '⚠️';
+    }
+  } else if (queda > 70) {
+    novaTaxa = parseFloat(fNum(0.07 * state.peso, 1));
+    action = `Queda ${queda} mg/dL/h > 70 mg/dL/h: Reduzir infusão → ${novaTaxa} mL/h (0,07 UI/kg/h).`;
+    alertClass = 'alert-amber'; alertIcon = '⚠️';
+  } else if (queda >= 50 && queda <= 70) {
+    action = `Queda ${queda} mg/dL/h: ADEQUADA ✅ Manter taxa ${taxaVal} mL/h.`;
+    alertClass = 'alert-green'; alertIcon = '✅';
+  } else if (queda >= 0 && queda < 50) {
+    // 1st check: was first hour?
+    const isFirst = state.hgtHistory.length === 1;
+    if (isFirst) {
+      novaTaxa = parseFloat(fNum(taxaVal * 2, 1));
+      action = `Queda ${queda} mg/dL/h < 50 na 1ª hora: Checar acesso IV e equipo. Dobrar taxa → ${novaTaxa} mL/h.`;
+    } else {
+      novaTaxa = parseFloat(fNum(taxaVal * 1.5, 1));
+      action = `Queda ${queda} mg/dL/h insuficiente. Aumentar taxa → ${novaTaxa} mL/h.`;
+    }
+    alertClass = 'alert-red'; alertIcon = '🔺';
+  } else if (queda < 0) {
+    novaTaxa = parseFloat(fNum(Math.min(taxaVal * 2, 0.2*state.peso), 1));
+    action = `HGT subiu ${Math.abs(queda)} mg/dL: Checar adesão. Aumentar taxa → ${novaTaxa} mL/h.`;
+    alertClass = 'alert-red'; alertIcon = '🔺';
+  }
+
+  state.currentTaxa = novaTaxa;
+  state.hgtHistory.push({ hgt: hgtVal, taxa: novaTaxa, hora, action, alertClass, alertIcon, queda, sg5 });
+
+  renderHgtHistory();
+  hgtEl.value = '';
+  taxaEl.value = novaTaxa > 0 ? novaTaxa : '';
+}
+
+function renderHgtHistory() {
+  const hist = state.hgtHistory;
+
+  let rows = '';
+  hist.forEach((entry, i) => {
+    const status = entry.hgt < 70 ? 'crit' : entry.hgt <= 150 ? 'low' : entry.hgt <= 250 ? 'ok' : entry.hgt <= 400 ? 'high' : 'crit';
+    const quedaStr = i > 0 ? `${hist[i-1].hgt - entry.hgt > 0 ? '↓' : '↑'} ${Math.abs(hist[i-1].hgt - entry.hgt)} mg/dL` : '—';
+    rows += `
+      <div class="hgt-entry">
+        <div class="time-label">${entry.hora}</div>
+        <div><span class="hgt-result-tag ${status}">${entry.hgt} mg/dL</span></div>
+        <div style="font-size:12px;color:var(--gray-500);font-family:var(--mono);">${quedaStr}</div>
+        <div style="font-size:12px;font-family:var(--mono);">BIC: <strong>${fNum(entry.taxa,1)} mL/h</strong></div>
+        ${i > 0 ? `<div style="font-size:11px;color:var(--gray-500);">${entry.sg5 ? '+ SG5%' : ''}</div>` : '<div></div>'}
+      </div>
+    `;
+  });
+
+  document.getElementById('hgtHistory').innerHTML = `
+    <div class="card">
+      <div class="card-title">Histórico de HGT</div>
+      ${rows}
+    </div>
+  `;
+
+  // Last protocol
+  const last = hist[hist.length - 1];
+  if (last.action) {
+    document.getElementById('lastProtocol').innerHTML = `
+      <div class="protocol-box">
+        <div class="protocol-box-title">Conduta Atual</div>
+        <div class="alert ${last.alertClass}" style="margin:0;">
+          <span class="alert-icon">${last.alertIcon || 'ℹ️'}</span>
+          <div>${last.action}</div>
+        </div>
+        ${last.hgt <= 250 ? `
+        <div style="margin-top:12px;font-size:12px;color:var(--gray-500);font-family:var(--mono);">
+          ⚠️ Manter insulina IV até resolução completa da CAD (pH ≥ 7,3 · HCO₃ ≥ 15 · AG normal)
+        </div>` : ''}
+      </div>
+    `;
+  }
+}
+
+// =========================================================
+// STEP 5: RESOLUTION
+// =========================================================
+document.getElementById('contextInsulina').addEventListener('change', function() {
+  document.getElementById('dosePreviaGroup').style.display = this.value === 'previa' ? 'block' : 'none';
+});
+
+function calcularResolucao() {
+  const hgt = parseFloat(document.getElementById('resHgt').value) || 0;
+  const ph  = parseFloat(document.getElementById('resPh').value) || 0;
+  const hco3 = parseFloat(document.getElementById('resHco3').value) || 0;
+  const ag  = parseFloat(document.getElementById('resAG').value) || 0;
+  const vo  = document.getElementById('resVO').value;
+  const ctx = document.getElementById('contextInsulina').value;
+  const dosePrevia = parseFloat(document.getElementById('dosePreviaUI').value) || 0;
+
+  if (!hgt || !ph || !hco3 || !ag) { alert('Preencha todos os campos.'); return; }
+
+  const c1 = hgt < 200;
+  const c2 = ph >= 7.3;
+  const c3 = hco3 >= 15;
+  const c4 = ag <= 12;
+  const c5 = vo === 'sim';
+
+  const allMet = c1 && c2 && c3 && c4;
+
+  const checks = [
+    { label: 'HGT < 200 mg/dL', val: `${hgt} mg/dL`, met: c1 },
+    { label: 'pH venoso ≥ 7,3', val: fNum(ph,2), met: c2 },
+    { label: 'HCO₃ ≥ 15 mEq/L', val: `${hco3} mEq/L`, met: c3 },
+    { label: 'Ânion Gap normalizado (≤ 12)', val: fNum(ag,1), met: c4 },
+    { label: 'Tolerando via oral', val: vo === 'sim' ? 'Sim' : 'Não', met: c5 },
+  ];
+
+  let checksHtml = checks.map(c => `
+    <div class="resolution-check ${c.met ? 'met' : 'not-met'}">
+      <span class="check-icon">${c.met ? '✅' : '❌'}</span>
+      <div>
+        <strong>${c.label}</strong> — <span style="font-family:var(--mono);">${c.val}</span>
+      </div>
+    </div>
+  `).join('');
+
+  let transicaoHtml = '';
+  if (allMet && c5) {
+    // Calculate dose
+    let doseTotal = 0;
+    let doseCalcDesc = '';
+    if (ctx === 'primo') {
+      const optA = parseFloat(fNum(state.peso * 0.6, 0)); // 0,4-0,8 UI/kg midpoint
+      const optAMin = parseFloat(fNum(state.peso * 0.4, 0));
+      const optAMax = parseFloat(fNum(state.peso * 0.8, 0));
+      // Use average of last 4h infusion if available
+      const nEntries = state.hgtHistory.length;
+      let taxaMedia = state.currentTaxa;
+      if (nEntries >= 4) {
+        const last4 = state.hgtHistory.slice(-4);
+        taxaMedia = last4.reduce((s,e) => s + e.taxa, 0) / last4.length;
+      }
+      const optB = parseFloat(fNum(taxaMedia * 24 * 0.7, 0)); // 70% of projected 24h
+      doseTotal = optA;
+      doseCalcDesc = `Opção A: ${optAMin}–${optAMax} UI/dia (0,4–0,8 UI/kg) → usar <strong>${optA} UI/dia</strong><br>Opção B: taxa IV média × 24 × 70% ≈ <strong>${optB} UI/dia</strong> (usar preferencialmente)`;
+    } else {
+      doseTotal = dosePrevia;
+      doseCalcDesc = `Retomar dose prévia: <strong>${doseTotal} UI/dia</strong> em esquema basal-bolus`;
+    }
+
+    const basal = parseFloat(fNum(doseTotal * 0.5, 0));
+    const bolus = parseFloat(fNum(doseTotal * 0.5 / 3, 1));
+
+    transicaoHtml = `
+      <div class="card" style="margin-top:16px;border-color:var(--green-border);">
+        <div class="card-title" style="color:var(--green);">Transição para Insulina SC</div>
+        <div class="alert alert-green" style="margin-bottom:16px;">
+          <span class="alert-icon">✅</span>
+          <div><strong>Todos os critérios de resolução atingidos.</strong> Paciente apto para transição para insulina subcutânea.</div>
+        </div>
+
+        <div class="card-title">Cálculo de Dose</div>
+        <div class="mono-display" style="margin-bottom:16px;">
+          <div class="line"><span class="key">Base:</span><span class="val">${doseCalcDesc}</span></div>
+          <div class="line"><span class="key">Dose basal (50%):</span><span class="val ok">${basal} UI/dia</span></div>
+          <div class="line"><span class="key">Dose bolus (50%):</span><span class="val ok">${bolus} UI por refeição (3x/dia)</span></div>
+          <div class="line"><span class="key">Esquema:</span><span class="val">Basal-Bolus (NPH ou análogo longa ação + regular ou rápida)</span></div>
+        </div>
+
+        <div class="card-title">Protocolo de Sobreposição</div>
+        <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr><th>Insulina SC escolhida</th><th>Manter BIC IV por</th><th>Motivo</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Análogo longa ação (Glargina / Detemir)</td>
+              <td class="mono"><strong>2 horas</strong> após 1ª dose SC</td>
+              <td style="font-size:11px;">Tempo para atingir nível mínimo efetivo</td>
+            </tr>
+            <tr>
+              <td>NPH (insulina humana intermediária)</td>
+              <td class="mono"><strong>1 hora</strong> após 1ª dose SC</td>
+              <td style="font-size:11px;">Início de ação mais rápido</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+        <div class="alert alert-red" style="margin-top:12px;">
+          <span class="alert-icon">🚨</span>
+          <div><strong>NÃO usar Degludeca na fase de transição</strong> — meia-vida 25h, equilíbrio em 3–4 dias. Não garante cobertura adequada ao desligar a BIC.</div>
+        </div>
+        <div class="footnote">* Calcule a dose final considerando contexto clínico do paciente, controle glicêmico prévio e presença de comorbidades. Em primo-descompensação com taxa IV muito baixa na resolução, use a Opção A como referência.</div>
+      </div>
+    `;
+  } else if (allMet && !c5) {
+    transicaoHtml = `
+      <div class="alert alert-amber" style="margin-top:16px;">
+        <span class="alert-icon">⚠️</span>
+        <div><strong>Parâmetros bioquímicos resolvidos, mas paciente ainda não tolera VO.</strong><br>
+        Manter insulina IV e hidratação. Reavaliar tolerância oral a cada 2h. Não iniciar transição SC sem aceitação alimentar.</div>
+      </div>
+    `;
+  } else {
+    const faltam = checks.filter(c => !c.met).map(c => c.label).join(', ');
+    transicaoHtml = `
+      <div class="alert alert-red" style="margin-top:16px;">
+        <span class="alert-icon">❌</span>
+        <div><strong>CAD ainda não resolvida.</strong><br>
+        Critérios não atingidos: ${faltam}.<br>
+        Manter insulina IV, hidratação e monitoramento. Reavalie em 2–4h com nova gasometria.</div>
+      </div>
+    `;
+  }
+
+  document.getElementById('resolutionResult').innerHTML = `
+    <div class="card" style="margin-top:16px;">
+      <div class="card-title">Avaliação dos Critérios de Resolução</div>
+      ${checksHtml}
+    </div>
+    ${transicaoHtml}
+  `;
+}
+</script>
+</body>
+</html>
