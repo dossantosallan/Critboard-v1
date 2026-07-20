@@ -953,6 +953,16 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
 .dva-res-lbl { font-size: 11px; color: var(--muted); margin-top: 5px; }
 .dva-badge { display: inline-block; margin-top: 7px; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 10px; background: var(--surface3); color: var(--text); letter-spacing: .5px; }
 
+.pass-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden;}
+.pass-header{display:flex;align-items:center;gap:10px;padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);}
+.pass-num{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#0a0e1a;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pass-name{font-weight:700;font-size:14px;flex:1;}
+.pass-leito{font-size:11px;color:var(--muted);background:var(--surface3);padding:2px 8px;border-radius:6px;}
+.pass-field{padding:10px 18px;border-bottom:1px solid var(--border);}
+.pass-field:last-child{border-bottom:none;}
+.pass-field-label{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+.pass-field-value{font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap;}
+.rta-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px;}
 </style>
 </head>
 <body>
@@ -1042,24 +1052,27 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
 
   <!-- PASSAGEM -->
   <div class="tab-page" id="pageResume">
-    <div class="slabel">Passagem de Plantão — Cole todas as evoluções</div>
-    <textarea class="rta" id="rtaResume" placeholder="Cole aqui todas as evoluções do dia juntas. Cada evolução deve conter DT NASCIMENTO, #ANTIBIÓTICOS/TRATAMENTOS, #EVOLUÇÃO CLÍNICA, #AVALIAÇÃO e #CONDUTA." oninput="onTxtResume()" style="min-height:200px;"></textarea>
-    <div class="cc" id="ccResume">0 caracteres</div>
-    <button class="btn-go" id="goBtnResume" onclick="runResume()" disabled>&#x1F4CB; Gerar Passagem de Plantão</button>
-    <button class="btn-go" id="btnSyncPainel" onclick="syncOpenModal()" disabled style="background:linear-gradient(135deg,#059669,#10b981);margin-top:8px;">&#x1F4CA; Sincronizar com Painel</button>
-    <div id="printHeader" style="display:none;">
-      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1.5pt solid #000;padding-bottom:6px;margin-bottom:10px;">
-        <div><div style="font-size:14pt;font-weight:700;">UTI — Passagem de Plantão</div><div style="font-size:9pt;color:#444;" id="printDate"></div></div>
-        <div style="font-size:9pt;color:#444;">HRO — UTI Geral Adulto</div>
-      </div>
+    <div class="slabel">Passagem de Plantão — Cole as evoluções (1–10 pacientes)</div>
+    <textarea class="rta" id="rtaResume"
+      placeholder="Cole aqui as evoluções. Cada paciente deve começar com NOME + DT NASCIMENTO."
+      oninput="onTxtResume()"
+      style="min-height:220px;"></textarea>
+    <div class="rta-meta">
+      <span id="ccResume">0 caracteres</span>
+      <span id="ptCountResume"></span>
     </div>
-    <div class="results" id="resultsResume">
-      <div class="summary-bar" id="resumeSummaryBar"></div>
-      <div id="resumeTableWrap"></div>
-      <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
-        <button class="btn-sm" onclick="printResume()">&#x1F5A8; Imprimir</button>
-        <button class="btn-sm" onclick="copyResumeText()">&#x1F4CB; Copiar texto</button>
-        <button class="btn-sm danger" onclick="resetResume()">&#x1F504; Limpar</button>
+    <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center;">
+      <button class="btn-primary" id="goBtnResume" onclick="runResume()" disabled>
+        📋 Gerar Passagem
+      </button>
+      <button class="btn-sec" onclick="resetResume()">🔄 Limpar</button>
+    </div>
+    <div id="resultsResume" class="results" style="margin-top:28px;">
+      <div id="resumeSummaryBar" class="summary-bar"></div>
+      <div id="resumeCards" style="margin-top:20px;"></div>
+      <div style="display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;">
+        <button class="btn-primary" onclick="printPassagem()">🖨️ Imprimir / Salvar PDF</button>
+        <button class="btn-sec" onclick="downloadPassagemPDF()">⬇️ Download PDF</button>
       </div>
     </div>
   </div>
@@ -2358,406 +2371,27 @@ function parsePlantaoPatient(block, fullText) {
   };
 }
 
-function splitEvolutions(text) {
-  // Split on DT NASCIMENTO OR on the HOSPITAL REGIONAL header line
-  var parts = text.split(/(?=\bDT NASCIMENTO\b)/i);
-  var blocks = [];
-  if (parts.length > 1) {
-    parts.forEach(function(part) {
-      if (part.trim().length > 100) blocks.push(part);
-    });
-  }
-  if (!blocks.length) blocks.push(text);
-
-  // Secondary pass: trim each block at the HOSPITAL REGIONAL boundary
-  // (catches cases where the header appears mid-block before #CONDUTA ends)
-  blocks = blocks.map(function(block) {
-    var hrIdx = block.search(/\nHOSPITAL REGIONAL/i);
-    if (hrIdx > 0) return block.substring(0, hrIdx);
-    return block;
-  });
-
-  return blocks;
-}
-
-var plantaoPatients = [];
-
-function onTxtResume() {
-  var v = document.getElementById('rtaResume').value;
-  var cc = document.getElementById('ccResume');
-  if (cc) cc.textContent = v.length + ' caracteres';
-  var btn = document.getElementById('goBtnResume');
-  if (btn) btn.disabled = v.trim().length < 20;
-}
-
-function goBtnResume() {
-  runResume();
-}
-
-function runResume() {
-  try {
-    var text = document.getElementById('rtaResume').value;
-    if (!text || text.trim().length < 10) { alert('Cole o texto da evolução primeiro.'); return; }
-    var blocks = splitEvolutions(text);
-    plantaoPatients = blocks
-      .map(function(b){ return parsePlantaoPatient(b, text); })
-      .filter(function(p){ return p.name && p.name !== '—'; });
-
-    if (!plantaoPatients.length) {
-      plantaoPatients = [parsePlantaoPatient(text, text)];
-    }
-
-    renderPlantao();
-  } catch(e) {
-    alert('Erro ao processar: ' + e.message);
-    console.error('runResume crash:', e);
-  }
-}
-
-var SEV_COLORS = {
-  critical:   '#ef4444', high:     '#f97316', moderate:  '#f59e0b',
-  stable:     '#10b981', palliative:'#a855f7'
-};
-var SEV_LABELS = {
-  critical: 'CRÍTICO', high: 'GRAVE', moderate: 'MODERADO',
-  stable: 'ESTÁVEL', palliative: 'PALIATIVO'
-};
-
-function renderPlantao() {
-  // Enable sync button when patients parsed
-  var syncBtn = document.getElementById('btnSyncPainel');
-  if (syncBtn) syncBtn.disabled = false;
-  var pts = plantaoPatients;
-  var REF = new Date();
-  var dateStr = REF.toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
-
-  var nDVA = pts.filter(function(p){return p.hasDVA;}).length;
-  var nVM  = pts.filter(function(p){return !!p.vm;}).length;
-  var nAtb = pts.filter(function(p){return p.hasAtb;}).length;
-  var nCrit = pts.filter(function(p){return p.severity==='critical';}).length;
-  var nPali = pts.filter(function(p){return p.severity==='palliative';}).length;
-
-  var sbHtml = '';
-  sbHtml += mkSbItem(pts.length, 'Pacientes', 'var(--accent)');
-  sbHtml += '<div class="sb-div"></div>';
-  sbHtml += mkSbItem(nVM,   'VM',       'var(--accent2)');
-  sbHtml += '<div class="sb-div"></div>';
-  sbHtml += mkSbItem(nDVA,  'DVA',      'var(--danger)');
-  sbHtml += '<div class="sb-div"></div>';
-  sbHtml += mkSbItem(nAtb,  'ATB',      'var(--warning)');
-  if (nCrit) { sbHtml += '<div class="sb-div"></div>'; sbHtml += mkSbItem(nCrit, 'Críticos', 'var(--danger)'); }
-  if (nPali) { sbHtml += '<div class="sb-div"></div>'; sbHtml += mkSbItem(nPali, 'Paliativo', '#a855f7'); }
-  sbHtml += '<div class="sb-div"></div>';
-  sbHtml += '<div class="sb-item"><span class="sb-val" style="color:var(--muted);font-size:12px;">'+dateStr+'</span><span class="sb-lbl">Data</span></div>';
-  document.getElementById('resumeSummaryBar').innerHTML = sbHtml;
-
-  var html = '<div style="overflow-x:auto;">';
-  html += '<table id="plantaoTable"><thead><tr>';
-  html += '<th>Paciente</th>';
-  html += '<th>Diagnóstico</th>';
-  html += '<th>ATB</th>';
-  html += '<th>DVA / VM</th>';
-  html += '<th>Culturas / Labs</th>';
-  html += '<th>Avaliação</th>';
-  html += '<th>Condutas</th>';
-  html += '</tr></thead><tbody>';
-
-  if (!pts.length) {
-    html += '<tr><td colspan="7" class="no-patients">Nenhum paciente identificado.</td></tr>';
-  }
-
-  pts.forEach(function(p) {
-    var sc = SEV_COLORS[p.severity] || '#f59e0b';
-    var sl = SEV_LABELS[p.severity] || '';
-    html += '<tr style="border-left:3px solid '+sc+'">';
-
-    // Col 1: Paciente
-    html += '<td style="min-width:120px;">';
-    html += '<div class="pt-name">'+p.name+'</div>';
-    html += '<div class="pt-sub" style="margin-top:3px;"><span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700;color:'+sc+';background:'+sc+'18;border:1px solid '+sc+'40">'+sl+'</span></div>';
-    if (p.leito) html += '<div class="pt-sub">Leito '+p.leito+'</div>';
-    if (p.diasU) html += '<div class="pt-sub" style="color:var(--accent);">D'+p.diasU+' UTI</div>';
-    if (p.diasH) html += '<div class="pt-sub">D'+p.diasH+' hosp</div>';
-    html += '</td>';
-
-    // Col 2: Diagnóstico
-    html += '<td style="min-width:160px;">';
-    if (p.diagLines.length) {
-      p.diagLines.forEach(function(l){ html += '<div class="pt-sub" style="font-size:11px;">• '+l+'</div>'; });
-    } else { html += '<span style="color:var(--muted);font-size:10px;">—</span>'; }
-    html += '</td>';
-
-    // Col 3: ATB
-    html += '<td style="min-width:120px;">';
-    if (p.atbItems.length) {
-      p.atbItems.forEach(function(a){
-        var cls = a.days == null ? 'pt-atb ok' : a.days >= 14 ? 'pt-atb' : a.days >= 7 ? 'pt-atb warn' : 'pt-atb ok';
-        html += '<span class="'+cls+'">'+a.drug+(a.days?' D'+a.days:'')+'</span><br>';
-      });
-    } else { html += '<span style="color:var(--muted);font-size:10px;">—</span>'; }
-    html += '</td>';
-
-    // Col 4: DVA / VM
-    html += '<td style="min-width:120px;">';
-    if (p.dvaList.length) {
-      p.dvaList.forEach(function(v){ html += '<span class="pt-dva">'+v+'</span><br>'; });
-    }
-    if (p.vm) {
-      html += '<div style="font-size:10px;color:var(--accent2);margin-top:2px;">💨 '+p.vm.summary+'</div>';
-    }
-    if (!p.dvaList.length && !p.vm) html += '<span style="color:var(--muted);font-size:10px;">—</span>';
-    html += '</td>';
-
-    // Col 5: Culturas + Labs
-    html += '<td style="min-width:130px;">';
-    if (p.germs.length) {
-      p.germs.forEach(function(g){ html += '<div class="pt-cult">🦠 '+g+'</div>'; });
-    }
-    if (p.labAlerts && p.labAlerts.length) {
-      p.labAlerts.forEach(function(a){
-        var col = a.low ? '#60a5fa' : '#f87171';
-        html += '<span style="font-size:10px;color:'+col+';font-weight:600;">'+a.dir+a.label+' '+a.val+(a.unit?' '+a.unit:'')+' </span>';
-      });
-    }
-    if (!p.germs.length && (!p.labAlerts || !p.labAlerts.length)) html += '<span style="color:var(--muted);font-size:10px;">—</span>';
-    html += '</td>';
-
-    // Col 6: Avaliação
-    html += '<td style="min-width:160px;">';
-    if (p.avalLines.length) {
-      html += '<div class="pt-bullet">';
-      p.avalLines.forEach(function(l){ html += '<span>'+l+'</span>'; });
-      html += '</div>';
-    } else { html += '<span style="color:var(--muted);font-size:10px;">—</span>'; }
-    html += '</td>';
-
-    // Col 7: Condutas
-    html += '<td style="min-width:150px;">';
-    if (p.condLines.length) {
-      html += '<div class="pt-bullet">';
-      p.condLines.forEach(function(l){ html += '<span>'+l+'</span>'; });
-      html += '</div>';
-    } else { html += '<span style="color:var(--muted);font-size:10px;">—</span>'; }
-    html += '</td>';
-
-    html += '</tr>';
-  });
-
-  html += '</tbody></table></div>';
-  document.getElementById('resumeTableWrap').innerHTML = html;
-  document.getElementById('resultsResume').classList.add('on');
-  document.getElementById('resultsResume').scrollIntoView({behavior:'smooth'});
-}
-
-function printResume() {
-  switchNav('resume');
-  var dateEl = document.getElementById('printDate');
-  if (dateEl) {
-    var REF = new Date();
-    dateEl.textContent = REF.toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'long', year:'numeric'});
-  }
-  setTimeout(function(){ window.print(); }, 100);
-}
-
-function copyResumeText() {
-  var lines = [];
-  var REF = new Date();
-  lines.push('PASSAGEM DE PLANTÃO — ' + REF.toLocaleDateString('pt-BR'));
-  lines.push('');
-  plantaoPatients.forEach(function(p, i) {
-    lines.push((i+1) + '. ' + p.name + (p.leito?' | Leito '+p.leito:'') + (p.diasU?' | D'+p.diasU+' UTI':'') + ' [' + (SEV_LABELS[p.severity]||'') + ']');
-    if (p.diagLines.length)  lines.push('   Diag: ' + p.diagLines.join(' / '));
-    if (p.atbItems.length)   lines.push('   ATB:  ' + p.atbItems.map(function(a){return a.drug+(a.days?' D'+a.days:'');}).join(', '));
-    if (p.dvaList.length)    lines.push('   DVA:  ' + p.dvaList.join(', '));
-    if (p.vm)                lines.push('   VM:   ' + p.vm.summary);
-    if (p.germs.length)      lines.push('   Cult: ' + p.germs.join(' | '));
-    if (p.labAlerts && p.labAlerts.length) lines.push('   Labs: ' + p.labAlerts.map(function(a){return a.dir+a.label+' '+a.val;}).join(' '));
-    if (p.avalLines.length)  { lines.push('   Aval:'); p.avalLines.forEach(function(l){lines.push('     • '+l);}); }
-    if (p.condLines.length)  { lines.push('   Cond:'); p.condLines.forEach(function(l){lines.push('     — '+l);}); }
-    lines.push('');
-  });
-  copyToClipboard(lines.join('\n'), function(){ alert('Copiado!'); });
-}
-
-function resetResume() {
-  document.getElementById('rtaResume').value = '';
-  document.getElementById('ccResume').textContent = '0 caracteres';
-  document.getElementById('resultsResume').classList.remove('on');
-  document.getElementById('goBtnResume').disabled = true;
-  plantaoPatients = [];
-  window.scrollTo({top:0, behavior:'smooth'});
-}
+// PASSAGEM DE PLANTAO v2
+var plantaoPatients=[];
+function onTxtResume(){var v=document.getElementById('rtaResume').value;var cc=document.getElementById('ccResume');if(cc)cc.textContent=v.length+' caracteres';var blocks=splitEvolutions(v);var pc=document.getElementById('ptCountResume');if(pc)pc.textContent=blocks.length>1?blocks.length+' pacientes detectados':'';var btn=document.getElementById('goBtnResume');if(btn)btn.disabled=v.trim().length<20;}
+function splitEvolutions(text){var parts=text.split(/(?=HOSPITAL REGIONAL)/i);var blocks=[];parts.forEach(function(p){if(p.trim().length>80)blocks.push(p.trim());});if(blocks.length<2){parts=text.split(/(?=\n[A-ZÀ-ÖØ-Ý][A-ZÀ-ÖØ-Ýa-zà-öø-ý\s]{4,}\nREGISTRO:)/i);blocks=[];parts.forEach(function(p){if(p.trim().length>80)blocks.push(p.trim());});}if(!blocks.length)blocks.push(text.trim());return blocks;}
+function extractField(block,patterns){for(var i=0;i<patterns.length;i++){var re=new RegExp('#\\s*'+patterns[i]+'[^\\n]*\\n([\\s\\S]*?)(?=\\n#[A-ZÀ-ÖØ-Ý]|$)','i');var m=block.match(re);if(m&&m[1].trim())return m[1].trim();}return '';}
+function extractName(block){var lines=block.split('\n');for(var i=0;i<lines.length;i++){var l=lines[i].trim();if(/DT NASCIMENTO/i.test(l)){for(var j=i-1;j>=0;j--){var c=lines[j].trim();if(c.length>3&&!/HOSPITAL|UNIDADE|REGISTRO|CID|Leito/i.test(c))return c;}}var next=(lines[i+1]||'').trim();if(/^REGISTRO:/i.test(next)&&l.length>3&&!/HOSPITAL|UNIDADE/i.test(l))return l;}var found=0;for(var k=0;k<Math.min(lines.length,8);k++){var ln=lines[k].trim();if(!ln||/HOSPITAL|UNIDADE/i.test(ln))continue;found++;if(found===2)return ln;}return 'Paciente';}
+function extractLeito(block){var m=block.match(/\bLeito[:\s]+(\d[\d\-]*)/i);return m?m[1].trim():'';}
+function parsePatient(block){return{name:extractName(block),leito:extractLeito(block),lista:extractField(block,['LISTA DE PROBLEMAS','LISTA DE PROBLEMA']),laboratorial:extractField(block,['LABORATORIAL','EXAMES RELEVANTES','EXAMES LAB']),avaliacao:extractField(block,['AVALIA[CÇ][AÃ]O','AVALIACAO','AVALIAÇÃO']),conduta:extractField(block,['CONDUTA']),raw:block};}
+function runResume(){try{var text=document.getElementById('rtaResume').value;if(!text||text.trim().length<20){alert('Cole o texto das evoluções primeiro.');return;}var blocks=splitEvolutions(text);plantaoPatients=blocks.map(function(b){return parsePatient(b);});renderPassagem();}catch(e){alert('Erro ao processar: '+e.message);console.error(e);}}
+function renderPassagem(){var sb=document.getElementById('resumeSummaryBar');sb.innerHTML=mkSbItem(plantaoPatients.length,'Pacientes','var(--accent2)');var cards=document.getElementById('resumeCards');var html='';plantaoPatients.forEach(function(p,idx){html+='<div class="pass-card" id="passCard_'+idx+'"><div class="pass-header"><span class="pass-num">'+(idx+1)+'</span><span class="pass-name">'+p.name+'</span>'+(p.leito?'<span class="pass-leito">Leito '+p.leito+'</span>':'')+'</div>'+passField('Lista de Problemas',p.lista)+passField('Laboratorial',p.laboratorial)+passField('Avaliação',p.avaliacao)+passField('Conduta',p.conduta)+'</div>';});cards.innerHTML=html;document.getElementById('resultsResume').classList.add('on');document.getElementById('resultsResume').scrollIntoView({behavior:'smooth'});}
+function passField(label,value){if(!value)return'';return'<div class="pass-field"><div class="pass-field-label">'+label+'</div><div class="pass-field-value">'+escHtml(value)+'</div></div>';}
+function escHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+function resetResume(){document.getElementById('rtaResume').value='';document.getElementById('ccResume').textContent='0 caracteres';document.getElementById('ptCountResume').textContent='';document.getElementById('goBtnResume').disabled=true;document.getElementById('resultsResume').classList.remove('on');plantaoPatients=[];window.scrollTo({top:0,behavior:'smooth'});}
+function printPassagem(){if(!plantaoPatients.length)return;var win=window.open('','_blank');win.document.write(buildPrintHTML());win.document.close();win.focus();setTimeout(function(){win.print();},400);}
+function buildPrintHTML(){var date=new Date().toLocaleDateString('pt-BR');var rows=plantaoPatients.map(function(p,i){return'<tr class="pt-row"><td class="pt-num">'+(i+1)+'</td><td class="pt-name">'+esc(p.name)+(p.leito?'<br><span class="pt-leito">Leito '+esc(p.leito)+'</span>':'')+'</td><td>'+nl2br(esc(p.lista))+'</td><td>'+nl2br(esc(p.laboratorial))+'</td><td>'+nl2br(esc(p.avaliacao))+'</td><td>'+nl2br(esc(p.conduta))+'</td></tr>';}).join('');return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Passagem de Plantão</title><style>@page{size:A4 landscape;margin:12mm 10mm;}body{font-family:Arial,sans-serif;font-size:7.5pt;color:#111;margin:0;}h1{font-size:10pt;font-weight:700;margin:0 0 2mm;}p.meta{font-size:7pt;color:#555;margin:0 0 4mm;}table{width:100%;border-collapse:collapse;table-layout:fixed;}col.c0{width:5mm;}col.c1{width:28mm;}col.c2{width:52mm;}col.c3{width:38mm;}col.c4{width:50mm;}col.c5{width:55mm;}th{background:#1a1a1a;color:#fff;font-size:7pt;font-weight:700;padding:3px 5px;text-align:left;border:1px solid #333;}td{vertical-align:top;padding:3px 5px;font-size:7pt;border:1px solid #ccc;line-height:1.45;}tr.pt-row:nth-child(even) td{background:#f9f9f9;}.pt-num{text-align:center;font-weight:700;}.pt-name{font-weight:700;}.pt-leito{font-weight:400;color:#555;font-size:6.5pt;}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style></head><body><h1>Passagem de Plantão — UTI</h1><p class="meta">'+date+' &nbsp;|  '+plantaoPatients.length+' paciente(s)</p><table><colgroup><col class="c0"><col class="c1"><col class="c2"><col class="c3"><col class="c4"><col class="c5"></colgroup><thead><tr><th>#</th><th>Paciente</th><th>Lista de Problemas</th><th>Laboratorial</th><th>Avaliação</th><th>Conduta</th></tr></thead><tbody>'+rows+'</tbody></table></body></html>';}
+function esc(t){if(!t)return'';return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function nl2br(t){if(!t)return '<span style="color:#aaa">—</span>';return t.replace(/\n/g,'<br>');}
+function downloadPassagemPDF(){if(!plantaoPatients.length)return;if(typeof window.jspdf==='undefined'&&typeof jsPDF==='undefined'){var s1=document.createElement('script');s1.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';s1.onload=function(){var s2=document.createElement('script');s2.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js';s2.onload=function(){generateJsPDF();};document.head.appendChild(s2);};document.head.appendChild(s1);}else{generateJsPDF();}}
+function generateJsPDF(){try{var J=(typeof window.jspdf!=='undefined')?window.jspdf.jsPDF:jsPDF;var doc=new J({orientation:'landscape',unit:'mm',format:'a4'});var date=new Date().toLocaleDateString('pt-BR');doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text('Passagem de Plantao - UTI',10,12);doc.setFont('helvetica','normal');doc.setFontSize(7);doc.text('Gerado em: '+date+'  |  '+plantaoPatients.length+' paciente(s)',10,17);var body=plantaoPatients.map(function(p,i){return[(i+1).toString(),p.name+(p.leito?'\nLeito '+p.leito:''),p.lista||'—',p.laboratorial||'—',p.avaliacao||'—',p.conduta||'—'];});doc.autoTable({startY:21,head:[['#','Paciente','Lista de Problemas','Laboratorial','Avaliação','Conduta']],body:body,styles:{fontSize:6.5,cellPadding:2,lineColor:[200,200,200],lineWidth:0.2,valign:'top',overflow:'linebreak'},headStyles:{fillColor:[26,26,26],textColor:255,fontStyle:'bold',fontSize:7},alternateRowStyles:{fillColor:[249,249,249]},columnStyles:{0:{cellWidth:6,halign:'center'},1:{cellWidth:30},2:{cellWidth:55},3:{cellWidth:42},4:{cellWidth:52},5:{cellWidth:'auto'}},margin:{left:10,right:10},pageBreak:'avoid'});var fname='passagem_plantao_'+date.replace(/\//g,'-')+'.pdf';doc.save(fname);}catch(e){alert('Erro ao gerar PDF: '+e.message);console.error(e);}}
 
 
-// ═══════════════════════════════════════════════════════════
-// PRESCRIÇÃO
-// ═══════════════════════════════════════════════════════════
-var prescData = null;
-function onTxtPresc() {
-  var v = document.getElementById('rtaPresc').value;
-  document.getElementById('ccPresc').textContent = v.length + ' caracteres';
-  document.getElementById('goBtnPresc').disabled = v.trim().length < 30;
-}
-var ATB_LIST = ['Meropenem','Imipenem','Ertapenem','Piperacilina','Tazobactam','Vancomicina','Linezolida',
-  'Ceftriaxona','Cefepima','Cefazolina','Cefalexina','Ampicilina','Amoxicilina','Clindamicina','Metronidazol',
-  'Azitromicina','Claritromicina','Ciprofloxacino','Levofloxacino','Moxifloxacino','Gentamicina','Amicacina',
-  'Teicoplanina','Daptomicina','Polimixina','Colistina','Fluconazol','Voriconazol','Anfotericina','Micafungina',
-  'Anidulafungina','Aciclovir','Ganciclovir','Oseltamivir','Sulfametoxazol','Trimetoprima','Rifampicina',
-  'Isoniazida','Etambutol','Pirazinamida','Tinidazol','Nitrofurantoína'];
-var DVA_LIST = ['Noradrenalina','Adrenalina','Vasopressina','Dopamina','Dobutamina','Milrinona',
-  'Epinefrina','Norepinefrina','Fenilefrina','Terlipressina'];
-var OTHER_MONITORED = ['Heparina','Enoxaparina','Fondaparinux','Warfarina','Rivaroxabana','Apixabana',
-  'Insulina regular','NPH','Glargina','Detemir','Fentanil','Morfina','Midazolam','Propofol','Dexmedetomidina',
-  'Ketamina','Rocurônio','Atracúrio','Cisatracúrio','Furosemida','Espironolactona'];
-function parsePrescLine(line) {
-  var dateM  = line.match(/(\d{2}\/\d{2}(?:\/\d{2,4})?)/);
-  var daysM  = line.match(/D(?:ia)?\s*\.?\s*(\d{1,3})/i);
-  var doseM  = line.match(/([\d,.]+\s*(?:mg|g|mL|mcg|UI|mEq|mmol)[^\s]*)/i);
-  var viaM   = line.match(/\b(IV|VO|SC|IM|EV|SNG|SNE|Inalat[oó]rio)\b/i);
-  return {
-    date: dateM ? dateM[1] : null,
-    days: daysM ? parseInt(daysM[1]) : null,
-    dose: doseM ? doseM[1] : null,
-    via:  viaM  ? viaM[1].toUpperCase() : null,
-  };
-}
-function runPresc() {
-  var text = document.getElementById('rtaPresc').value;
-  var atb = [], dva = [], other = [], allMeds = [];
-  var today = new Date();
-  var lines = text.split('\n');
-  lines.forEach(function(line) {
-    var lt = line.trim();
-    if (!lt) return;
-    var drug = null, cat = null;
-    for (var i = 0; i < ATB_LIST.length; i++) {
-      if (new RegExp(ATB_LIST[i], 'i').test(lt)) { drug = ATB_LIST[i]; cat = 'atb'; break; }
-    }
-    if (!drug) for (var j = 0; j < DVA_LIST.length; j++) {
-      if (new RegExp(DVA_LIST[j], 'i').test(lt)) { drug = DVA_LIST[j]; cat = 'dva'; break; }
-    }
-    if (!drug) for (var k = 0; k < OTHER_MONITORED.length; k++) {
-      if (new RegExp(OTHER_MONITORED[k], 'i').test(lt)) { drug = OTHER_MONITORED[k]; cat = 'other'; break; }
-    }
-    if (!drug) return;
-    var info = parsePrescLine(lt);
-    var days = info.days;
-    if (!days && info.date) {
-      var p = info.date.split('/');
-      try {
-        var yr = p.length === 3 ? (parseInt(p[2]) < 100 ? 2000 + parseInt(p[2]) : parseInt(p[2])) : today.getFullYear();
-        var dt = new Date(yr, parseInt(p[1])-1, parseInt(p[0]));
-        days = Math.floor((today - dt) / 864e5) + 1;
-        if (days < 0 || days > 365) days = null;
-      } catch(e) {}
-    }
-    var entry = {drug: drug, days: days, dose: info.dose, via: info.via, cat: cat, raw: lt};
-    if (cat === 'atb') atb.push(entry);
-    else if (cat === 'dva') dva.push(entry);
-    else other.push(entry);
-    allMeds.push(entry);
-  });
-  prescData = {atb: atb, dva: dva, other: other, all: allMeds};
-  var html = '';
-  function renderSection(title, icon, items) {
-    if (!items.length) return '';
-    var h = '<div class="presc-section"><div class="presc-sh">'+icon+' '+title+'<span style="margin-left:8px;font-family:var(--mono);font-size:10px;color:var(--muted);">'+items.length+'</span></div>';
-    h += '<table class="presc-table"><thead><tr><th>Medicamento</th><th>Dias</th><th>Dose</th><th>Via</th></tr></thead><tbody>';
-    items.forEach(function(it) {
-      var daysCls = !it.days ? '' : it.days >= 14 ? 'day-badge day-hi' : it.days >= 7 ? 'day-badge day-med' : 'day-badge day-ok';
-      var daysHtml = it.days ? '<span class="'+daysCls+'">D'+it.days+'</span>' : '<span style="color:var(--muted);">—</span>';
-      var alert = '';
-      if (it.cat === 'atb' && it.days && it.days >= 14) alert = '<div class="alert-note">⚠ ≥14 dias — reavaliação</div>';
-      h += '<tr><td><strong>'+it.drug+'</strong>'+alert+'</td><td>'+daysHtml+'</td>';
-      h += '<td style="font-family:var(--mono);font-size:11px;">'+(it.dose||'—')+'</td>';
-      h += '<td>'+(it.via||'—')+'</td></tr>';
-    });
-    h += '</tbody></table></div>';
-    return h;
-  }
-  html += renderSection('Antimicrobianos', '🦠', atb);
-  html += renderSection('Drogas Vasoativas', '💉', dva);
-  html += renderSection('Outros Medicamentos Monitorados', '💊', other);
-  if (!html) html = '<div style="text-align:center;padding:40px;color:var(--muted);">Nenhum medicamento reconhecido.</div>';
-  document.getElementById('prescContainer').innerHTML = html;
-  document.getElementById('resultsPresc').classList.add('on');
-  document.getElementById('resultsPresc').scrollIntoView({behavior:'smooth'});
-}
-function copyPrescLine() {
-  if (!prescData || !prescData.atb.length) { alert('Nenhum ATB encontrado.'); return; }
-  var line = prescData.atb.map(function(a){ return a.drug + (a.days ? ' D'+a.days : '') + (a.dose ? ' '+a.dose : ''); }).join(' + ');
-  copyToClipboard(line, function(){ flashEl('prescFlash'); });
-}
-function resetPresc() {
-  document.getElementById('rtaPresc').value = '';
-  document.getElementById('ccPresc').textContent = '0 caracteres';
-  document.getElementById('resultsPresc').classList.remove('on');
-  document.getElementById('goBtnPresc').disabled = true;
-  prescData = null;
-}
-
-// ═══════════════════════════════════════════════════════════
-// CALCULADORAS
-// ═══════════════════════════════════════════════════════════
-function calcPF() {
-  var pao2 = parseFloat(document.getElementById('c_pao2').value);
-  var fio2 = parseFloat(document.getElementById('c_fio2').value);
-  var r = document.getElementById('r_pf');
-  if (!pao2 || !fio2) { r.innerHTML = '—'; return; }
-  var pf = pao2 / (fio2 / 100);
-  var sev = pf >= 300 ? '<span style="color:var(--ok)">Normal (≥300)</span>' : pf >= 200 ? '<span style="color:var(--warning)">SDRA leve (200-300)</span>' : pf >= 100 ? '<span style="color:var(--danger)">SDRA moderada (100-200)</span>' : '<span style="color:var(--danger);font-weight:700">SDRA grave (&lt;100)</span>';
-  r.innerHTML = '<span style="font-size:24px;font-weight:700;color:var(--accent)">'+pf.toFixed(0)+'</span> '+sev;
-}
-function calcDP() {
-  var pplat = parseFloat(document.getElementById('c_pplat').value);
-  var peep  = parseFloat(document.getElementById('c_peep').value);
-  var r = document.getElementById('r_dp');
-  if (!pplat || peep === undefined || isNaN(peep)) { r.innerHTML = '—'; return; }
-  var dp = pplat - peep;
-  var sev = dp <= 14 ? '<span style="color:var(--ok)">Seguro (≤14)</span>' : dp <= 17 ? '<span style="color:var(--warning)">Limítrofe (15-17)</span>' : '<span style="color:var(--danger)">Alto risco (&gt;17)</span>';
-  r.innerHTML = '<span style="font-size:24px;font-weight:700;color:var(--accent)">'+dp+' cmH₂O</span> '+sev;
-}
-function calcNut() {
-  var peso = parseFloat(document.getElementById('c_peso').value);
-  var cal  = parseFloat(document.getElementById('c_cond').value);
-  var prot = parseFloat(document.getElementById('c_prot').value);
-  var r = document.getElementById('r_nut');
-  if (!peso) { r.innerHTML = '—'; return; }
-  var kcal = peso * cal;
-  var g    = peso * prot;
-  r.innerHTML = '<span style="color:var(--accent);font-size:16px;font-weight:700">'+kcal.toFixed(0)+' kcal/dia</span><br><span style="color:var(--accent2);font-size:14px;font-weight:700">'+g.toFixed(0)+' g proteína/dia</span>';
-}
-function calcNa() {
-  var na_atual = parseFloat(document.getElementById('c_na_atual').value);
-  var na_alvo  = parseFloat(document.getElementById('c_na_alvo').value);
-  var peso     = parseFloat(document.getElementById('c_na_peso').value);
-  var fc       = parseFloat(document.getElementById('c_na_sexo').value);
-  var r = document.getElementById('r_na');
-  if (!na_atual || !na_alvo || !peso) { r.innerHTML = '—'; return; }
-  var acq = peso * fc * (na_alvo - na_atual);
-  r.innerHTML = '<span style="color:var(--accent);font-size:18px;font-weight:700">'+acq.toFixed(0)+' mEq de Na</span><br><span style="color:var(--muted);font-size:11px;">≈ '+(acq/0.9*10/10).toFixed(0)+' mL NaCl 0,9%</span>';
-}
-function calcDVA() {
-  var drug = document.getElementById('c_dva_drug').value;
-  var vel  = parseFloat(document.getElementById('c_dva_vel').value);
-  var peso = parseFloat(document.getElementById('c_dva_peso').value);
-  var r = document.getElementById('r_dva');
-  if (!vel || !peso) { r.innerHTML = '—'; return; }
-  var configs = {
-    nor_8_250:  {conc: 8000/250, unit:'mcg/kg/min', name:'Noradrenalina 8mg/250mL'},
-    nor_4_250:  {conc: 4000/250, unit:'mcg/kg/min', name:'Noradrenalina 4mg/250mL'},
-    nor_16_250: {conc:16000/250, unit:'mcg/kg/min', name:'Noradrenalina 16mg/250mL'},
-    dob_250_250:{conc:250000/250,unit:'mcg/kg/min', name:'Dobutamina 250mg/250mL'},
-    dop_200_250:{conc:200000/250,unit:'mcg/kg/min', name:'Dopamina 200mg/250mL'},
-  };
-  var cfg = configs[drug];
-  if (!cfg) { r.innerHTML = '—'; return; }
-  var dose = (cfg.conc * vel) / (peso * 60);
-  var warn = dose >= 0.3 ? '<span style="color:var(--danger)"> ⚠ Alta dose</span>' : dose >= 0.1 ? '<span style="color:var(--warning)"> — dose moderada</span>' : '<span style="color:var(--ok)"> — baixa dose</span>';
-  r.innerHTML = '<span style="font-size:22px;font-weight:700;color:var(--accent)">'+dose.toFixed(3)+'</span> '+cfg.unit+warn;
-}
-
-// ── DROGAS VASOATIVAS ──────────────────────────────────────────────
 var DVA_DRUGS = {
   norepi: {
     label: 'Norepinefrina',
