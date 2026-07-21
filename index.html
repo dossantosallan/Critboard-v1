@@ -1073,7 +1073,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
       <div style="display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;">
         <button class="btn-primary" onclick="printPassagem()">🖨️ Imprimir / Salvar PDF</button>
         <button class="btn-sec" onclick="downloadPassagemPDF()">⬇️ Download PDF</button>
-        <button class="btn-sec" onclick="downloadPassagemDOCX()">📄 Download Word (.docx)</button>
+        <button class="btn-sec" onclick="downloadPassagemDOCX()">📄 Download Word (.rtf)</button>
       </div>
     </div>
   </div>
@@ -2386,100 +2386,84 @@ function passField(label,value){if(!value)return'';return'<div class="pass-field
 function escHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
 function downloadPassagemDOCX() {
   if (!plantaoPatients.length) return;
-  // Load docx.js from CDN
-  if (typeof docx === 'undefined') {
-    var s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/docx/8.5.0/docx.js';
-    s.onload = function() { gerarDocx(); };
-    s.onerror = function() { alert('Erro ao carregar biblioteca Word. Verifique sua conexão.'); };
-    document.head.appendChild(s);
-  } else {
-    gerarDocx();
-  }
-}
-
-function gerarDocx() {
   try {
     var date = new Date().toLocaleDateString('pt-BR');
-    var D = docx;
-
-    // Table header row
-    var headerCells = ['#', 'Paciente', 'Lista de Problemas', 'Laboratorial', 'Avaliação', 'Conduta'].map(function(txt) {
-      return new D.TableCell({
-        shading: { fill: '1a1a1a' },
-        width: { size: txt === '#' ? 4 : txt === 'Paciente' ? 12 : 20, type: D.WidthType.PERCENTAGE },
-        children: [new D.Paragraph({
-          children: [new D.TextRun({ text: txt, bold: true, color: 'FFFFFF', size: 18 })]
-        })]
-      });
-    });
-
-    // Patient rows
-    var dataRows = plantaoPatients.map(function(p, i) {
-      var cells = [
-        String(i + 1),
-        p.name + (p.leito ? '\nLeito ' + p.leito : ''),
-        p.lista || '—',
-        p.laboratorial || '—',
-        p.avaliacao || '—',
-        p.conduta || '—'
-      ];
-      return new D.TableRow({
-        children: cells.map(function(txt, ci) {
-          return new D.TableCell({
-            shading: { fill: i % 2 === 0 ? 'FFFFFF' : 'F5F5F5' },
-            children: txt.split('\n').map(function(line) {
-              return new D.Paragraph({
-                children: [new D.TextRun({
-                  text: line,
-                  size: 16,
-                  bold: ci === 1 && line === txt.split('\n')[0]
-                })]
-              });
-            })
-          });
-        })
-      });
-    });
-
-    var doc = new D.Document({
-      sections: [{
-        properties: {
-          page: {
-            size: { orientation: D.PageOrientation.LANDSCAPE, width: 16838, height: 11906 },
-            margin: { top: 720, bottom: 720, left: 720, right: 720 }
-          }
-        },
-        children: [
-          new D.Paragraph({
-            children: [new D.TextRun({ text: 'Passagem de Plantão — UTI', bold: true, size: 28 })]
-          }),
-          new D.Paragraph({
-            children: [new D.TextRun({ text: 'Gerado em: ' + date + ' | ' + plantaoPatients.length + ' paciente(s)', size: 18, color: '555555' })],
-            spacing: { after: 200 }
-          }),
-          new D.Table({
-            width: { size: 100, type: D.WidthType.PERCENTAGE },
-            rows: [new D.TableRow({ children: headerCells, tableHeader: true }), ...dataRows]
-          })
-        ]
-      }]
-    });
-
-    D.Packer.toBlob(doc).then(function(blob) {
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = 'passagem_plantao_' + date.replace(/\//g, '-') + '.docx';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    });
+    var rtf = gerarRTF(plantaoPatients, date);
+    var blob = new Blob([rtf], { type: 'application/rtf' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'passagem_plantao_' + date.replace(/\//g, '-') + '.rtf';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   } catch(e) {
     alert('Erro ao gerar Word: ' + e.message);
     console.error(e);
   }
+}
+
+function gerarRTF(patients, date) {
+  function re(t) {
+    if (!t) return '--';
+    return t
+      .replace(/\\/g, '\\\\').replace(/\{/g, '\\{').replace(/\}/g, '\\}')
+      .replace(/\n/g, '\\par ')
+      .replace(/ã/g,"\\~a").replace(/Ã/g,"\\~A")
+      .replace(/â/g,"\\^a").replace(/Â/g,"\\^A")
+      .replace(/á/g,"\\'e1").replace(/Á/g,"\\'c1")
+      .replace(/à/g,"\\'e0").replace(/À/g,"\\'c0")
+      .replace(/é/g,"\\'e9").replace(/É/g,"\\'c9")
+      .replace(/ê/g,"\\^e").replace(/Ê/g,"\\^E")
+      .replace(/í/g,"\\'ed").replace(/Í/g,"\\'cd")
+      .replace(/ó/g,"\\'f3").replace(/Ó/g,"\\'d3")
+      .replace(/õ/g,"\\~o").replace(/Õ/g,"\\~O")
+      .replace(/ô/g,"\\^o").replace(/Ô/g,"\\^O")
+      .replace(/ú/g,"\\'fa").replace(/Ú/g,"\\'da")
+      .replace(/ü/g,"\\'fc")
+      .replace(/ç/g,"\\'e7").replace(/Ç/g,"\\'c7")
+      .replace(/\u00b0/g,"\\'b0")
+      .replace(/\u2014/g,'\\emdash').replace(/\u2013/g,'\\endash')
+      .replace(/[^\x00-\x7E]/g, function(c) { return "\\u"+c.charCodeAt(0)+"?"; });
+  }
+
+  var CW = ['800','2400','5000','7000','9500','13000'];
+  function rowBorders(bg) {
+    return CW.map(function(w) {
+      return (bg ? '\\clcbpat1' : '') +
+        '\\clbrdrt\\brdrs\\brdrw10\\clbrdrl\\brdrs\\brdrw10\\clbrdrb\\brdrs\\brdrw10\\clbrdrr\\brdrs\\brdrw10\\cellx' + w;
+    }).join('');
+  }
+
+  var hdrRow = '\\trowd\\trgaph115\\trpaddl115\\trpaddt57\\trpaddb57' + rowBorders(true) +
+    ['#','Paciente','Lista de Problemas','Laboratorial','Avalia\u00e7\u00e3o','Conduta'].map(function(c) {
+      return '\\pard\\intbl\\b\\fs16\\cf2 ' + re(c) + '\\cell';
+    }).join('') + '\\row\n';
+
+  var dataRows = patients.map(function(p, i) {
+    var cols = [
+      String(i+1),
+      p.name + (p.leito ? '\nLeito ' + p.leito : ''),
+      p.lista || '--',
+      p.laboratorial || '--',
+      p.avaliacao || '--',
+      p.conduta || '--'
+    ];
+    return '\\trowd\\trgaph115\\trpaddl115\\trpaddt57\\trpaddb57' + rowBorders(false) +
+      cols.map(function(c, ci) {
+        var b = (ci <= 1) ? '\\b ' : '';
+        return '\\pard\\intbl\\fs16\\cf1 ' + b + re(c) + (ci <= 1 ? '\\b0' : '') + '\\cell';
+      }).join('') + '\\row\n';
+  }).join('');
+
+  return '{\\rtf1\\ansi\\ansicpg1252\\deff0' +
+    '{\\fonttbl{\\f0\\fswiss\\fcharset0 Arial;}}' +
+    '{\\colortbl;\\red0\\green0\\blue0;\\red255\\green255\\blue255;}' +
+    '\\landscape\\paperw16838\\paperh11906\\margl720\\margr720\\margt720\\margb720\\f0' +
+    '\\fs22\\b Passagem de Plant\\u00e3o \\emdash UTI\\b0\\par' +
+    '\\fs16 Gerado em: ' + re(date) + '  |  ' + patients.length + ' paciente(s)\\par\\par' +
+    hdrRow + dataRows + '}';
 }
 
 function resetResume(){document.getElementById('rtaResume').value='';document.getElementById('ccResume').textContent='0 caracteres';document.getElementById('ptCountResume').textContent='';document.getElementById('goBtnResume').disabled=true;document.getElementById('resultsResume').classList.remove('on');plantaoPatients=[];window.scrollTo({top:0,behavior:'smooth'});}
