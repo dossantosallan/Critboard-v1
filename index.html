@@ -1073,6 +1073,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
       <div style="display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;">
         <button class="btn-primary" onclick="printPassagem()">🖨️ Imprimir / Salvar PDF</button>
         <button class="btn-sec" onclick="downloadPassagemPDF()">⬇️ Download PDF</button>
+        <button class="btn-sec" onclick="downloadPassagemDOCX()">📄 Download Word (.docx)</button>
       </div>
     </div>
   </div>
@@ -2383,6 +2384,104 @@ function runResume(){try{var text=document.getElementById('rtaResume').value;if(
 function renderPassagem(){var sb=document.getElementById('resumeSummaryBar');sb.innerHTML=mkSbItem(plantaoPatients.length,'Pacientes','var(--accent2)');var cards=document.getElementById('resumeCards');var html='';plantaoPatients.forEach(function(p,idx){html+='<div class="pass-card" id="passCard_'+idx+'"><div class="pass-header"><span class="pass-num">'+(idx+1)+'</span><span class="pass-name">'+p.name+'</span>'+(p.leito?'<span class="pass-leito">Leito '+p.leito+'</span>':'')+'</div>'+passField('Lista de Problemas',p.lista)+passField('Laboratorial',p.laboratorial)+passField('Avaliação',p.avaliacao)+passField('Conduta',p.conduta)+'</div>';});cards.innerHTML=html;document.getElementById('resultsResume').classList.add('on');document.getElementById('resultsResume').scrollIntoView({behavior:'smooth'});}
 function passField(label,value){if(!value)return'';return'<div class="pass-field"><div class="pass-field-label">'+label+'</div><div class="pass-field-value">'+escHtml(value)+'</div></div>';}
 function escHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+function downloadPassagemDOCX() {
+  if (!plantaoPatients.length) return;
+  // Load docx.js from CDN
+  if (typeof docx === 'undefined') {
+    var s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/docx/8.5.0/docx.js';
+    s.onload = function() { gerarDocx(); };
+    s.onerror = function() { alert('Erro ao carregar biblioteca Word. Verifique sua conexão.'); };
+    document.head.appendChild(s);
+  } else {
+    gerarDocx();
+  }
+}
+
+function gerarDocx() {
+  try {
+    var date = new Date().toLocaleDateString('pt-BR');
+    var D = docx;
+
+    // Table header row
+    var headerCells = ['#', 'Paciente', 'Lista de Problemas', 'Laboratorial', 'Avaliação', 'Conduta'].map(function(txt) {
+      return new D.TableCell({
+        shading: { fill: '1a1a1a' },
+        width: { size: txt === '#' ? 4 : txt === 'Paciente' ? 12 : 20, type: D.WidthType.PERCENTAGE },
+        children: [new D.Paragraph({
+          children: [new D.TextRun({ text: txt, bold: true, color: 'FFFFFF', size: 18 })]
+        })]
+      });
+    });
+
+    // Patient rows
+    var dataRows = plantaoPatients.map(function(p, i) {
+      var cells = [
+        String(i + 1),
+        p.name + (p.leito ? '\nLeito ' + p.leito : ''),
+        p.lista || '—',
+        p.laboratorial || '—',
+        p.avaliacao || '—',
+        p.conduta || '—'
+      ];
+      return new D.TableRow({
+        children: cells.map(function(txt, ci) {
+          return new D.TableCell({
+            shading: { fill: i % 2 === 0 ? 'FFFFFF' : 'F5F5F5' },
+            children: txt.split('\n').map(function(line) {
+              return new D.Paragraph({
+                children: [new D.TextRun({
+                  text: line,
+                  size: 16,
+                  bold: ci === 1 && line === txt.split('\n')[0]
+                })]
+              });
+            })
+          });
+        })
+      });
+    });
+
+    var doc = new D.Document({
+      sections: [{
+        properties: {
+          page: {
+            size: { orientation: D.PageOrientation.LANDSCAPE, width: 16838, height: 11906 },
+            margin: { top: 720, bottom: 720, left: 720, right: 720 }
+          }
+        },
+        children: [
+          new D.Paragraph({
+            children: [new D.TextRun({ text: 'Passagem de Plantão — UTI', bold: true, size: 28 })]
+          }),
+          new D.Paragraph({
+            children: [new D.TextRun({ text: 'Gerado em: ' + date + ' | ' + plantaoPatients.length + ' paciente(s)', size: 18, color: '555555' })],
+            spacing: { after: 200 }
+          }),
+          new D.Table({
+            width: { size: 100, type: D.WidthType.PERCENTAGE },
+            rows: [new D.TableRow({ children: headerCells, tableHeader: true }), ...dataRows]
+          })
+        ]
+      }]
+    });
+
+    D.Packer.toBlob(doc).then(function(blob) {
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'passagem_plantao_' + date.replace(/\//g, '-') + '.docx';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  } catch(e) {
+    alert('Erro ao gerar Word: ' + e.message);
+    console.error(e);
+  }
+}
+
 function resetResume(){document.getElementById('rtaResume').value='';document.getElementById('ccResume').textContent='0 caracteres';document.getElementById('ptCountResume').textContent='';document.getElementById('goBtnResume').disabled=true;document.getElementById('resultsResume').classList.remove('on');plantaoPatients=[];window.scrollTo({top:0,behavior:'smooth'});}
 function printPassagem(){if(!plantaoPatients.length)return;var win=window.open('','_blank');win.document.write(buildPrintHTML());win.document.close();win.focus();setTimeout(function(){win.print();},400);}
 function buildPrintHTML(){var date=new Date().toLocaleDateString('pt-BR');var rows=plantaoPatients.map(function(p,i){return'<tr class="pt-row"><td class="pt-num">'+(i+1)+'</td><td class="pt-name">'+esc(p.name)+(p.leito?'<br><span class="pt-leito">Leito '+esc(p.leito)+'</span>':'')+'</td><td>'+nl2br(esc(p.lista))+'</td><td>'+nl2br(esc(p.laboratorial))+'</td><td>'+nl2br(esc(p.avaliacao))+'</td><td>'+nl2br(esc(p.conduta))+'</td></tr>';}).join('');return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Passagem de Plantão</title><style>@page{size:A4 landscape;margin:12mm 10mm;}body{font-family:Arial,sans-serif;font-size:7.5pt;color:#111;margin:0;}h1{font-size:10pt;font-weight:700;margin:0 0 2mm;}p.meta{font-size:7pt;color:#555;margin:0 0 4mm;}table{width:100%;border-collapse:collapse;table-layout:fixed;}col.c0{width:5mm;}col.c1{width:28mm;}col.c2{width:52mm;}col.c3{width:38mm;}col.c4{width:50mm;}col.c5{width:55mm;}th{background:#1a1a1a;color:#fff;font-size:7pt;font-weight:700;padding:3px 5px;text-align:left;border:1px solid #333;}td{vertical-align:top;padding:3px 5px;font-size:7pt;border:1px solid #ccc;line-height:1.45;}tr.pt-row:nth-child(even) td{background:#f9f9f9;}.pt-num{text-align:center;font-weight:700;}.pt-name{font-weight:700;}.pt-leito{font-weight:400;color:#555;font-size:6.5pt;}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style></head><body><h1>Passagem de Plantão — UTI</h1><p class="meta">'+date+' &nbsp;|  '+plantaoPatients.length+' paciente(s)</p><table><colgroup><col class="c0"><col class="c1"><col class="c2"><col class="c3"><col class="c4"><col class="c5"></colgroup><thead><tr><th>#</th><th>Paciente</th><th>Lista de Problemas</th><th>Laboratorial</th><th>Avaliação</th><th>Conduta</th></tr></thead><tbody>'+rows+'</tbody></table></body></html>';}
