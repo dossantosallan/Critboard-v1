@@ -5096,7 +5096,7 @@ function saveToSheets(){
   if(!url||!labPatients.length)return;
   var btn=document.getElementById('btnSaveSheets');
   if(btn){btn.disabled=true;btn.textContent='Enviando...';}
-  var rawText=document.getElementById('rtaLab').value;
+  var rawText=document.getElementById('rtaResume').value||document.getElementById('rtaLab').value;
   var keep=['hb','leuco','ureia','creatinina','pcr'];
   var payloads=labPatients.map(function(p){
     var exams={};
