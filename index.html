@@ -2391,9 +2391,10 @@ function splitEvolutions(text){var parts=text.split(/(?=HOSPITAL REGIONAL)/i);va
 function extractField(block,patterns){for(var i=0;i<patterns.length;i++){var re=new RegExp('#\\s*'+patterns[i]+'[^\\n]*\\n([\\s\\S]*?)(?=\\n#[A-ZÀ-ÖØ-Ý]|$)','i');var m=block.match(re);if(m&&m[1].trim())return m[1].trim();}return '';}
 function extractName(block){var lines=block.split('\n');for(var i=0;i<lines.length;i++){var l=lines[i].trim();if(/DT NASCIMENTO/i.test(l)){for(var j=i-1;j>=0;j--){var c=lines[j].trim();if(c.length>3&&!/HOSPITAL|UNIDADE|REGISTRO|CID|Leito/i.test(c))return c;}}var next=(lines[i+1]||'').trim();if(/^REGISTRO:/i.test(next)&&l.length>3&&!/HOSPITAL|UNIDADE/i.test(l))return l;}var found=0;for(var k=0;k<Math.min(lines.length,8);k++){var ln=lines[k].trim();if(!ln||/HOSPITAL|UNIDADE/i.test(ln))continue;found++;if(found===2)return ln;}return 'Paciente';}
 function extractLeito(block){var m=block.match(/\bLeito[:\s]+(\d[\d\-]*)/i);return m?m[1].trim():'';}
-function parsePatient(block){return{name:extractName(block),leito:extractLeito(block),lista:extractField(block,['LISTA DE PROBLEMAS','LISTA DE PROBLEMA']),laboratorial:extractField(block,['LABORATORIAL','EXAMES RELEVANTES','EXAMES LAB']),avaliacao:extractField(block,['AVALIA[CÇ][AÃ]O','AVALIACAO','AVALIAÇÃO']),conduta:extractField(block,['CONDUTA']),raw:block};}
+function extractLabSummary(text){var keys=[{lbl:'Hb',  pats:[/\bHb\s+(\d[\d.,]*)/i,/hemoglobina[^:]*:\s*(\d[\d.,]*)/i]},{lbl:'Leuco',pats:[/\bLeuc(?:o|ocito)?\s+(\d[\d.,]*)/i]},{lbl:'Ur',  pats:[/\bUr(?:eia)?\s+(\d[\d.,]*)/i,/\bU\s+(\d[\d.,]*)/i]},{lbl:'Cr',  pats:[/\bCr(?:eatinina)?\s+(\d[\d.,]*)/i]},{lbl:'PCR', pats:[/\bPCR\s*(?:de\s+|:\s*)?(\d[\d.,]*)/i,/prote.na\s+c\s+reativa[^:]*:\s*(\d[\d.,]*)/i]}];var parts=[];keys.forEach(function(k){for(var i=0;i<k.pats.length;i++){var m=text.match(k.pats[i]);if(m){parts.push(k.lbl+' '+m[1].replace(',','.'));break;}}});return parts.length?parts.join(' | '):'';}
+function parsePatient(block){var labRaw=extractField(block,['LABORATORIAL','EXAMES RELEVANTES','EXAMES LAB']);var labSum=extractLabSummary(labRaw);return{name:extractName(block),leito:extractLeito(block),lista:extractField(block,['LISTA DE PROBLEMAS','LISTA DE PROBLEMA']),laboratorial:labRaw,labSummary:labSum,atb:extractATBVigentes(block),avaliacao:extractField(block,['AVALIA[CÇ][AÃ]O','AVALIACAO','AVALIAÇÃO']),conduta:extractField(block,['CONDUTA']),raw:block};}
 function runResume(){try{var text=document.getElementById('rtaResume').value;if(!text||text.trim().length<20){alert('Cole o texto das evoluções primeiro.');return;}var blocks=splitEvolutions(text);plantaoPatients=blocks.map(function(b){return parsePatient(b);});renderPassagem();}catch(e){alert('Erro ao processar: '+e.message);console.error(e);}}
-function renderPassagem(){var sb=document.getElementById('resumeSummaryBar');sb.innerHTML=mkSbItem(plantaoPatients.length,'Pacientes','var(--accent2)');var cards=document.getElementById('resumeCards');var html='';plantaoPatients.forEach(function(p,idx){html+='<div class="pass-card" id="passCard_'+idx+'"><div class="pass-header"><span class="pass-num">'+(idx+1)+'</span><span class="pass-name">'+p.name+'</span>'+(p.leito?'<span class="pass-leito">Leito '+p.leito+'</span>':'')+'</div>'+passField('Lista de Problemas',p.lista)+passField('Laboratorial',p.laboratorial)+passField('Avaliação',p.avaliacao)+passField('Conduta',p.conduta)+'</div>';});cards.innerHTML=html;document.getElementById('resultsResume').classList.add('on');document.getElementById('resultsResume').scrollIntoView({behavior:'smooth'});}
+function renderPassagem(){var sb=document.getElementById('resumeSummaryBar');sb.innerHTML=mkSbItem(plantaoPatients.length,'Pacientes','var(--accent2)');var cards=document.getElementById('resumeCards');var html='';plantaoPatients.forEach(function(p,idx){html+='<div class="pass-card" id="passCard_'+idx+'"><div class="pass-header"><span class="pass-num">'+(idx+1)+'</span><span class="pass-name">'+p.name+'</span>'+(p.leito?'<span class="pass-leito">Leito '+p.leito+'</span>':'')+'</div>'+passField('Lista de Problemas',p.lista)+passField('ATBs Vigentes',p.atb)+passField('Laboratorial',p.labSummary||p.laboratorial)+passField('Avaliação',p.avaliacao)+passField('Conduta',p.conduta)+'</div>';});cards.innerHTML=html;document.getElementById('resultsResume').classList.add('on');document.getElementById('resultsResume').scrollIntoView({behavior:'smooth'});}
 function passField(label,value){if(!value)return'';return'<div class="pass-field"><div class="pass-field-label">'+label+'</div><div class="pass-field-value">'+escHtml(value)+'</div></div>';}
 function escHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
 function downloadPassagemDOCX() {
@@ -5096,12 +5097,18 @@ function saveToSheets(){
   if(!url||!labPatients.length)return;
   var btn=document.getElementById('btnSaveSheets');
   if(btn){btn.disabled=true;btn.textContent='Enviando...';}
-  var rawText=document.getElementById('rtaResume').value||document.getElementById('rtaLab').value;
   var keep=['hb','leuco','ureia','creatinina','pcr'];
   var payloads=labPatients.map(function(p){
     var exams={};
     p.results.forEach(function(f){if(keep.indexOf(f.exam.key)!==-1)exams[f.exam.key]=f.value;});
-    return{name:p.meta.name||'',date:p.meta.date||new Date().toLocaleDateString('pt-BR'),sector:p.meta.sector||'',doctor:p.meta.doctor||'',atb:extractATBVigentes(rawText),exams:exams};
+    var patAtb='';
+    if(plantaoPatients&&plantaoPatients.length){
+      var match=plantaoPatients.filter(function(pp){return pp.name&&p.meta.name&&pp.name.indexOf(p.meta.name.split(' ')[0])!==-1;});
+      if(match.length)patAtb=match[0].atb||'';
+      else patAtb=plantaoPatients.map(function(pp){return pp.atb;}).filter(Boolean).join('; ');
+    }
+    if(!patAtb){var rt=document.getElementById('rtaResume').value;if(rt)patAtb=extractATBVigentes(rt);}
+    return{name:p.meta.name||'',date:p.meta.date||new Date().toLocaleDateString('pt-BR'),sector:p.meta.sector||'',doctor:p.meta.doctor||'',atb:patAtb,exams:exams};
   });
   var idx=0,errors=[];
   function sendNext(){
