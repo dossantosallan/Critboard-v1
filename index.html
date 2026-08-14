@@ -963,6 +963,24 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
 .pass-field-label{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
 .pass-field-value{font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap;}
 .rta-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px;}
+.elec-suggest-block{margin-top:16px;border-top:1px solid var(--border);padding-top:14px;}
+.elec-suggest-title{font-size:11px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.elec-item{border-radius:9px;padding:10px 14px;margin-bottom:8px;}
+.elec-item:last-child{margin-bottom:0;}
+.elec-crit{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);}
+.elec-warn{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.3);}
+.elec-item-title{font-size:12px;font-weight:700;margin-bottom:6px;}
+.elec-crit .elec-item-title{color:var(--danger);}
+.elec-warn .elec-item-title{color:var(--warning);}
+.elec-list{margin:0;padding-left:18px;}
+.elec-list li{font-size:11px;color:var(--text);line-height:1.7;font-family:var(--mono);}
+.rep-summary-block{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px 20px;}
+.rep-summary-title{font-size:11px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+.rep-summary-line{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.rep-summary-line:last-child{border-bottom:none;}
+.rep-pt-name{font-weight:700;color:var(--text);min-width:120px;}
+.rep-arrow{color:var(--muted);flex-shrink:0;}
+.rep-label{color:var(--accent);font-family:var(--mono);font-size:12px;}
 </style>
 </head>
 <body>
@@ -1033,6 +1051,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
       <div class="summary-bar" id="sbLab"></div>
       <div id="patientsLab"></div>
       <div class="global-actions" id="actionsLab"></div>
+    <div id="repSummaryBlock" style="display:none;margin-top:24px;"></div>
     <div id="sheetsSaveArea" style="margin-top:18px;display:none;">
       <div class="hint">Cole a URL do Apps Script para habilitar envio ao Google Sheets.</div>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;">
@@ -2068,18 +2087,19 @@ function sbItem(val,lbl,color){return'<div class="sb-item"><div class="sb-val" s
 var labPatients=[];
 function onTxtLab(){var v=document.getElementById('rtaLab').value;document.getElementById('ccLab').textContent=v.length+' caracteres';document.getElementById('btnLab').disabled=v.trim().length<20;}
 function runLab(){var text=document.getElementById('rtaLab').value;var blocks=splitPatients(text);labPatients=[];if(typeof blocks[0]==='string'){var results=parseExams(blocks[0]),meta=extractMeta(blocks[0]);if(results.length)labPatients.push({meta:meta,results:results});}else{blocks.forEach(function(b){var results=parseExams(b.text),meta=extractMeta(b.text);if(!meta.name)meta.name=b.name;if(results.length)labPatients.push({meta:meta,results:results});});}if(!labPatients.length){alert('Nenhum exame reconhecido.');return;}renderLab();}
-function renderLab(){var tc=0,tw=0,te=0;labPatients.forEach(function(p){p.results.forEach(function(f){var s=classify(f.exam,f.value);if(s==='critical')tc++;else if(s==='warning')tw++;te++;});});document.getElementById('sbLab').innerHTML=sbItem(labPatients.length,'Pacientes','var(--accent2)')+'<div class="sb-div"></div>'+sbItem(te,'Exames','var(--text)')+sbItem(tc,'Críticos','var(--danger)')+sbItem(tw,'Alterados','var(--warning)')+'<div class="sb-actions"><button class="btn-sm" onclick="copyAllLab()">📋 Copiar Todos</button><span class="flash" id="flashAllLab">✓ Copiado!</span></div>';var html='';labPatients.forEach(function(pd,idx){var crits=pd.results.filter(function(f){return classify(f.exam,f.value)==='critical';});var warns=pd.results.filter(function(f){return classify(f.exam,f.value)==='warning';});var rt=crits.length?'alto':warns.length?'medio':'normal';var rl=crits.length?'Risco Alto':warns.length?'Atenção':'Estável';var bc=crits.length?' has-critical':warns.length?' has-warning':'';var line=buildLine(pd.results);var panels={};pd.results.forEach(function(f){if(!panels[f.exam.panel])panels[f.exam.panel]=[];panels[f.exam.panel].push(f);});var ph='';PANEL_ORDER.forEach(function(pn){if(!panels[pn]||!panels[pn].length)return;var rows='';panels[pn].forEach(function(f,i){var st=classify(f.exam,f.value);var cls=st==='critical'?'c':st==='warning'?'w':'n';var ref='';if(f.exam.low!==null&&f.exam.high!==null)ref=f.exam.low+'–'+f.exam.high+' '+f.exam.unit;else if(f.exam.high!==null)ref='&lt; '+f.exam.high+' '+f.exam.unit;else if(f.exam.low!==null)ref='&gt; '+f.exam.low+' '+f.exam.unit;var nm=f.exam.names[0];nm=nm.charAt(0)+nm.slice(1).toLowerCase();rows+='<div class="lab-row"><div class="lab-bar '+cls+'"></div><div class="lab-name">'+nm+'</div><div><div class="lab-val '+cls+'">'+formatNum(f.exam,f.value)+' '+f.exam.unit+'</div><div class="lab-ref">'+ref+'</div></div></div>';});ph+='<div class="panel"><div class="panel-head"><span>'+(PANEL_ICON[pn]||'🔬')+'</span><span class="panel-title">'+pn+'</span><span class="panel-count">'+panels[pn].length+' exam.</span></div>'+rows+'</div>';});var ah='';if(crits.length){ah='<div class="apanel"><div class="atitle">⚠️ Alertas Críticos</div>';crits.forEach(function(f){var ih=f.exam.cHigh!==null&&f.value>f.exam.cHigh;ah+='<div class="aitem"><span style="font-size:14px;flex-shrink:0">🚨</span><div><strong>'+f.exam.abbr+'</strong>: '+formatNum(f.exam,f.value)+' '+f.exam.unit+' — '+(ih?'Acima do limite crítico (ref &lt; '+f.exam.cHigh+')':'Abaixo do limite crítico (ref &gt; '+f.exam.cLow+')')+'</div></div>';});ah+='</div>';}html+='<div class="patient-block'+bc+'" id="patLab_'+idx+'"><div class="patient-header" onclick="toggleLab('+idx+')"><span class="patient-num">#'+(idx+1)+'</span><div style="flex:1"><div class="patient-name">'+(pd.meta.name||'Paciente')+'</div><div class="patient-meta">'+(pd.meta.sector?'<span>'+pd.meta.sector+'</span>':'')+(pd.meta.date?'<span>'+pd.meta.date+'</span>':'')+(pd.meta.doctor?'<span>Sol.: '+pd.meta.doctor+'</span>':'')+'</div></div><div class="patient-badges"><span class="pbadge pb-'+rt+'">'+rl+'</span><span class="pbadge-count">'+pd.results.length+' exames</span></div><span class="chevron open" id="chevLab_'+idx+'">▼</span></div><div class="patient-body open" id="bodyLab_'+idx+'"><div class="line-card"><div class="line-lbl">⚡ Linha Única</div><div class="line-text" id="lineLab_'+idx+'">'+line+'</div><div class="line-actions"><button class="btn-copy" onclick="copyLineLab('+idx+')">Copiar Linha</button><span class="flash" id="flashLab_'+idx+'">✓ Copiado!</span></div></div>'+ah+'<div class="pgrid2">'+ph+'</div><div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;"><button class="btn-sec" onclick="copyPatLab('+idx+')">📋 Copiar resumo completo</button><span class="flash" id="flashPat_'+idx+'">✓ Copiado!</span></div></div></div>';});document.getElementById('patientsLab').innerHTML=html;document.getElementById('actionsLab').innerHTML='<button class="btn-sec" onclick="expandAllLab()">▼ Expandir Todos</button><button class="btn-sec" onclick="collapseAllLab()">▲ Recolher Todos</button><button class="btn-sec" onclick="resetLab()">🔄 Novo</button>';document.getElementById('resultsLab').classList.add('on');
+function renderLab(){var tc=0,tw=0,te=0;labPatients.forEach(function(p){p.results.forEach(function(f){var s=classify(f.exam,f.value);if(s==='critical')tc++;else if(s==='warning')tw++;te++;});});document.getElementById('sbLab').innerHTML=sbItem(labPatients.length,'Pacientes','var(--accent2)')+'<div class="sb-div"></div>'+sbItem(te,'Exames','var(--text)')+sbItem(tc,'Críticos','var(--danger)')+sbItem(tw,'Alterados','var(--warning)')+'<div class="sb-actions"><button class="btn-sm" onclick="copyAllLab()">📋 Copiar Todos</button><span class="flash" id="flashAllLab">✓ Copiado!</span></div>';var html='';labPatients.forEach(function(pd,idx){var crits=pd.results.filter(function(f){return classify(f.exam,f.value)==='critical';});var warns=pd.results.filter(function(f){return classify(f.exam,f.value)==='warning';});var rt=crits.length?'alto':warns.length?'medio':'normal';var rl=crits.length?'Risco Alto':warns.length?'Atenção':'Estável';var bc=crits.length?' has-critical':warns.length?' has-warning':'';var line=buildLine(pd.results);var panels={};pd.results.forEach(function(f){if(!panels[f.exam.panel])panels[f.exam.panel]=[];panels[f.exam.panel].push(f);});var ph='';PANEL_ORDER.forEach(function(pn){if(!panels[pn]||!panels[pn].length)return;var rows='';panels[pn].forEach(function(f,i){var st=classify(f.exam,f.value);var cls=st==='critical'?'c':st==='warning'?'w':'n';var ref='';if(f.exam.low!==null&&f.exam.high!==null)ref=f.exam.low+'–'+f.exam.high+' '+f.exam.unit;else if(f.exam.high!==null)ref='&lt; '+f.exam.high+' '+f.exam.unit;else if(f.exam.low!==null)ref='&gt; '+f.exam.low+' '+f.exam.unit;var nm=f.exam.names[0];nm=nm.charAt(0)+nm.slice(1).toLowerCase();rows+='<div class="lab-row"><div class="lab-bar '+cls+'"></div><div class="lab-name">'+nm+'</div><div><div class="lab-val '+cls+'">'+formatNum(f.exam,f.value)+' '+f.exam.unit+'</div><div class="lab-ref">'+ref+'</div></div></div>';});ph+='<div class="panel"><div class="panel-head"><span>'+(PANEL_ICON[pn]||'🔬')+'</span><span class="panel-title">'+pn+'</span><span class="panel-count">'+panels[pn].length+' exam.</span></div>'+rows+'</div>';});var ah='';if(crits.length){ah='<div class="apanel"><div class="atitle">⚠️ Alertas Críticos</div>';crits.forEach(function(f){var ih=f.exam.cHigh!==null&&f.value>f.exam.cHigh;ah+='<div class="aitem"><span style="font-size:14px;flex-shrink:0">🚨</span><div><strong>'+f.exam.abbr+'</strong>: '+formatNum(f.exam,f.value)+' '+f.exam.unit+' — '+(ih?'Acima do limite crítico (ref &lt; '+f.exam.cHigh+')':'Abaixo do limite crítico (ref &gt; '+f.exam.cLow+')')+'</div></div>';});ah+='</div>';}html+='<div class="patient-block'+bc+'" id="patLab_'+idx+'"><div class="patient-header" onclick="toggleLab('+idx+')"><span class="patient-num">#'+(idx+1)+'</span><div style="flex:1"><div class="patient-name">'+(pd.meta.name||'Paciente')+'</div><div class="patient-meta">'+(pd.meta.sector?'<span>'+pd.meta.sector+'</span>':'')+(pd.meta.date?'<span>'+pd.meta.date+'</span>':'')+(pd.meta.doctor?'<span>Sol.: '+pd.meta.doctor+'</span>':'')+'</div></div><div class="patient-badges"><span class="pbadge pb-'+rt+'">'+rl+'</span><span class="pbadge-count">'+pd.results.length+' exames</span></div><span class="chevron open" id="chevLab_'+idx+'">▼</span></div><div class="patient-body open" id="bodyLab_'+idx+'"><div class="line-card"><div class="line-lbl">⚡ Linha Única</div><div class="line-text" id="lineLab_'+idx+'">'+line+'</div><div class="line-actions"><button class="btn-copy" onclick="copyLineLab('+idx+')">Copiar Linha</button><span class="flash" id="flashLab_'+idx+'">✓ Copiado!</span></div></div>'+ah+'<div class="pgrid2">'+ph+'</div>'+buildElectrolyteSuggestions(pd.results)+'<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;"><button class="btn-sec" onclick="copyPatLab('+idx+')">📋 Copiar resumo completo</button><span class="flash" id="flashPat_'+idx+'">✓ Copiado!</span></div></div></div>';});document.getElementById('patientsLab').innerHTML=html;document.getElementById('actionsLab').innerHTML='<button class="btn-sec" onclick="expandAllLab()">▼ Expandir Todos</button><button class="btn-sec" onclick="collapseAllLab()">▲ Recolher Todos</button><button class="btn-sec" onclick="resetLab()">🔄 Novo</button>';document.getElementById('resultsLab').classList.add('on');
   var _ssa=document.getElementById('sheetsSaveArea');if(_ssa)_ssa.style.display='block';
   var _su=localStorage.getItem('critboard_sheets_url');
   if(_su){var _inp=document.getElementById('sheetsUrl');if(_inp)_inp.value=_su;
-  var _btn=document.getElementById('btnSaveSheets');if(_btn)_btn.disabled=false;}document.getElementById('resultsLab').scrollIntoView({behavior:'smooth'});}
+  var _btn=document.getElementById('btnSaveSheets');if(_btn)_btn.disabled=false;}document.getElementById('resultsLab').scrollIntoView({behavior:'smooth'});
+  renderRepSummary();}
 function toggleLab(idx){var b=document.getElementById('bodyLab_'+idx);var c=document.getElementById('chevLab_'+idx);var o=b.classList.toggle('open');c.classList.toggle('open',o);}
 function expandAllLab(){labPatients.forEach(function(_,i){document.getElementById('bodyLab_'+i).classList.add('open');document.getElementById('chevLab_'+i).classList.add('open');});}
 function collapseAllLab(){labPatients.forEach(function(_,i){document.getElementById('bodyLab_'+i).classList.remove('open');document.getElementById('chevLab_'+i).classList.remove('open');});}
 function copyLineLab(idx){copyToClipboard(document.getElementById('lineLab_'+idx).textContent,function(){flashEl('flashLab_'+idx);});}
 function copyPatLab(idx){var pd=labPatients[idx];var line=document.getElementById('lineLab_'+idx).textContent;var crits=pd.results.filter(function(f){return classify(f.exam,f.value)==='critical';});var t='=== '+pd.meta.name+' ===\n'+(pd.meta.date?'Data: '+pd.meta.date+'\n':'')+'\nResumo:\n'+line;if(crits.length)t+='\n\nAlertas:\n'+crits.map(function(f){return'  * '+f.exam.abbr+': '+formatNum(f.exam,f.value)+' '+f.exam.unit;}).join('\n');copyToClipboard(t,function(){flashEl('flashPat_'+idx);});}
 function copyAllLab(){var t=labPatients.map(function(p,i){return'=== '+p.meta.name+' ===\n'+document.getElementById('lineLab_'+i).textContent;}).join('\n\n');copyToClipboard(t,function(){flashEl('flashAllLab');});}
-function resetLab(){document.getElementById('rtaLab').value='';document.getElementById('ccLab').textContent='0 caracteres';document.getElementById('btnLab').disabled=true;document.getElementById('resultsLab').classList.remove('on');labPatients=[];window.scrollTo({top:0,behavior:'smooth'});}
+function resetLab(){document.getElementById('rtaLab').value='';document.getElementById('ccLab').textContent='0 caracteres';document.getElementById('btnLab').disabled=true;document.getElementById('resultsLab').classList.remove('on');var _rb=document.getElementById('repSummaryBlock');if(_rb){_rb.style.display='none';_rb.innerHTML='';}labPatients=[];window.scrollTo({top:0,behavior:'smooth'});}
 function parseTabRow(text,label){var re=new RegExp('^'+label+'\\t(.+)$','mi');var m=text.match(re);if(!m)return[];var vals=[];m[1].split('\t').forEach(function(cell){var n=parseFloat(cell.trim().replace('%','').replace(',','.'));if(!isNaN(n))vals.push(n);});return vals;}
 function splitVitPatients(text){var lines=text.replace(/\r/g,'').split('\n');var positions=[];for(var i=0;i<lines.length;i++){var m=lines[i].trim().match(/^([A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ\s]{2,}?)\s*-\s*(\d{4,})\s*$/);if(m)positions.push({lineIdx:i,name:m[1].trim()});}if(!positions.length)return[{name:'Paciente',text:text}];return positions.map(function(p,i){return{name:p.name,text:lines.slice(p.lineIdx,i+1<positions.length?positions[i+1].lineIdx:lines.length).join('\n')};});}
 function parseVitals(text){var mx=function(a){return a.length?Math.max.apply(null,a):null;};var mn=function(a){return a.length?Math.min.apply(null,a):null;};var pas=parseTabRow(text,'PAS'),pad=parseTabRow(text,'PAD'),pam=parseTabRow(text,'PAM'),fc=parseTabRow(text,'FC'),spo2=parseTabRow(text,'SPO2'),temp=parseTabRow(text,'TEMP'),hgt=parseTabRow(text,'HGT').filter(function(v){return v>0;});var bhM=text.match(/BH\s+Dia:\s*([+\-]?[\d.,]+)/i);var bhDia=bhM?parseFloat(bhM[1].replace(',','.')):null;var bhAM=text.match(/BH\s+Total:\s*([+\-]?[\d.,]+)/i);var bhAcum=bhAM?parseFloat(bhAM[1].replace(',','.')):null;var diureseTotal=null,diureseParciais=[];var dPerdas=text.match(/P\s*E\s*R\s*D\s*A\s*S[\s\S]*?DIURESE\s+([\d\s\n\r\t.]+?)(?=\n[A-Z]|\nTotal|BH\s|$)/i);if(dPerdas){var nums=(dPerdas[1].match(/\d+\.?\d*/g)||[]).map(parseFloat).filter(function(n){return n>0;});if(nums.length){diureseTotal=nums[nums.length-1];diureseParciais=nums.slice(0,-1);}}if(diureseTotal===null){var dRow=text.match(/^DIURESE\t([\t\d.\s]+)/mi);if(dRow){var nums=(dRow[1].match(/\d+\.?\d*/g)||[]).map(parseFloat).filter(function(n){return n>0;});if(nums.length){diureseTotal=nums[nums.length-1];diureseParciais=nums.slice(0,-1);}}}var evRow=text.match(/^EVAC\t([\t\d.\s]+)/mi);var evacua=null;if(evRow){var ns=(evRow[1].match(/\d+\.?\d*/g)||[]).map(parseFloat).filter(function(n){return n>0;});if(ns.length)evacua=ns[ns.length-1];}var hdRow=text.match(/^HD\t([\t\d.\s]+)/mi);var hd=null;if(hdRow){var ns2=(hdRow[1].match(/\d+\.?\d*/g)||[]).map(parseFloat).filter(function(n){return n>0;});if(ns2.length)hd=ns2[ns2.length-1];}var lM=text.match(/Leito:\s*([\d\-]+)/i);var dM=text.match(/(\d{2}\/\d{2}\/\d{4})\s+\d+:\d+\s+até/);return{leito:lM?lM[1]:'',date:dM?dM[1]:'',hgtMax:mx(hgt),hgtMin:mn(hgt),pasMax:mx(pas),pasMin:mn(pas),padMax:mx(pad),padMin:mn(pad),pamMax:mx(pam),pamMin:mn(pam),fcMax:mx(fc),fcMin:mn(fc),spo2Min:mn(spo2),tempMax:mx(temp),bhDia:bhDia,bhAcum:bhAcum,diureseTotal:diureseTotal,diureseParciais:diureseParciais,evacua:evacua,hd:hd};}
@@ -5124,6 +5144,85 @@ function saveToSheets(){
     .catch(function(e){errors.push(payloads[idx].name+': '+e.message);idx++;sendNext();});
   }
   sendNext();
+}
+
+
+// SUGESTOES DE REPOSICAO ELETROLITICA
+var ELECTROLYTE_RULES=[
+  {key:'potassio',check:function(v){
+    if(v<3.0)return{level:'critical',repLabel:'Reposição Potássio (grave)',title:'⚠️ Hipocalemia Grave (K '+v.toFixed(1)+' mEq/L)',items:['KCl 19.1% — 2 amp em 230 mL SF 0,9% EV em 6h (BIC)','Monitorar ECG contínuo durante reposição','Dosar K após reposição']};
+    if(v<3.5)return{level:'warning',repLabel:'Reposição Potássio (leve)',title:'⚠️ Hipocalemia Leve (K '+v.toFixed(1)+' mEq/L)',items:['KCl 19.1% — 1 amp em 90 mL SF 0,9% EV em 4h (BIC)','Dosar K após reposição']};
+    if(v>5.5)return{level:'critical',repLabel:'Glicoinsulina (hipercalemia)',title:'⚠️ Hipercalemia (K '+v.toFixed(1)+' mEq/L)',items:['Glicoinsulina: Insulina Regular 10 UI + Glicose 50% 50 mL EV','Monitorar ECG — checar sinais de toxicidade cardíaca','Avaliar causa e restrição de K na dieta/infusões']};
+    return null;
+  }},
+  {key:'magnesio',check:function(v){
+    if(v<1.6)return{level:v<1.2?'critical':'warning',repLabel:'Reposição Magnésio',title:'⚠️ Hipomagnesemia (Mg '+v.toFixed(1)+' mg/dL)',items:['MgSO4 50% — 1 amp (2 g) em 240 mL SF 0,9% EV em 2–4h','Dosar Mg após reposição']};
+    return null;
+  }},
+  {key:'calcio_i',check:function(v){
+    if(v<1.06)return{level:v<0.9?'critical':'warning',repLabel:'Reposição Cálcio',title:'⚠️ Hipocalcemia (Ca-i '+v.toFixed(2)+' mmol/L)',items:['Gluconato de Cálcio 10% — 1 amp (10 mL) em 90 mL SF 0,9% EV em 15–20 min','Dosar Ca-i após reposição']};
+    return null;
+  }},
+  {key:'fosforo',check:function(v){
+    if(v<2.5)return{level:v<1.5?'critical':'warning',repLabel:'Reposição Fósforo',title:'⚠️ Hipofosfatemia (P '+v.toFixed(1)+' mg/dL)',items:[v<1.5?'Fosfato monosódico/dibásico 0,5 mmol/kg EV em 6h (grave)':'Fosfato monosódico/dibásico 0,3 mmol/kg EV em 6h (leve-moderada)','Avaliar e corrigir hipomagnesemia associada','Dosar P após reposição']};
+    return null;
+  }}
+];
+
+function buildElectrolyteSuggestions(results){
+  var suggestions=[];
+  results.forEach(function(f){
+    ELECTROLYTE_RULES.forEach(function(rule){
+      if(f.exam.key===rule.key){var s=rule.check(f.value);if(s)suggestions.push(s);}
+    });
+  });
+  if(!suggestions.length)return '';
+  var html='<div class="elec-suggest-block"><div class="elec-suggest-title">💊 Sugestões de Reposição</div>';
+  suggestions.forEach(function(s){
+    var cls=s.level==='critical'?'elec-crit':'elec-warn';
+    html+='<div class="elec-item '+cls+'"><div class="elec-item-title">'+s.title+'</div><ul class="elec-list">';
+    s.items.forEach(function(item){html+='<li>'+item+'</li>';});
+    html+='</ul></div>';
+  });
+  html+='</div>';
+  return html;
+}
+
+
+function renderRepSummary(){
+  var block=document.getElementById('repSummaryBlock');
+  if(!block)return;
+  var lines=[];
+  labPatients.forEach(function(p){
+    var reps=[];
+    ELECTROLYTE_RULES.forEach(function(rule){
+      p.results.forEach(function(f){
+        if(f.exam.key===rule.key){
+          var s=rule.check(f.value);
+          if(s)reps.push(s.repLabel||s.title.replace(/\u26a0\ufe0f\s*/,'').replace(/\s*\([^)]+\)/,''));
+        }
+      });
+    });
+    if(reps.length){
+      var name=p.meta.name||'Paciente';
+      reps.forEach(function(r){
+        lines.push({name:name,rep:r});
+      });
+    }
+  });
+  if(!lines.length){block.style.display='none';return;}
+  var html='<div class="rep-summary-block">';
+  html+='<div class="rep-summary-title">📋 Resumo de Reposições</div>';
+  lines.forEach(function(l){
+    html+='<div class="rep-summary-line">';
+    html+='<span class="rep-pt-name">'+l.name+'</span>';
+    html+='<span class="rep-arrow">→</span>';
+    html+='<span class="rep-label">'+l.rep+'</span>';
+    html+='</div>';
+  });
+  html+='</div>';
+  block.innerHTML=html;
+  block.style.display='block';
 }
 
 
