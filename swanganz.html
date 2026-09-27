@@ -243,13 +243,24 @@ td.up{color:#ffb86b} td.down{color:#7cc4ff} td small{font-size:11px;opacity:.8}
   header.top h1{font-size:24px}
   .monitor{padding:6px;border-radius:10px}
 }
+/* popover de significado clínico */
+.infoPop{position:fixed;z-index:50;width:min(340px,calc(100vw - 16px));background:#0f1820;border:1px solid #3a4c59;border-radius:10px;padding:12px 14px;box-shadow:0 16px 40px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:8px;font-size:13px;line-height:1.45;color:var(--text)}
+.infoPop .ih{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.infoPop .ih b{font-size:14.5px}
+.infoPop .ir span{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:1px}
+.infoPop .ir span.hi{color:#ffb86b} .infoPop .ir span.lo{color:#7cc4ff}
+[data-info]{cursor:pointer}
+.nbox.info:hover,.tile[data-info]:hover,.globe[data-info]:hover{filter:brightness(1.25)}
+tr[data-info]:hover td{background:rgba(255,216,74,.05)}
+tr[data-info] td:first-child::after{content:" ⓘ";color:var(--muted);font-size:11px}
 </style>
 
+<div class="infoPop" id="infoPop" role="dialog" aria-label="Significado clínico" hidden></div>
 <div class="wrap">
   <header class="top">
     <div>
       <h1>Monitor <span>Swan-Ganz</span></h1>
-      <p>Simulador de cateter de artéria pulmonar · preparação TEMI/AMIB</p>
+      <p>Simulador de cateter de artéria pulmonar · preparação TEMI/AMIB · toque em qualquer parâmetro para ver o significado clínico</p>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
     <div class="seg" role="group" aria-label="Monitor">
@@ -385,7 +396,7 @@ td.up{color:#ffb86b} td.down{color:#7cc4ff} td small{font-size:11px;opacity:.8}
       </div>
       <div class="row">
         <div class="wave"><canvas id="gCVP"></canvas><canvas id="cCVP"></canvas><span class="lab c-cvp">PVC</span><span class="scl">0–30</span></div>
-        <div class="nbox c-cvp"><div class="nl">PVC <small>mmHg</small></div><div class="nv" id="nCVP">--</div></div>
+        <div class="nbox c-cvp"><div class="nl">PVC <small>mmHg</small></div><div class="nv" id="nCVP">--</div><div class="nm" style="font-size:13px;opacity:.85" id="nPAPi" data-info="papi">PAPi --</div></div>
       </div>
       <div class="row">
         <div class="wave"><canvas id="gPL"></canvas><canvas id="cPL"></canvas><span class="lab c-pleth">Pleth</span></div>
@@ -519,7 +530,7 @@ const S=[
 {id:'tep',nome:'Tromboembolismo pulmonar maciço',bsa:1.85,hr:124,aS:82,aD:58,pS:50,pD:24,cvp:17,paop:8,co:2.7,svo2:50,svc:52,hb:13.0,sao2:86,pao2:52,temp:37.0,lac:4.8,
  cvpW:{a:6,c:1,v:4,x:2,y:3},
  vign:'Mulher, 74 anos, 5º dia de artroplastia de quadril. Dispneia súbita, síncope, hipoxemia refratária a O₂ suplementar.',
- keys:['PAP elevada com POAP normal: gradiente transpulmonar e RVP muito elevados (HP pré-capilar aguda).','GDP (PAPd − POAP) > 7 mmHg aponta para doença vascular pulmonar.','VD não adaptado raramente gera PAPs > 55–60 mmHg; valores maiores sugerem HP crônica.'],
+ keys:['PAP elevada com POAP normal: gradiente transpulmonar e RVP muito elevados (HP pré-capilar aguda).','GDP (PAPd − POAP) > 7 mmHg aponta para doença vascular pulmonar (útil fisiologicamente, embora a ESC/ERS 2022 classifique pela RVP).','VD não adaptado raramente gera PAPs > 55–60 mmHg; valores maiores sugerem HP crônica.'],
  conf:['hap','iamvd','tamp'],
  cq:{opts:['Trombólise sistêmica (sem contraindicação) + noradrenalina, evitando sobrecarga volêmica','Bolus de 2 L de cristaloide para melhorar a pré-carga do VD','Anticoagulação isolada e observação','Intubação precoce com PEEP elevada'],c:0,exp:'TEP de alto risco com choque: reperfusão (trombólise) é indicada (ESC 2019). Volume excessivo dilata o VD e piora a interdependência; intubação e PEEP podem precipitar colapso do VD.'}},
 
@@ -533,7 +544,7 @@ const S=[
 {id:'cpc',nome:'HP pós-capilar combinada (IC esquerda)',bsa:1.9,hr:96,aS:106,aD:68,pS:62,pD:32,cvp:14,paop:24,co:3.4,svo2:55,svc:58,hb:11.9,sao2:94,pao2:70,temp:36.5,lac:2.2,
  cvpW:{a:4,c:1,v:4,x:2,y:3},
  vign:'Homem, 68 anos, cardiomiopatia dilatada (FEVE 25%), IC descompensada há 1 semana, avaliação para transplante.',
- keys:['POAP > 15 mmHg define o componente pós-capilar.','RVP > 2 WU (aqui ~5 WU) e GDP ≥ 7 mmHg indicam componente pré-capilar associado (Cpc-PH).','RVP elevada e pouco reversível é relevante na candidatura a transplante cardíaco.'],
+ keys:['POAP > 15 mmHg define o componente pós-capilar.','RVP > 2 WU (aqui ~5 WU) define o componente pré-capilar associado (Cpc-PH, ESC/ERS 2022). O GDP deixou de ser usado para essa distinção.','RVP elevada e pouco reversível é relevante na candidatura a transplante cardíaco.'],
  conf:['hap','cardio','iminsuf'],
  cq:{opts:['Otimizar o tratamento da IC esquerda (descongestão, redução de pós-carga)','Sildenafil como primeira linha','Prova de volume','Trombólise'],c:0,exp:'A HP é secundária à doença do coração esquerdo (grupo 2). Vasodilatadores pulmonares não são indicados de rotina e podem piorar a congestão. O alvo é reduzir a POAP.'}},
 
@@ -560,7 +571,7 @@ const S=[
 {id:'vasopl',nome:'Choque séptico com vasoplegia grave',bsa:1.85,hr:128,aS:72,aD:30,pS:30,pD:14,cvp:9,paop:11,co:9.2,svo2:80,svc:82,hb:9.6,sao2:93,pao2:70,temp:39.2,lac:7.8,
  cvpW:{a:2.5,c:1,v:2.5,x:2,y:2.5},
  vign:'Homem, 58 anos, pielonefrite obstrutiva por cálculo ureteral. Recebeu 30 mL/kg de cristaloide há 4 h e está em noradrenalina 0,4 µg/kg/min. Extremidades quentes, oligúrico, febril.',
- keys:['RVS extremamente baixa mesmo com noradrenalina 0,4 µg/kg/min: vasoplegia grave e hiporresponsividade adrenérgica.','DC alto, PAD muito baixa e pressão de pulso ampla. SvO₂ alta com lactato alto: o problema é distribuição e extração, não oferta global.','Escalonar só a noradrenalina rende pouco. Vasopressina age por via não adrenérgica (V1) e a hidrocortisona restaura a resposta às catecolaminas.','Pouco fluido-responsivo e PVPI elevado: mais cristaloide aumenta a água pulmonar e piora a oxigenação. Controle do foco (desobstrução) é obrigatório.'],
+ keys:['RVS extremamente baixa mesmo com noradrenalina 0,4 µg/kg/min: vasoplegia grave e hiporresponsividade adrenérgica.','DC alto, PAD muito baixa e pressão de pulso ampla. SvO₂ alta com lactato alto: o problema é distribuição e extração, não oferta global.','Escalonar só a noradrenalina rende pouco. Vasopressina age por via não adrenérgica (V1): o ganho de PAM é modesto (0,03 U/min ≈ 0,075 µg/kg/min de NE), mas não depende do receptor adrenérgico dessensibilizado. A hidrocortisona restaura em horas a resposta às catecolaminas. Em geral é a combinação NE + vasopressina + hidrocortisona que atinge a meta.','Pouco fluido-responsivo e PVPI elevado: mais cristaloide aumenta a água pulmonar e piora a oxigenação. Controle do foco (desobstrução) é obrigatório.'],
  conf:['sephiper','sephipo','hipo'],
  cq:{opts:['Associar vasopressina 0,03 U/min e hidrocortisona 200 mg/dia, mantendo PAM ≥ 65 mmHg, e desobstruir a via urinária','Escalonar apenas a noradrenalina até atingir a PAM alvo','Iniciar dobutamina para aumentar a oferta de O₂','Bolus adicional de 2 L de cristaloide'],c:0,exp:'SSC 2021: se a noradrenalina chega a 0,25–0,5 µg/kg/min sem atingir a meta, associar vasopressina 0,03 U/min; hidrocortisona 200 mg/dia quando há necessidade persistente de vasopressor. Alvo de PAM 65 mmHg. Dobutamina não tem papel com DC alto e SvO₂ alta; volume sem fluido-responsividade piora a congestão por permeabilidade. Sem controle do foco o choque não se resolve.'}}
 ];
@@ -690,7 +701,7 @@ function updateNums(){
   $('nART').textContent=s+'/'+d; $('nARTm').textContent='('+Math.round(mean(s,d))+')';
   if(wedge){ $('nPAPl').textContent='POAP'; $('lPAP').textContent='POAP'; $('nPAP').textContent=Math.round(sc.paop); $('nPAPm').textContent='balão insuflado'; }
   else { $('nPAPl').textContent='AP'; $('lPAP').textContent='AP'; $('nPAP').textContent=Math.round(sc.pS)+'/'+Math.round(sc.pD); $('nPAPm').textContent='('+Math.round(mean(sc.pS,sc.pD))+')'; }
-  $('nCVP').textContent=Math.round(sc.cvp);
+  $('nCVP').textContent=Math.round(sc.cvp); $('nPAPi').textContent='PAPi '+fmt((sc.pS-sc.pD)/Math.max(1,sc.cvp),1);
   $('nSpO2').textContent=Math.round(sc.sao2)+(Math.random()<.3?j():0);
   $('nSvO2').textContent=Math.round(sc.svo2)+(Math.random()<.3?j():0);
   $('nT').textContent=fmt(sc.temp,1);
@@ -739,7 +750,7 @@ $('bCO').onclick=()=>{ if(thermo)return; thermo={p:0,co:Math.round(sc.co*(1+rnd(
 let monitor='pac', sensor='ft', evView='phys', zeroUntil=0, evNext=20, evJ={co:1,svv:0,ppv:0,dp:1,hpi:0}, cvpIn=null, hpiDismissed=false, hpiSec=false, hist=null;
 const EVP={
  normal:{svv:8,ppv:9,dpdt:960,hpi:12}, hipo:{svv:19,ppv:21,dpdt:640,hpi:96}, sephiper:{svv:13,ppv:11,dpdt:780,hpi:100},
- sephipo:{svv:10,ppv:8,dpdt:520,hpi:100}, vasopl:{svv:11,ppv:12,dpdt:1000,hpi:100}, cardio:{svv:6,ppv:7,dpdt:430,hpi:88}, iamvd:{svv:14,ppv:15,dpdt:560,hpi:100},
+ sephipo:{svv:10,ppv:8,dpdt:520,hpi:100}, vasopl:{svv:13,ppv:9,dpdt:1000,hpi:100}, cardio:{svv:6,ppv:7,dpdt:430,hpi:88}, iamvd:{svv:14,ppv:15,dpdt:560,hpi:100},
  tamp:{svv:17,ppv:22,dpdt:540,hpi:90}, tep:{svv:11,ppv:12,dpdt:600,hpi:93}, hap:{svv:7,ppv:8,dpdt:880,hpi:20},
  cpc:{svv:7,ppv:7,dpdt:560,hpi:45}, iminsuf:{svv:8,ppv:9,dpdt:520,hpi:90}, civ:{svv:9,ppv:10,dpdt:560,hpi:90,co:2.0}
 };
@@ -785,7 +796,7 @@ function evVals(){
 const PAR={
  co:['DC','L/min',1,[4,8]], ci:['IC','L/min/m²',1,[2.5,4]], sv:['VS','mL',0,[60,100]], svi:['IVS','mL/m²',0,[33,47]],
  svv:['VVS','%',0,[0,13]], ppv:['VPP','%',0,[0,13]], svr:['RVS','dyn·s·cm⁻⁵',0,[800,1200]], svri:['IRVS','dyn·s·cm⁻⁵·m²',0,[1970,2390]],
- map:['PAM','mmHg',0,[65,105]], pr:['FP','bpm',0,[60,100]], cvp:['PVC','mmHg',0,[2,8]], dpdt:['dP/dt','mmHg/s',0,null], eadyn:['Ea dyn','',2,null], hpi:['HPI','',0,null], scvo2:['ScvO₂','%',0,[70,85]],
+ map:['PAM','mmHg',0,[65,105]], pr:['FP','bpm',0,[60,100]], cvp:['PVC','mmHg',0,[2,6]], dpdt:['dP/dt','mmHg/s',0,null], eadyn:['Ea dyn','',2,null], hpi:['HPI','',0,null], scvo2:['ScvO₂','%',0,[70,80]],
  gedi:['GEDI','mL/m²',0,[680,800]], elwi:['ELWI','mL/kg',0,[3,7]], pvpi:['PVPI','',1,[1,3]], gef:['GEF','%',0,[25,35]], cfi:['CFI','1/min',1,[4.5,6.5]]
 };
 function stat(k,v){
@@ -804,7 +815,7 @@ const SENS={vv:{main:['ci','gedi','elwi','pvpi'],sec:['svv','gef','cfi','svri']}
 function tile(k,v,sm){
   const [l,u,d]=PAR[k], st=stat(k,v);
   const cap=k==='hpi'?'<div class="tc">prob. de PAM &lt; 65 em 15 min</div>':'';
-  return `<div class="tile ${sm?'sm':''} ${k==='hpi'?'hpi':''} ${st}"><div class="tl">${l}<small>${u}</small></div><div class="tv">${v==null?'--':fmt(v,d)}</div>${cap}<div class="tbar"></div></div>`;
+  return `<div data-info="${k}" class="tile ${sm?'sm':''} ${k==='hpi'?'hpi':''} ${st}"><div class="tl">${l}<small>${u}</small></div><div class="tv">${v==null?'--':fmt(v,d)}</div>${cap}<div class="tbar"></div></div>`;
 }
 function renderTiles(){
   if(monitor!=='ev') return;
@@ -819,7 +830,7 @@ const GLOBES={vv:['ci','gedi','elwi','svv'],ft:['ci','svv','svri','scvo2'],aq:['
 const SCOL={g:'#2fd35a',y:'#f2c037',r:'#ff4d5a','':'#8a9098'};
 function renderGlobes(v){
   $('globes').innerHTML=GLOBES[sensor].map(k=>{const [l,u,d]=PAR[k];const st=stat(k,v[k]);
-    return `<div class="globe ${st}"><span class="lamp"></span><div class="dial"><b>${(v[k]==null?'--':fmt(v[k],k==='ci'?1:d))}</b><small>${u}</small></div><span class="gl">${l}</span></div>`}).join('');
+    return `<div data-info="${k}" class="globe ${st}"><span class="lamp"></span><div class="dial"><b>${(v[k]==null?'--':fmt(v[k],k==='ci'?1:d))}</b><small>${u}</small></div><span class="gl">${l}</span></div>`}).join('');
 }
 function renderPhys(v){
   ['svi','svv','scvo2','cvp','svri','pr','map','ci','hpi','dpdt','eadyn','elwi','pvpi','gedi','gef'].forEach(k=>{
@@ -927,7 +938,7 @@ function renderDerivedEV(el){
   const v=evVals(), aq=sensor==='aq', vv=sensor==='vv';
   const rows=[['Fluxo',['co','ci','sv','svi']],['Volumétricos · TPTD',['gedi','elwi','pvpi','gef','cfi']],['Pré-carga · índices dinâmicos',['svv','ppv']],['Pós-carga e tônus',['map','svr','svri','eadyn']],['Contratilidade',['dpdt']],['Predição',['hpi']]];
   const only={ppv:1,eadyn:1,dpdt:1,hpi:1}, onlyVV={gedi:1,elwi:1,pvpi:1,gef:1,cfi:1};
-  const ref={co:'4,0–8,0',ci:'2,5–4,0',sv:'60–100',svi:'33–47',svv:'< 13',ppv:'< 13',map:'65–105',svr:'800–1200',svri:'1970–2390',eadyn:'ver nota',dpdt:'tendência',hpi:'< 85',gedi:'680–800',elwi:'3–7 (> 10 edema)',pvpi:'1–3',gef:'25–35',cfi:'4,5–6,5'};
+  const ref={co:'4,0–8,0',ci:'2,5–4,0',sv:'60–100',svi:'33–47',svv:'< 10 · > 13 responde',ppv:'< 10 · > 13 responde',map:'65–105',svr:'800–1200',svri:'1970–2390',eadyn:'≥ 0,73 → PAM responde a volume',dpdt:'tendência',hpi:'< 85',gedi:'680–800',elwi:'3–7 (> 10 edema)',pvpi:'1–3',gef:'25–35',cfi:'4,5–6,5'};
   const fx={co:'contorno de pulso',ci:'DC/SC',sv:'DC/FC',svi:'VS/SC',svv:'(VSmáx − VSmín)/VSmédio',ppv:'(PPmáx − PPmín)/PPmédia',svr:'80·(PAM − PVC)/DC',svri:'RVS·SC',eadyn:'VPP/VVS',dpdt:'inclinação sistólica da curva arterial',hpi:'algoritmo da onda arterial',map:'',gedi:'volume diastólico final global indexado',elwi:'água pulmonar extravascular / peso predito',pvpi:'EVLW/volume sanguíneo pulmonar',gef:'4·VS/GEDV',cfi:'DC/GEDV'};
   let h='<div class="tw"><table><thead><tr><th>Variável</th><th>Valor</th><th>Referência</th></tr></thead><tbody>';
   rows.forEach(([g,ks])=>{h+=`<tr class="grp"><td colspan="3">${g}</td></tr>`;ks.forEach(k=>{
@@ -937,11 +948,11 @@ function renderDerivedEV(el){
     else if(onlyVV[k]&&!vv) val=mut('requer TPTD');
     else if(v[k]==null) val=mut('injete o bolus');
     else {const s=stat(k,v[k]);const cls=s==='r'||s==='y'?(arrow(k,v[k]).includes('▲')?'hi':'lo'):'';val=`<span class="${cls}">${fmt(v[k],d)}<span class="flag">${arrow(k,v[k])}</span></span>`}
-    h+=`<tr><td>${l}<span class="fx">${fx[k]}${u?' · '+u:''}</span></td><td class="v">${val}</td><td class="r">${ref[k]}</td></tr>`})});
+    h+=`<tr data-info="${k}"><td>${l}<span class="fx">${fx[k]}${u?' · '+u:''}</span></td><td class="v">${val}</td><td class="r">${ref[k]}</td></tr>`})});
   h+='</tbody></table></div>';
   h+=`<ul class="note" style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px">
    <li>VVS/VPP só predizem fluido-responsividade em VM controlada, VC ≥ 8 mL/kg, ritmo sinusal e tórax fechado. Falsos-positivos: falência de VD, tamponamento, hipertensão intra-abdominal.</li>
-   <li>Ea dyn (VPP/VVS) estima o tônus arterial dinâmico: valores baixos sugerem que o aumento de fluxo com volume não elevará a PAM.</li>
+   <li>Ea dyn (VPP/VVS) estima o tônus arterial dinâmico: ≥ 0,73 prediz aumento da PAM ≥ 10% após volume (García 2014); valores baixos sugerem que o ganho de fluxo não elevará a PAM.</li>
    <li>TPTD: bolus frio pelo acesso central (VCS) e termistor na artéria femoral; média de 3 bolus. Injeção femoral superestima o GEDI. Recalibrar o contorno de pulso a cada ~8 h ou após mudança hemodinâmica importante.</li>
    <li>ELWI &gt; 10 mL/kg indica edema pulmonar; PVPI &gt; 3 sugere edema por permeabilidade (SDRA), PVPI ≤ 3 sugere hidrostático. EVLW não é confiável no TEP, após ressecção pulmonar e em grandes derrames pleurais.</li>
    <li>HPI ≥ 85 dispara alerta: probabilidade de PAM &lt; 65 mmHg por ≥ 1 min nos próximos 15 min.</li>
@@ -952,7 +963,7 @@ function renderDerivedEV(el){
 /* ============ DERIVADAS ============ */
 const NORM={
  dc:[4,8],ic:[2.5,4],vs:[60,100],ivs:[33,47],rvs:[800,1200],irvs:[1970,2390],rvp:[20,160],wu:[.25,2],itsve:[50,62],itsvd:[5,10],cpo:[.6,1.5],papi:[.9,99],
- pam:[70,105],papm:[9,20],gtp:[0,12],gdp:[0,7],rel:[0,.8],cao2:[16,22],do2i:[500,600],vo2i:[120,160],teo2:[22,32],pp:[30,60]
+ pam:[65,105],papm:[9,20],gtp:[0,12],gdp:[0,7],rel:[0,.8],cao2:[17,20],do2i:[500,600],vo2i:[120,160],teo2:[22,30],pp:[30,60]
 };
 function calc(){
   const pam=mean(sc.aS,sc.aD), papm=mean(sc.pS,sc.pD), co=mCO, pa=mPAOP;
@@ -969,14 +980,15 @@ function calc(){
 const ROWS=[
  ['Pressões',[
   ['pam','PAM','(PAS + 2·PAD)/3','mmHg',0],['pp','Pressão de pulso','PAS − PAD','mmHg',0],['papm','PAPm','(PAPs + 2·PAPd)/3','mmHg',0],
-  ['gtp','Gradiente transpulmonar','PAPm − POAP','mmHg',0],['gdp','Gradiente diastólico pulmonar','PAPd − POAP','mmHg',0],['rel','PVC/POAP','','',2]]],
+  ['gtp','Gradiente transpulmonar','PAPm − POAP','mmHg',0],['gdp','Gradiente diastólico pulmonar','PAPd − POAP','mmHg',0]]],
  ['Fluxo',[
   ['dc','DC','termodiluição','L/min',1],['ic','IC','DC/SC','L/min/m²',2],['vs','VS','DC/FC','mL',0],['ivs','IVS','VS/SC','mL/m²',0]]],
  ['Resistências',[
   ['rvs','RVS','80·(PAM − PVC)/DC','dyn·s·cm⁻⁵',0],['irvs','IRVS','RVS·SC','dyn·s·cm⁻⁵·m²',0],['rvp','RVP','80·(PAPm − POAP)/DC','dyn·s·cm⁻⁵',0],['wu','RVP','(PAPm − POAP)/DC','WU',1]]],
- ['Função ventricular',[
-  ['itsve','ITSVE','IVS·(PAM − POAP)·0,0136','g·m/m²',0],['itsvd','ITSVD','IVS·(PAPm − PVC)·0,0136','g·m/m²',1],
-  ['cpo','CPO','PAM·DC/451','W',2],['papi','PAPi','(PAPs − PAPd)/PVC','',2]]],
+ ['Ventrículo esquerdo',[
+  ['itsve','ITSVE','IVS·(PAM − POAP)·0,0136','g·m/m²',0],['cpo','CPO','PAM·DC/451','W',2]]],
+ ['Ventrículo direito',[
+  ['papi','PAPi','(PAPs − PAPd)/PVC','',2],['rel','PVC/POAP','','',2],['itsvd','ITSVD','IVS·(PAPm − PVC)·0,0136','g·m/m²',1]]],
  ['Oxigenação',[
   ['cao2','CaO₂','1,34·Hb·SaO₂ + 0,003·PaO₂','mL/dL',1],['do2i','DO₂I','IC·CaO₂·10','mL/min/m²',0],['vo2i','VO₂I','IC·(CaO₂ − CvO₂)·10','mL/min/m²',0],['teo2','TEO₂','(CaO₂ − CvO₂)/CaO₂','%',0]]]
 ];
@@ -992,7 +1004,7 @@ function renderDerived(){
     rows.forEach(([k,n,f,u,d])=>{const v=r[k];let cls='',fl='';
       if(v!=null&&NORM[k]){if(v>NORM[k][1]){cls='hi';fl='▲'}else if(v<NORM[k][0]){cls='lo';fl='▼'}}
       const val=v==null?'<span class="muted">—</span>':`<span class="${cls}">${fmt(v,d)}<span class="flag">${fl}</span></span>`;
-      h+=`<tr><td>${n}<span class="fx">${f}${u?' · '+u:''}</span></td><td class="v">${val}</td><td class="r">${rng(k)}</td></tr>`})});
+      h+=`<tr data-info="${k}"><td>${n}<span class="fx">${f}${u?' · '+u:''}</span></td><td class="v">${val}</td><td class="r">${rng(k)}</td></tr>`})});
   h+='</tbody></table></div>';
   if(!mCO||!mPAOP) h+=`<p class="note">Valores com “—” dependem da ${!mPAOP?'POAP (insufle o balão)':''}${!mCO&&!mPAOP?' e do ':''}${!mCO?'DC (termodiluição)':''}.</p>`;
   el.innerHTML=h;
@@ -1009,7 +1021,7 @@ const MODEL={
  hipo:{g3:.25,as:.1,cs:.3,rvp:.05,drv:'lv',art:0},
  sephiper:{isV0:2000,g3:.10,as:.1,cs:.4,rvp:.05,drv:'lv',art:2,leak:1},
  sephipo:{isV0:3000,g3:.03,as:.35,cs:1,rvp:.05,drv:'lv',art:2,leak:1},
- vasopl:{isV0:3000,g3:.06,as:.1,cs:.4,rvp:.05,drv:'lv',art:2,leak:1,neS:.5,vaS:1.3,pre:{nor:.4}},
+ vasopl:{isV0:3000,g3:.06,as:.1,cs:.4,rvp:.05,drv:'lv',art:2,leak:1,neS:.5,vaS:1,pre:{nor:.4}},
  cardio:{isV0:4000,g3:.004,as:.6,cs:.9,rvp:.1,drv:'lv',art:0},
  iamvd:{g3:.12,as:.2,cs:.7,rvp:.25,drv:'rv',perf:1,rvrel:.9,pc:17,pk:.05,art:10},
  tamp:{g3:.07,as:.1,cs:.15,rvp:.05,drv:'rv',hrx:.7,art:12,stiff:1.4},
@@ -1030,7 +1042,7 @@ function fitK(Pb,g3){ // resolve k tal que VS(Pb+3)/VS(Pb) − 1 = g3
 }
 const DRUGS=[
  {id:'nor',nome:'Norepinefrina',cls:'Vasopressor · α1 > β1',unit:'µg/kg/min',max:1,step:.01,dec:2,ref:'0,05–1,0 µg/kg/min',tau:20},
- {id:'vaso',nome:'Vasopressina',cls:'Vasopressor · V1',unit:'U/min',max:.04,step:.01,dec:2,ref:'0,03 U/min (máx. 0,04)',tau:25},
+ {id:'vaso',nome:'Vasopressina',cls:'Vasopressor · V1',unit:'U/min',max:.04,step:.01,dec:2,ref:'0,03 U/min (máx. 0,04) · potência ≈ NE 0,075',tau:25},
  {id:'dobu',nome:'Dobutamina',cls:'Inotrópico · β1 (β2)',unit:'µg/kg/min',max:20,step:1,dec:0,ref:'2–20 µg/kg/min',tau:20},
  {id:'mil',nome:'Milrinona',cls:'Inodilatador · iPDE-3',unit:'µg/kg/min',max:.75,step:.125,dec:3,ref:'0,375–0,75 µg/kg/min · ataque opcional',tau:40},
  {id:'levo',nome:'Levosimendan',cls:'Sensibilizador de Ca²⁺ · abre K-ATP',unit:'µg/kg/min',max:.2,step:.05,dec:2,ref:'0,05–0,2 µg/kg/min · início lento',tau:120},
@@ -1088,9 +1100,13 @@ function tickModel(dt){
   let svr=0,pvr=0,contr=0,hr=0,dP=0,dC=0;
   // hidrocortisona restaura parcialmente a resposta vascular (lenta); vasoplegia grave reduz a resposta adrenérgica
   hcEff+=((hc?1:0)-hcEff)*ex(240);
-  const hcB=hcEff*(M.leak?.5:.1), neS=Math.min(1.1,(M.neS||1)*(1+hcB)), vaS=(M.vaS||1)*(1+hcB*.4);
+  const hcB=hcEff*(M.leak?.5:.1), neS=Math.min(1.1,(M.neS||1)*(1+hcB)), vaS=(M.vaS||(M.leak?.9:.5))*(1+hcB*.2);
   const fn=f(de.nor,.3); svr+=1.2*fn*neS; pvr+=.2*fn; contr+=.15*fn; hr+=.05*fn; dP+=2*fn*neS; dC+=2*fn*neS;
-  const fv=Math.min(1,de.vaso/.04); svr+=.6*fv*vaS; hr-=.04*fv;
+  // vasopressina: potência pressora ≈ 2,5 × dose (U/min) em equivalente de norepinefrina (Kotani 2023),
+  // Efeito maior na deficiência relativa de vasopressina (sepse)
+  // e menor com níveis endógenos normais e barorreflexo intacto.
+  const neq=2.5*de.vaso, fv=Math.min(1,de.vaso/.04);
+  svr+=1.2*f(neq,.3)*vaS; hr-=.03*fv;   // receptor V1 independente: não satura com a NE
   const fd=f(de.dobu,6); contr+=.6*fd; hr+=.35*f(de.dobu,15); svr-=.25*f(de.dobu,8); pvr-=.1*fd;
   const fm=f(de.mil,.3); contr+=.3*fm; svr-=.45*fm; pvr-=.35*fm; hr+=.1*fm; dP-=2*fm; dC-=1*fm;
   const fl=f(de.levo,.1); contr+=.25*fl; svr-=.35*fl; pvr-=.3*fl; hr+=.08*fl; dP-=2*fl; dC-=1*fl;
@@ -1142,7 +1158,20 @@ function tickModel(dt){
     HR=clamp(b.hr*(1+hr)*clamp(Math.pow(map0/MAP,.2),.85,1.15),35,170);
   }
   const Qp=Qs*q;
-  const pp=Math.max(10,(b.aS-b.aD)*Math.pow(SV/SV0,.8)), aD=MAP-pp/3;
+  // pressão de pulso: Windkessel de 2 elementos. PP ∝ (VS/Cart) × F(Tej/τ), τ = R·Cart.
+  //  – Cart cai com a pressão de distensão (e com tônus vasomotor alto); – com τ curto (vasoplegia) mais sangue
+  //  escoa durante a ejeção e a diastólica cai mais no fim da diástole; FC alta encurta a diástole e sustenta a PAD.
+  const Fw=x=>(1-Math.exp(-x))/x;
+  const tone=svrR*(MAP>0?1:1), Cr=Math.exp(-.008*(MAP-map0))/Math.pow(tone,.15);   // Cart relativa
+  const pp0=b.aS-b.aD, C0=SV0/pp0/Fw(.3/(SVR0/1333*SV0/pp0));
+  const Cnow=C0*Cr, R=SVR0*svrR/1333, tauW=R*Cnow, tau0=SVR0/1333*C0;
+  const Tej=.3*Math.pow(b.hr/HR,.3);
+  let pp=pp0*(SV/SV0)*(1/Cr)*Fw(Tej/tauW)/Fw(.3/tau0);
+  // escoamento diastólico: com τ curto e diástole longa a PAD cai mais (alarga a PP em relação à PAM)
+  const Td=60/HR-Tej, Td0=60/b.hr-.3, dia=(1-Math.exp(-Td/tauW))/(1-Math.exp(-Td0/tau0));
+  pp=Math.max(10,pp*Math.pow(dia,.3));
+  const aD=MAP-pp/3;
+  sc.tauW=tauW; sc.tauW0=tau0;
   const papm0=mean(b.pS,b.pD), PVR0=80*Math.max(2,papm0-b.paop)/b.co;
   const papm=paop+Qp*PVR0*pvrR/80, ppa=Math.max(4,(b.pS-b.pD)*Math.pow((Qp/HR)/(b.co/b.hr),.7));
   const pD=Math.max(paop-1,papm-ppa/3);
@@ -1175,7 +1204,9 @@ function tickModel(dt){
   const Gs=x=>Math.min(35,170*x);
   const lvSens=pp2=>{const tr=Math.max(.2,pp2-LVm.pext), v=LVm.Vd+Math.log(tr/LVm.A+1)/LVm.beta; return 1/(LVm.beta*(tr+LVm.A))/(v-LVm.V0)};
   const dG=lv?Gs(lvSens(paop))-Gs(lvSens(b.paop)):Gs(fsSens(P,K)*pen(P)/pen(Pb))-Gs(fsSens(Pb,K));
-  const svvNow=clamp(e.svv+dG,Math.max(2,M.art*.8),35), ppvNow=clamp(e.ppv+dG*1.1,Math.max(2,M.art*.8),40);
+  // Ea dyn (VPP/VVS) acompanha o tônus arterial: τ maior (vasoconstrição) → VPP maior para a mesma VVS
+  const eaF=clamp(Math.pow(tauW/tau0,.3),.6,1.6);
+  const svvNow=clamp(e.svv+dG,Math.max(2,M.art*.8),35), ppvNow=clamp((e.ppv+dG*1.1)*eaF,Math.max(2,M.art*.8),40);
   Object.assign(sc,{hr:HR,aS:aD+pp,aD,pS:pD+ppa,pD,cvp,paop,co:Qp,coSys:Qs,qpqs:q,svo2,svc,sao2,pao2,hb,lac:lacNow,svvNow,ppvNow});
   sc.pulsus=b.id==='tamp'?Math.max(6,20*clamp((cvp-6)/(b.cvp-6),.2,1.3)):Math.max(3,ppvNow/100*pp*1.1);
   if(M.mr) sc.wW.v=b.wW.v*clamp(RF/LVm.RF0,.35,1.6)*(paop/b.paop);
@@ -1340,7 +1371,8 @@ function labsHTML(){
   const L=monitor==='ev'
     ?[['Hb','g/dL',fmt(sc.hb,1)],['SaO₂','%',Math.round(sc.sao2)],['PaO₂','mmHg',Math.round(sc.pao2)],['ScvO₂','%',Math.round(sc.svc)],['PVC','mmHg',Math.round(sc.cvp)],['Lactato','mmol/L',fmt(sc.lac,1)]]
     :[['Hb','g/dL',fmt(sc.hb,1)],['SaO₂','%',Math.round(sc.sao2)],['PaO₂','mmHg',Math.round(sc.pao2)],['SvO₂ (AP)','%',Math.round(sc.svo2)],['SatO₂ AD','%',Math.round(sc.svc)],['Lactato','mmol/L',fmt(sc.lac,1)]];
-  return L.map(([a,u,v])=>`<div><span>${a} · ${u}</span><b>${v}</b></div>`).join('');
+  const IK={'Hb':'hb','SaO₂':'sao2','PaO₂':'pao2','ScvO₂':'scvo2','PVC':'cvp','Lactato':'lac','SvO₂ (AP)':'svo2','SatO₂ AD':'svcad'};
+  return L.map(([a,u,v])=>`<div data-info="${IK[a]||''}"><span>${a} · ${u}</span><b>${v}</b></div>`).join('');
 }
 function equilibrate(){
   const M=MODEL[B.id]; B0=null;
@@ -1415,8 +1447,82 @@ $('scSel').innerHTML=S.map(s=>`<option value="${s.id}">${s.nome}</option>`).join
 $('scSel').onchange=e=>loadScenario(byId[e.target.value]);
 
 /* ============ INÍCIO ============ */
+/* ============ SIGNIFICADO CLÍNICO DE CADA PARÂMETRO (clique) ============ */
+const INFO_ALIAS={dc:'co',ic:'ci',vs:'sv',ivs:'svi',rvs:'svr',irvs:'svri',pam:'map',pr:'hr'};
+const INFO={
+ hr:{t:'Frequência cardíaca',ref:'60–100 bpm',up:'Taquicardia: dor, febre, hipovolemia, sepse, inotrópico β1, arritmia. Encurta a diástole: pode reduzir o enchimento e o VS, e aumenta o consumo de O₂ miocárdico.',dn:'Bradicardia: bloqueio AV (IAM inferior), hipóxia grave, vasopressina, betabloqueador. Com VS fixo, o DC cai.'},
+ art:{t:'Pressão arterial invasiva',ref:'PAS 90–140 · PAD 60–90 · PAM 70–105 mmHg',up:'PAS alta com PP larga: aorta rígida, VS alto. PAD alta: vasoconstrição.',dn:'PAD baixa com PP larga: tônus vascular baixo (vasoplegia). PP estreita (< 25% da PAS): VS baixo (hipovolemia, falência de VE, tamponamento).',note:'Curva amortecida subestima a PAS e superestima a PAD; a PAM é a medida mais robusta.'},
+ map:{t:'Pressão arterial média',ref:'65–105 mmHg · alvo no choque ≥ 65 mmHg (SSC 2021)',up:'Pós-carga maior; em choque com PAM alta por vasopressor, cheque se o fluxo (DC, lactato, perfusão) acompanha.',dn:'Pressão de perfusão orgânica insuficiente; abaixo da faixa de autorregulação (~65) rim e cérebro passam a depender da pressão.'},
+ pp:{t:'Pressão de pulso',ref:'30–60 mmHg',up:'VS alto (sepse hiperdinâmica, IA) ou aorta rígida. Com PAD baixa sugere vasoplegia.',dn:'VS baixo: hipovolemia, choque cardiogênico, tamponamento (com pulso paradoxal).'},
+ pap:{t:'Pressão de artéria pulmonar',ref:'PAPs 15–25 · PAPd 8–15 · PAPm 10–20 mmHg · HP: PAPm > 20 (ESC/ERS 2022)',up:'HP pós-capilar (IC esquerda, valvopatia mitral) se POAP > 15; pré-capilar (TEP, HAP, doença pulmonar, hipóxia) se POAP ≤ 15. PAPs > 55–60 num TEP agudo sugere HP crônica.',dn:'Hipovolemia, IAM de VD (o VD infartado não gera pressão).'},
+ papm:{t:'PAP média',ref:'≤ 20 mmHg · HP: PAPm > 20 (ESC/ERS 2022)',up:'Hipertensão pulmonar. Classifique com POAP e RVP.',dn:'Baixo fluxo pulmonar ou hipovolemia.'},
+ paop:{t:'Pressão de oclusão da artéria pulmonar (POAP)',ref:'6–12 mmHg · > 18: congestão hidrostática provável',up:'Falência de VE, sobrecarga de volume, IM (use a média, não o pico da onda v), estenose mitral, tamponamento (equaliza com PVC).',dn:'Hipovolemia, venodilatação, diurese excessiva.',note:'Superestima a pressão do AE com PEEP alta, zona 1/2 de West, estenose mitral. Ler no fim da expiração.'},
+ cvp:{t:'Pressão venosa central (PVC)',ref:'2–6 mmHg',up:'Falência de VD (TEP, IAM de VD, HAP), sobrecarga de volume, tamponamento, IT grave, PEEP alta, pneumotórax hipertensivo. PVC alta reduz o gradiente de retorno venoso e a perfusão renal.',dn:'Hipovolemia ou venodilatação.',note:'Valor isolado não prediz fluido-responsividade. PVC/POAP ≥ 0,8 sugere predomínio de disfunção de VD.'},
+ rel:{t:'Relação PVC/POAP',ref:'≈ 0,5–0,7 · ≥ 0,8 sugere disfunção de VD',up:'Falência de VD predominante: IAM de VD, TEP maciço, HAP descompensada. Em tamponamento tende a 1 (equalização).',dn:'Falência predominante de VE.'},
+ papi:{t:'Índice de pulsatilidade da artéria pulmonar (PAPi)',ref:'(PAPs − PAPd)/PVC · > 0,9 · < 0,9 falência grave de VD no IAM inferior; < 1,85 disfunção de VD (Korabathina 2012)',up:'VD capaz de gerar pressão de pulso na AP com PVC baixa: função de VD preservada.',dn:'VD incapaz de ejetar (PP da AP pequena) com PVC alta: falência de VD. No choque cardiogênico apoia a indicação de suporte mecânico direito.',note:'Não validado em HP crônica nem no pós-operatório cardíaco. Depende de pré-carga e de PEEP.'},
+ gtp:{t:'Gradiente transpulmonar',ref:'≤ 12 mmHg',up:'Doença vascular pulmonar (componente pré-capilar), TEP. Depende do fluxo: DC alto eleva o GTP sem doença vascular.',dn:'—'},
+ gdp:{t:'Gradiente diastólico pulmonar',ref:'< 7 mmHg',up:'≥ 7 sugere doença vascular pulmonar (TEP, HAP). Menos influenciado pelo fluxo que o GTP.',dn:'—',note:'A diretriz ESC/ERS 2022 não usa mais o GDP para separar HP pós-capilar isolada de combinada: o critério é RVP > 2 WU.'},
+ co:{t:'Débito cardíaco',ref:'4–8 L/min',up:'Estado hiperdinâmico (sepse, anemia, cirrose, gestação), inotrópico. Na CIV a termodiluição na AP mede Qp, superestimando o fluxo sistêmico.',dn:'Hipovolemia, falência de VE ou VD, obstrução (TEP, tamponamento), bradicardia.',note:'Termodiluição erra com IT grave e shunt intracardíaco.'},
+ ci:{t:'Índice cardíaco',ref:'2,5–4,0 L/min/m² · < 2,2 com POAP > 15 = choque cardiogênico (SHOCK)',up:'Estado hiperdinâmico.',dn:'Baixo débito. Interpretar junto com SvO₂ e lactato: IC "baixo" pode ser adequado se a SvO₂ está normal.'},
+ sv:{t:'Volume sistólico',ref:'60–100 mL',up:'Pré-carga alta com boa contratilidade, pós-carga baixa, inotrópico.',dn:'Pré-carga baixa, contratilidade baixa, pós-carga alta, taquicardia extrema.'},
+ svi:{t:'Índice de volume sistólico',ref:'33–47 mL/m²',up:'Ver VS.',dn:'Ver VS. A resposta a volume é medida por ↑ VS ≥ 10–15%.'},
+ svv:{t:'Variação do volume sistólico',ref:'< 10% pouco provável responder · > 13% provável responder',up:'Paciente na parte íngreme da curva de Frank-Starling: provável fluido-responsivo. Falso-positivo: falência de VD, tamponamento, hipertensão intra-abdominal.',dn:'Pouco fluido-responsivo.',note:'Válido só em VM controlada, VC ≥ 8 mL/kg, ritmo sinusal, tórax fechado.'},
+ ppv:{t:'Variação da pressão de pulso',ref:'< 10% pouco provável responder · > 13% provável responder (zona cinzenta 9–13%)',up:'Provável fluido-responsividade (mesmas condições da VVS).',dn:'Pouco fluido-responsivo.',note:'Arritmia, VC baixo, respiração espontânea e tórax aberto invalidam.'},
+ svr:{t:'Resistência vascular sistêmica',ref:'800–1200 dyn·s·cm⁻⁵',up:'Vasoconstrição: compensação de baixo débito (hipovolemia, cardiogênico), vasopressor, hipotermia.',dn:'Vasodilatação: sepse, anafilaxia, choque neurogênico, insuficiência hepática, vasodilatador.',note:'É calculada (80·(PAM − PVC)/DC): erro no DC ou na PVC se propaga.'},
+ svri:{t:'Índice de resistência vascular sistêmica',ref:'1970–2390 dyn·s·cm⁻⁵·m²',up:'Vasoconstrição (ver RVS).',dn:'Vasoplegia (ver RVS).'},
+ rvp:{t:'Resistência vascular pulmonar',ref:'≤ 160 dyn·s·cm⁻⁵ (≤ 2 WU, ESC/ERS 2022)',note:'Tabelas mais antigas (ex.: Edwards) citam 100–250 dyn·s·cm⁻⁵; a definição atual de HP considera anormal RVP > 2 WU.',up:'HP pré-capilar (TEP, HAP, hipóxia, doença pulmonar) ou componente pré-capilar na HP combinada.',dn:'—'},
+ wu:{t:'RVP em unidades Wood',ref:'≤ 2 WU (ESC/ERS 2022)',up:'> 2 WU com POAP ≤ 15: HP pré-capilar. > 2 WU com POAP > 15: HP pós-capilar combinada.',dn:'—'},
+ itsve:{t:'Índice de trabalho sistólico do VE',ref:'50–62 g·m/m²',up:'Hiperdinâmico ou pós-carga alta.',dn:'Falência de VE (contratilidade ou pré-carga baixas).'},
+ itsvd:{t:'Índice de trabalho sistólico do VD',ref:'5–10 g·m/m²',up:'VD adaptado a pós-carga alta (HAP crônica).',dn:'Falência de VD.'},
+ cpo:{t:'Potência cardíaca (CPO)',ref:'≈ 1 W em repouso · < 0,6 W prognóstico ruim (registro SHOCK, Fincke 2004)',up:'—',dn:'< 0,6 W associa-se a maior mortalidade no choque cardiogênico.'},
+ cao2:{t:'Conteúdo arterial de O₂',ref:'17–20 mL/dL',up:'—',dn:'Anemia ou hipoxemia. A Hb pesa mais que a PaO₂.'},
+ do2i:{t:'Oferta de O₂ indexada',ref:'500–600 mL/min/m²',up:'Estado hiperdinâmico.',dn:'Baixo débito, anemia ou hipoxemia. Abaixo do limiar crítico o VO₂ passa a depender da oferta e o lactato sobe.'},
+ vo2i:{t:'Consumo de O₂ indexado',ref:'120–160 mL/min/m²',up:'Febre, sepse, tremor, esforço respiratório.',dn:'Sedação, hipotermia; ou consumo dependente de oferta.'},
+ teo2:{t:'Taxa de extração de O₂',ref:'22–30%',up:'Oferta insuficiente para a demanda.',dn:'Extração prejudicada (disfunção microcirculatória na sepse) ou shunt.'},
+ svo2:{t:'Saturação venosa mista (SvO₂)',ref:'60–80% (alvo usual ≥ 65%)',up:'Shunt E→D (CIV), extração prejudicada (sepse), cirrose, cateter em posição de wedge.',dn:'DO₂ insuficiente (baixo débito, anemia, hipoxemia) ou VO₂ alto.'},
+ scvo2:{t:'Saturação venosa central (ScvO₂)',ref:'70–80% · normalmente ~5% maior que a SvO₂',up:'Ver SvO₂. Em sepse, ScvO₂ normal não exclui hipoperfusão tecidual.',dn:'Ver SvO₂.'},
+ svcad:{t:'Saturação no átrio direito',ref:'≈ SvO₂ (diferença < 7%)',up:'Salto AD → AP > 7% indica shunt E→D ao nível ventricular (CIV).',dn:'—'},
+ spo2:{t:'SpO₂',ref:'92–96% no paciente crítico',up:'Hiperóxia (SpO₂ ≥ 98% com FiO₂ alta) não traz benefício.',dn:'Hipoxemia: shunt, alteração V/Q, hipoventilação. Congestão pulmonar e edema por permeabilidade reduzem a SpO₂ após volume.'},
+ sao2:{t:'SaO₂',ref:'95–100%',up:'—',dn:'Reduz o CaO₂ e a DO₂.'},
+ pao2:{t:'PaO₂',ref:'80–100 mmHg (ar ambiente)',up:'—',dn:'Hipoxemia; pouco efeito no CaO₂ enquanto a SaO₂ é mantida.'},
+ hb:{t:'Hemoglobina',ref:'Homem 13,5–17,5 · mulher 12–15,5 g/dL · transfusão em geral se < 7',up:'Hemoconcentração (diurese, perda de plasma).',dn:'Sangramento ou hemodiluição por cristaloide; reduz CaO₂ e DO₂.'},
+ lac:{t:'Lactato',ref:'Normal ≈ 0,9–1,7 · > 2 mmol/L alterado (Sepsis-3 usa > 2 no choque séptico)',up:'Hipoperfusão (DO₂ insuficiente, PAM abaixo da autorregulação), mas também estímulo β2 (adrenalina), disfunção hepática e aumento de glicólise aeróbia na sepse.',dn:'Clearance é marcador de resposta à ressuscitação.'},
+ temp:{t:'Temperatura sanguínea',ref:'36–37,5 °C',up:'Febre: aumenta VO₂.',dn:'Hipotermia: vasoconstrição, coagulopatia, arritmia.'},
+ hpi:{t:'Hypotension Prediction Index',ref:'0–100 · alerta ≥ 85',up:'Probabilidade de PAM < 65 mmHg por ≥ 1 min nos próximos 15 min. Use a tela secundária para achar o mecanismo (pré-carga, contratilidade ou tônus).',dn:'Baixo risco de hipotensão iminente.'},
+ dpdt:{t:'dP/dt máx. (arterial)',ref:'Tendência · valores baixos sugerem contratilidade reduzida',up:'Inotrópico, estado hiperdinâmico.',dn:'Contratilidade reduzida. É influenciado pela pós-carga e pela pré-carga, não é índice puro.'},
+ eadyn:{t:'Elastância arterial dinâmica (Ea dyn)',ref:'VPP/VVS · ≥ 0,73 prediz aumento da PAM ≥ 10% com volume (García 2014)',up:'Tônus arterial alto: volume tende a elevar a PAM.',dn:'Tônus baixo: aumentar fluxo com volume não eleva a PAM; vasopressor é mais eficaz.'},
+ gedi:{t:'Volume diastólico final global indexado',ref:'680–800 mL/m²',up:'Sobrecarga de volume ou dilatação cardíaca (inclui VD dilatado no TEP e IAM de VD).',dn:'Pré-carga volumétrica baixa (hipovolemia). No tamponamento é baixo mesmo com PVC alta.',note:'Injeção femoral superestima o GEDI.'},
+ elwi:{t:'Água pulmonar extravascular indexada',ref:'3–7 mL/kg · > 10 = edema pulmonar',up:'Edema hidrostático (PVPI ≤ 3) ou por permeabilidade (PVPI > 3). Limite para mais volume.',dn:'—',note:'Não confiável no TEP, após ressecção pulmonar e em grandes derrames.'},
+ pvpi:{t:'Índice de permeabilidade vascular pulmonar',ref:'1–3 · > 3 edema por permeabilidade',up:'SDRA / lesão capilar: volume aumenta a água pulmonar sem ganho proporcional de fluxo.',dn:'Com ELWI alto e PVPI ≤ 3: edema hidrostático (cardiogênico ou sobrecarga).'},
+ gef:{t:'Fração de ejeção global',ref:'25–35%',up:'—',dn:'Disfunção sistólica (VE ou VD) ou VD dilatado.'},
+ cfi:{t:'Índice de função cardíaca',ref:'4,5–6,5 /min',up:'Hiperdinâmico.',dn:'Disfunção sistólica.'}
+};
+function showInfo(key,x,y){
+  const k=INFO_ALIAS[key]||key, I=INFO[k], el=$('infoPop'); if(!I){el.hidden=true;return}
+  el.innerHTML=`<div class="ih"><b>${I.t}</b><button class="mini" id="infoX" aria-label="Fechar">✕</button></div>
+   <div class="ir"><span>Referência</span>${I.ref}</div>
+   ${I.up&&I.up!=='—'?`<div class="ir"><span class="hi">▲ Alto</span>${I.up}</div>`:''}
+   ${I.dn&&I.dn!=='—'?`<div class="ir"><span class="lo">▼ Baixo</span>${I.dn}</div>`:''}
+   ${I.note?`<div class="ir note">${I.note}</div>`:''}`;
+  el.hidden=false;
+  const W=el.offsetWidth,H=el.offsetHeight,vw=window.innerWidth,vh=window.innerHeight;
+  el.style.left=Math.max(8,Math.min(vw-W-8,x-W/2))+'px';
+  el.style.top=(y+14+H>vh-8?Math.max(8,y-H-14):y+14)+'px';
+  $('infoX').onclick=()=>{el.hidden=true};
+}
+document.addEventListener('click',e=>{
+  const pop=$('infoPop'); if(pop.contains(e.target)) return;
+  const t=e.target.closest('[data-info]');
+  if(t){showInfo(t.getAttribute('data-info'),e.clientX,e.clientY);e.stopPropagation();} else pop.hidden=true;
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$('infoPop').hidden=true});
+function tagInfo(){
+  [['nHR','hr'],['nART','art'],['nPAP','pap'],['nCVP','cvp'],['nSpO2','spo2'],['nCO','co'],['nSvO2','svo2'],['nPAOP','paop'],['nT','temp']]
+    .forEach(([id,k])=>{const b=$(id).closest('.nbox');b.setAttribute('data-info',k);b.classList.add('info')});
+  document.querySelectorAll('[id^="pg-"]').forEach(g=>{g.setAttribute('data-info',g.id.slice(3));g.style.cursor='pointer'});
+}
 function start(){
-  buildDrugUI(); setupCanvases(); loadScenario(S[0]);
+  tagInfo(); buildDrugUI(); setupCanvases(); loadScenario(S[0]);
   setSensor('ft'); setInterval(updateNums,1000);
   requestAnimationFrame(frame);
 }
