@@ -503,6 +503,32 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
 .tab-page { display: none !important; padding-top: 30px; padding-left: 32px; padding-right: 32px; padding-bottom: 40px; }
 .tab-page.on { display: block !important; }
 
+
+/* ── SIMULADORES ─────────────────────────────────────────── */
+.sim-lead { color: var(--t2); margin: 6px 0 20px; max-width: 70ch; line-height: 1.5; }
+.sim-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 16px; }
+.sim-card { position: relative; display: flex; flex-direction: column; gap: 16px; padding: 22px; min-height: 330px;
+  background: var(--surface); border: 1px solid var(--border2); border-radius: 14px; color: var(--t1); text-decoration: none;
+  transition: border-color .15s, transform .15s, background .15s; overflow: hidden; }
+.sim-card::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 3px; background: var(--c); opacity: .85; }
+.sim-card:hover { border-color: var(--c); background: var(--surface2); transform: translateY(-2px); }
+.sim-card:focus-visible { outline: 2px solid var(--c); outline-offset: 3px; }
+.sim-ico { width: 112px; height: 112px; border-radius: 22px; display: grid; place-items: center; color: var(--c);
+  background: radial-gradient(120% 120% at 30% 20%, color-mix(in srgb, var(--c) 22%, transparent), color-mix(in srgb, var(--c) 6%, transparent));
+  border: 1px solid color-mix(in srgb, var(--c) 40%, transparent); }
+.sim-ico svg { width: 76px; height: 76px; }
+.sim-body { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.sim-name { font-family: var(--display); font-weight: 700; font-size: 34px; letter-spacing: .02em; line-height: 1; }
+.sim-name b { color: var(--c); font-weight: 700; }
+.sim-sub { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--t3); }
+.sim-desc { color: var(--t2); font-size: 14px; line-height: 1.5; margin-top: 4px; }
+.sim-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 10px; }
+.sim-tags i { font-style: normal; font-size: 12px; color: var(--t2); border: 1px solid var(--border2); border-radius: 999px; padding: 3px 10px; }
+.sim-go { align-self: flex-start; font-family: var(--display); font-weight: 700; font-size: 16px; letter-spacing: .06em; text-transform: uppercase;
+  color: #111; background: var(--c); border-radius: 8px; padding: 8px 16px; }
+.sim-foot { color: var(--t3); font-size: 12.5px; margin-top: 18px; max-width: 80ch; }
+@media (max-width: 640px) { .sim-card { min-height: 0; padding: 18px; } .sim-ico { width: 88px; height: 88px; } .sim-ico svg { width: 60px; height: 60px; } .sim-name { font-size: 30px; } }
+
 /* ── CALCULADORAS ────────────────────────────────────────── */
 #calcGrid { display: grid; grid-template-columns: repeat(auto-fit,minmax(300px,1fr)); gap: 14px; }
 .calc-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
@@ -1036,9 +1062,63 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
 <span class="nav-sep" aria-hidden="true"></span>
     <span class="nav-grp">Ferramentas</span>
     <button class="nav-tab ext" onclick="window.open('cad.html','_blank')" id="navCAD">&#x1FA78; CAD</button>
-    <button class="nav-tab ext" onclick="window.open('neurosim.html','_blank')" id="navNeuro">&#x1F9E0; NeuroSim</button>
-    <button class="nav-tab ext" onclick="window.open('swanganz.html','_blank')" id="navSwan">&#x1FAC0; Swan-Ganz</button>
-    <button class="nav-tab ext" onclick="window.open('ventilab.html','_blank')" id="navVent">&#x1FAC1; VentiLab</button>
+    <button class="nav-tab" data-tab="sim" id="navSim">&#x1F3AE; Simuladores</button>
+  </div>
+
+
+  <!-- SIMULADORES -->
+  <div class="tab-page" id="pageSim">
+    <div class="slabel">Simuladores de treinamento</div>
+    <p class="sim-lead">Casos interativos com fisiologia em tempo real para treino de raciocínio à beira do leito e preparação para o TEMI.</p>
+    <div class="sim-grid">
+      <a class="sim-card" href="hemolab.html" style="--c:#ff5c66">
+        <span class="sim-ico" aria-hidden="true">
+          <svg viewBox="0 0 64 64" width="72" height="72" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M32 52C20 43 10 35 10 24c0-7 5-12 11.5-12 4.5 0 8 2.5 10.5 6 2.5-3.5 6-6 10.5-6C49 12 54 17 54 24c0 11-10 19-22 28Z" stroke="currentColor" stroke-width="3" opacity=".35"/>
+            <path d="M6 34h10l4-9 6 19 6-26 5 16h4l3-5 4 5h10" stroke="currentColor" stroke-width="3.2"/>
+          </svg>
+        </span>
+        <span class="sim-body">
+          <span class="sim-name">Hemo<b>Lab</b></span>
+          <span class="sim-sub">Monitorização hemodinâmica</span>
+          <span class="sim-desc">Cateter de artéria pulmonar, EV1000 (FloTrac, Acumen IQ) e termodiluição transpulmonar. Drogas vasoativas, volume, alça pressão-volume do VE e evolução até o desfecho.</span>
+          <span class="sim-tags"><i>15 cenários</i><i>Modo prova</i><i>PCR e arritmias</i></span>
+        </span>
+        <span class="sim-go">Abrir →</span>
+      </a>
+      <a class="sim-card" href="ventilab.html" style="--c:#33e0e6">
+        <span class="sim-ico" aria-hidden="true">
+          <svg viewBox="0 0 64 64" width="72" height="72" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M32 10v18M32 28c-4 0-6 3-9 3M32 28c4 0 6 3 9 3" stroke="currentColor" stroke-width="3" opacity=".35"/>
+            <path d="M23 20c-7 2-13 12-13 24 0 5 3 8 7 8 5 0 8-4 8-10V22c0-1.5-.8-2.3-2-2ZM41 20c7 2 13 12 13 24 0 5-3 8-7 8-5 0-8-4-8-10V22c0-1.5.8-2.3 2-2Z" stroke="currentColor" stroke-width="3" opacity=".35"/>
+            <path d="M6 40h8c2-14 5-14 7-14h8l2 14h6l3-8h4l2 8h12" stroke="currentColor" stroke-width="3.2"/>
+          </svg>
+        </span>
+        <span class="sim-body">
+          <span class="sim-name">Venti<b>Lab</b></span>
+          <span class="sim-sub">Ventilação mecânica</span>
+          <span class="sim-desc">VCV, PCV e PSV com curvas de pressão, fluxo e volume em tempo real. Mecânica respiratória, stress index, ΔPocc e Pmus, assincronias, gasometria e capnografia volumétrica.</span>
+          <span class="sim-tags"><i>4 perfis de pulmão</i><i>8 assincronias</i><i>Gasometria ao vivo</i></span>
+        </span>
+        <span class="sim-go">Abrir →</span>
+      </a>
+      <a class="sim-card" href="neurosim.html" style="--c:#ffc23d">
+        <span class="sim-ico" aria-hidden="true">
+          <svg viewBox="0 0 64 64" width="72" height="72" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M31 12c-3-3-9-3-11 1-5 0-8 5-6 9-4 3-4 9 0 12-1 5 3 9 8 8 1 4 6 6 9 3V12ZM33 12c3-3 9-3 11 1 5 0 8 5 6 9 4 3 4 9 0 12 1 5-3 9-8 8-1 4-6 6-9 3V12Z" stroke="currentColor" stroke-width="3" opacity=".35"/>
+            <path d="M6 50h8c1-8 3-9 5-9s3 3 5 3 3-6 5-6 3 5 5 5 2 7 4 7h20" stroke="currentColor" stroke-width="3.2"/>
+          </svg>
+        </span>
+        <span class="sim-body">
+          <span class="sim-name">Neuro<b>Sim</b></span>
+          <span class="sim-sub">Neurointensivismo</span>
+          <span class="sim-desc">PIC, PPC, PbtO₂, PRx e pupilometria. Algoritmos SIBICC por tiers, HSA, AVC, TCE, meningite e insuficiência hepática aguda, com debriefing e referências.</span>
+          <span class="sim-tags"><i>9 casos</i><i>Tiers SIBICC</i><i>Debriefing</i></span>
+        </span>
+        <span class="sim-go">Abrir →</span>
+      </a>
+    </div>
+    <p class="sim-foot">Ferramentas educacionais. Os modelos reproduzem direção e ordem de grandeza das respostas fisiológicas e não substituem julgamento clínico nem protocolo institucional.</p>
   </div>
 
   <!-- LAB -->
@@ -1816,8 +1896,8 @@ function switchNav(tab) {
     t.classList.remove('on');
     t.style.display = 'none';
   });
-  var navMap = {lab:'navLab',vit:'navVit',resume:'navResume',presc:'navPresc',calc:'navCalc',atbdose:'navAtbDose',iot:'navIOT',ref:'navRef'};
-  var pageMap = {lab:'pageLab',vit:'pageVit',resume:'pageResume',presc:'pagePresc',calc:'pageCalc',atbdose:'pageAtbDose',iot:'pageIOT',ref:'pageRef'};
+  var navMap = {lab:'navLab',vit:'navVit',resume:'navResume',presc:'navPresc',calc:'navCalc',atbdose:'navAtbDose',iot:'navIOT',ref:'navRef',sim:'navSim'};
+  var pageMap = {lab:'pageLab',vit:'pageVit',resume:'pageResume',presc:'pagePresc',calc:'pageCalc',atbdose:'pageAtbDose',iot:'pageIOT',ref:'pageRef',sim:'pageSim'};
   if (navMap[tab]) document.getElementById(navMap[tab]).classList.add('on');
   if (pageMap[tab]) {
     var pageEl = document.getElementById(pageMap[tab]);
@@ -5031,6 +5111,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Ensure pageLab is visible on load
   var pageLab = document.getElementById('pageLab');
   if (pageLab) { pageLab.style.display = 'block'; }
+  if (location.hash === '#simuladores') switchNav('sim');
 
   calcGCS();
   calcSAPS3();
