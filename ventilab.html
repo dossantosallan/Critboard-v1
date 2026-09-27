@@ -49,12 +49,13 @@ select{font-family:var(--sans);font-size:14px;background:var(--panel2);color:var
 @keyframes blink{50%{opacity:.3}}
 @media (prefers-reduced-motion:reduce){.status .alarm{animation:none}}
 .waves{display:flex;flex-direction:column;min-width:0}
-.wv{position:relative;height:140px;border-bottom:1px solid #0d171b}
+.wv{position:relative;height:128px;border-bottom:1px solid #0d171b}
+.wv.cap{height:86px}
 .wv:last-child{border-bottom:0}
 .wv canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .wv .lab{position:absolute;left:8px;top:4px;font-family:var(--num);font-size:14px;font-weight:600;letter-spacing:.05em;z-index:2;pointer-events:none}
 .wv .unit{font-size:11px;opacity:.7;font-weight:500}
-.loops{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#0d171b;height:420px}
+.loops{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#0d171b;height:470px}
 .loops div{position:relative;background:var(--scr)}
 .loops canvas{position:absolute;inset:0;width:100%;height:100%}
 .loops .lab{position:absolute;left:8px;top:4px;font-family:var(--num);font-size:14px;font-weight:600;color:#9fb3be;z-index:2}
@@ -125,6 +126,22 @@ td.v{font-family:var(--num);font-size:17px;font-weight:600;white-space:nowrap}
 .src{font-size:12px;color:var(--muted)}
 .src a{color:#9fc9e6}
 
+.abgtop{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}
+.abgtop .sp{flex:1}
+.abggrid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px}
+.abgcard{background:#f4f1e8;color:#1c1a14;border-radius:8px;padding:12px 14px;font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-size:13px;display:flex;flex-direction:column;gap:2px;box-shadow:inset 0 0 0 1px #d9d2bd}
+.abgcard .hd{display:flex;justify-content:space-between;font-size:11px;color:#6b6553;border-bottom:1px dashed #b9b19a;padding-bottom:4px;margin-bottom:4px}
+.abgcard .ln{display:grid;grid-template-columns:7.5em 5em 1.4em 1fr;gap:6px;align-items:baseline;font-variant-numeric:tabular-nums}
+.abgcard .ln b{font-size:15px;text-align:right}
+.abgcard .ln .fl{color:#b3261e;font-weight:700}
+.abgcard .ln .rf{color:#7a735f;font-size:11.5px}
+.abgcard .ln.tr b{color:#555}
+.abgder{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.abgder div{background:var(--panel2);padding:6px 9px;display:flex;flex-direction:column}
+.abgder span{font-size:11px;color:var(--muted)}
+.abgder b{font-family:var(--num);font-size:19px;font-weight:600;font-variant-numeric:tabular-nums}
+.abgint{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px;font-size:13px}
+@media (max-width:900px){.abggrid{grid-template-columns:1fr}.abgder{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:900px){
   .screen{grid-template-columns:1fr}
   .nums{border-left:0;border-top:1px solid #0d171b;grid-template-columns:repeat(3,1fr)}
@@ -183,6 +200,7 @@ td.v{font-family:var(--num);font-size:17px;font-weight:600;white-space:nowrap}
         <div class="wv"><canvas id="gP"></canvas><canvas id="cP"></canvas><span class="lab" style="color:var(--paw)">Paw <span class="unit">cmH₂O</span></span></div>
         <div class="wv"><canvas id="gF"></canvas><canvas id="cF"></canvas><span class="lab" style="color:var(--flow)">Fluxo <span class="unit">L/min</span></span></div>
         <div class="wv"><canvas id="gV"></canvas><canvas id="cV"></canvas><span class="lab" style="color:var(--vol)">Volume <span class="unit">mL</span></span></div>
+        <div class="wv cap"><canvas id="gC"></canvas><canvas id="cC"></canvas><span class="lab" style="color:#d9e2e7">CO₂ <span class="unit">mmHg · capnografia · varredura lenta (24 s)</span></span></div>
       </div>
       <div class="loops" id="loopsBox" hidden>
         <div><canvas id="lPV"></canvas><span class="lab">Pressão × Volume</span></div>
@@ -197,6 +215,34 @@ td.v{font-family:var(--num);font-size:17px;font-weight:600;white-space:nowrap}
       <span class="sp"></span>
       <span class="note" id="manMsg"></span>
     </div>
+  </section>
+
+  <section class="panel" id="abgPanel" aria-label="Gasometria arterial">
+    <h2>Gasometria arterial <span class="tag">tempo real · interage com o ventilador</span></h2>
+    <div class="abgtop">
+      <label class="note" for="gSpd">Tempo fisiológico</label>
+      <select id="gSpd"><option value="1">×1 (real)</option><option value="10">×10</option><option value="20" selected>×20</option><option value="60">×60</option></select>
+      <label class="note" for="gPatm">Pressão barométrica</label>
+      <select id="gPatm"><option value="760">Nível do mar · 760 mmHg</option><option value="700">~ 680 m (ex.: Chapecó) · 700 mmHg</option><option value="630">~ 1.500 m · 630 mmHg</option></select>
+      <span class="sp"></span>
+      <button class="btn primary" id="bABG">Coletar gasometria</button>
+    </div>
+    <div class="abggrid">
+      <div class="abgcard" id="abgLive"></div>
+      <div class="abgside">
+        <div class="abgder" id="abgDer"></div>
+        <ul class="abgint" id="abgInt"></ul>
+      </div>
+    </div>
+    <div class="tw" id="abgLogBox" hidden><table id="abgLog"></table></div>
+    <details><summary class="note" style="cursor:pointer">Como o modelo calcula</summary>
+      <ul class="note" style="margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px">
+        <li><b>PaCO₂ = 0,863 × VCO₂ / VA</b>, com VA = f × [VT × (1 − VDalv) − VD anatômico (1,5 mL/kg PBW com tubo) − circuito (HME 50 mL)]. O espaço morto alveolar cresce com hiperdistensão (fim da inspiração no topo da curva P×V).</li>
+        <li>Estoques de CO₂: a PaCO₂ converge para o novo equilíbrio com constante de ~4 min quando cai e ~8 min quando sobe (o tempo fisiológico pode ser acelerado).</li>
+        <li><b>PAO₂ = FiO₂ × (Patm − 47) − PaCO₂/0,8</b>. Oxigenação por 3 compartimentos: normal, V/Q baixo (corrige com FiO₂) e shunt verdadeiro (não corrige). O shunt da SDRA diminui com o recrutamento, que depende do volume pulmonar médio (PEEP, VT, I:E).</li>
+        <li>CvO₂ = CaO₂ − VO₂/(10 × DC); PEEP e pressão média altas reduzem o DC e a PvO₂, o que piora a PaO₂ quando há shunt. Saturação pela equação de Severinghaus.</li>
+        <li>pH por Henderson-Hasselbalch; HCO₃⁻ agudo: +1 por 10 mmHg de PaCO₂ acima e −2 por 10 abaixo da PaCO₂ habitual (DPOC: habitual 55 com HCO₃⁻ 32).</li>
+      </ul></details>
   </section>
 
   <div class="grid2">
@@ -231,13 +277,13 @@ const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const rnd=(a,b)=>a+Math.random()*(b-a);
 
 const PROF={
-  normal:{nome:'Pulmão normal',C:55,Ri:8,Re:8,pinf:8,dw:16},
-  sdra:{nome:'SDRA',C:35,Ri:12,Re:12,pinf:18,dw:6},
-  dpoc:{nome:'DPOC',C:60,Ri:18,Re:28,pinf:6,dw:10},
-  asma:{nome:'Asma grave',C:50,Ri:30,Re:40,pinf:8,dw:10}
+  normal:{nome:'Pulmão normal',C:55,Ri:8,Re:8,pinf:8,dw:16,sfix:.03,srec:.02,lowvq:.03,vdalv:.05,hb:13.5,hco3:24,pchab:40},
+  sdra:{nome:'SDRA',C:35,Ri:12,Re:12,pinf:18,dw:6,sfix:.08,srec:.28,lowvq:.10,vdalv:.25,hb:10.5,hco3:22,pchab:40},
+  dpoc:{nome:'DPOC',C:60,Ri:18,Re:28,pinf:6,dw:10,sfix:.03,srec:.02,lowvq:.30,vdalv:.20,hb:15,hco3:32,pchab:55},
+  asma:{nome:'Asma grave',C:50,Ri:30,Re:40,pinf:8,dw:10,sfix:.04,srec:.04,lowvq:.25,vdalv:.15,hb:13.5,hco3:24,pchab:40}
 };
-const set={mode:'VCV',vt:420,f:16,flow:50,fpat:'quad',pause:0,peep:5,trigType:'flow',trigF:2,trigP:2,pi:15,ti:1.0,rise:.1,ps:10,ets:25};
-const pat={C:55,Ri:8,Re:8,pinf:8,dw:16,pm:0,fp:18,tin:1.0,eff:'none',leak:0,card:1,alt:170,sexo:'M'};
+const set={fio2:40,patm:760,hme:'1',mode:'VCV',vt:420,f:16,flow:50,fpat:'quad',pause:0,peep:5,trigType:'flow',trigF:2,trigP:2,pi:15,ti:1.0,rise:.1,ps:10,ets:25};
+const pat={C:55,Ri:8,Re:8,pinf:8,dw:16,sfix:.03,srec:.02,lowvq:.03,vdalv:.05,hb:13.5,hco3:24,pchab:40,vco2:200,met:'none',pm:0,fp:18,tin:1.0,eff:'none',leak:0,card:1,alt:170,sexo:'M'};
 
 const CTL_V=[
  {k:'vt',l:'Volume corrente',u:'mL',min:200,max:900,st:10,d:0,m:['VCV']},
@@ -248,6 +294,8 @@ const CTL_V=[
  {k:'ti',l:'Tempo inspiratório',u:'s',min:.4,max:2.5,st:.05,d:2,m:['PCV']},
  {k:'ps',l:'Pressão de suporte',u:'cmH₂O',min:0,max:25,st:1,d:0,m:['PSV']},
  {k:'f',l:'Frequência',u:'rpm',min:6,max:35,st:1,d:0,m:['VCV','PCV']},
+ {k:'fio2',l:'FiO₂',u:'%',min:21,max:100,st:1,d:0,m:['VCV','PCV','PSV']},
+ {k:'hme',l:'Umidificação / espaço morto do circuito',sel:[['1','HME (+50 mL)'],['0','Umidificador aquecido']],m:['VCV','PCV','PSV']},
  {k:'peep',l:'PEEP',u:'cmH₂O',min:0,max:20,st:1,d:0,m:['VCV','PCV','PSV']},
  {k:'rise',l:'Tempo de subida (rise)',u:'s',min:0,max:.4,st:.01,d:2,m:['PCV','PSV']},
  {k:'ets',l:'Critério de ciclagem (ETS)',u:'% pico',min:5,max:80,st:1,d:0,m:['PSV']},
@@ -268,6 +316,9 @@ const CTL_P=[
  {k:'leak',l:'Vazamento',u:'L/min',min:0,max:15,st:.5,d:1},
  {k:'card',l:'Oscilação cardíaca no fluxo',sel:[['1','Presente'],['0','Ausente']]},
  {k:'alt',l:'Altura',u:'cm',min:140,max:200,st:1,d:0},
+ {k:'vco2',l:'Produção de CO₂ (VCO₂)',u:'mL/min',min:120,max:400,st:5,d:0},
+ {k:'met',l:'Componente metabólico',sel:[['none','Sem distúrbio metabólico'],['acid','Acidose metabólica (HCO₃⁻ −10)'],['alk','Alcalose metabólica (HCO₃⁻ +8)']]},
+ {k:'hb',l:'Hemoglobina',u:'g/dL',min:5,max:17,st:.5,d:1},
  {k:'sexo',l:'Sexo (para peso predito)',sel:[['M','Masculino'],['F','Feminino']]}
 ];
 
@@ -305,7 +356,7 @@ function fitSI(buf){
 }
 let st, eff=null, nextEff=0, revAt=null, man={insp:false,exp:false,occ:null}, res={}, stats, trace, cnt;
 function resetSim(){
-  st={t:0,V:Vof(set.peep),siBuf:[],Pve:0,ph:'exp',tph:1,lastStart:-60/(set.f||12),vStart:Vof(set.peep),vi:0,qpk:0,ppk:0,
+  st={t:0,gk:0,xAvg:null,V:Vof(set.peep),siBuf:[],Pve:0,ph:'exp',tph:1,lastStart:-60/(set.f||12),vStart:Vof(set.peep),vi:0,qpk:0,ppk:0,
       Paw:set.peep,Q:0,mand:false,trigPend:null,backup:false,apnea:false,lastEffEnd:-9,brTrig:null,pauseDur:0,p1:null,pEnd:null,qEnd:null,
       vExp:0,pmean:set.peep,expPause:null};
   eff=null; nextEff=1+Math.random(); revAt=null;
@@ -313,6 +364,7 @@ function resetSim(){
   trace={cur:[],last:[]};
   cnt={eff:0,trig:0,inef:0,dbl:0,auto:0,rev:0,breaths:0};
   man={insp:false,exp:false,occ:null};
+  gasReset();
 }
 function pmusNow(t){
   if(!eff) return 0;
@@ -340,7 +392,7 @@ function effortTick(t){
 function riseShape(tIn){ if(set.rise<=.005) return 1; const x=tIn/set.rise; return x>=1?1:(1-Math.pow(1-x,2)); }
 function startBreath(t,mand,why){
   // estatística da respiração anterior
-  if(st.vExp) stats.vte=(st.vExp-st.V)*1000;
+  if(st.vExp){ stats.vte=(st.vExp-st.V)*1000; gasBreath(t,stats.vte); }
   stats.te=st.ph==='exp'?st.tph:null;
   stats.qendExp=st.Q*60;
   stats.starts.push(t); if(stats.starts.length>8) stats.starts.shift();
@@ -355,6 +407,7 @@ function startBreath(t,mand,why){
   if(pat.eff==='rev'&&mand&&pat.pm>0) revAt=t+.45+rnd(0,.15);
 }
 function endInsp(){
+  lungK(); stats.xei=(st.V-LK.a)/LK.b;
   if((st.backup?'PCV':set.mode)==='VCV'&&set.fpat==='quad'&&st.mand&&!(pat.eff!=='none'&&pat.pm>0)){ const v=fitSI(st.siBuf); if(v!=null) stats.si=stats.si==null?v:stats.si*.5+v*.5; } else stats.si=null;
   stats.ppk=st.ppk; stats.ti=st.tph; st.pEnd=st.Paw; st.qEnd=st.Q;
   if(st.pauseDur>0){st.ph='pause';st.tph=0;st.p1=null}
@@ -440,12 +493,118 @@ function fin(Paw,Q,Pm,leakQ,qc){
   st.Pve+=(R2*Q-st.Pve)/TAU2*DT;
   st.Paw=Paw; st.Q=Q; st.pm=Pm;
   st.pmean+=(Paw-st.pmean)*DT/12;
+  const xo=(st.V-LK.a)/LK.b; st.xAvg=st.xAvg==null?xo:st.xAvg+(xo-st.xAvg)*DT/6;
+  if((++st.gk)%20===0) gasTick(DT*20);
   const qd=(Q+(st.ph==='exp'&&!(man.occ&&man.occ.on)&&st.expPause==null?leakQ+qc:0))*60;
   const vd=(st.V-st.vStart)*1000;
   trace.cur.push([Paw,vd,qd]); if(trace.cur.length>4000) trace.cur.shift();
-  return {P:Paw,F:qd,V:vd,M:Pm};
+  return {P:Paw,F:qd,V:vd,M:Pm,C:capno()};
 }
 
+/* =================== GASOMETRIA ARTERIAL EM TEMPO REAL ===================
+   CO₂: PaCO₂ = 0,863·VCO₂/VA (VA = Σ[VT·(1 − VDalv) − VDanat − VDap] por minuto), com dinâmica dos estoques de CO₂.
+   O₂: gás alveolar PAO₂ = FiO₂·(Patm − 47) − PaCO₂/0,8; mistura de 3 compartimentos (normal, V/Q baixo, shunt),
+       com CvO₂ = CaO₂ − VO₂/(10·DC) e curva de dissociação de Severinghaus.
+   Ácido-base: Henderson-Hasselbalch; tamponamento agudo (+1 HCO₃⁻/10 mmHg acima, −2/10 abaixo da PaCO₂ habitual). */
+const sev=p=>{p=Math.max(1,p);return 1/(23400/(p*p*p+150*p)+1)};
+const o2c=(p,hb)=>1.34*hb*sev(p)+.003*p;
+function pFromC(c,hb){let lo=1,hi=700;for(let i=0;i<40;i++){const m=(lo+hi)/2;if(o2c(m,hb)<c)lo=m;else hi=m}return (lo+hi)/2}
+let gas=null, gasBr=[], abgLog=[];
+function gasReset(){
+  gas={init:false,paco2:pat.pchab,pao2:90,t:0,co2w:0,va:null,ve:null,target:{},shunt:0,vdvt:.3,etco2:pat.pchab-4,co:5};
+  gasBr=[];
+}
+function gasBreath(t,vte){
+  if(vte==null||vte<=0) return;
+  lungK();
+  const W=pbw(), vdan=1.5*W,   // anatômico com tubo traqueal (via aérea superior é contornada)
+   vdap=set.hme==='1'?50:0;
+  const xei=stats.xei??.5, over=Math.max(0,xei-.8)/.2;         // hiperdistensão → espaço morto alveolar
+  const vdalv=clamp(pat.vdalv+.6*over,0,.9);
+  const va=Math.max(0,(vte-vdan-vdap)*(1-vdalv));
+  gasBr.push({t,vte,va,vdalv,vdan:vdan+vdap}); while(gasBr.length&&gasBr[0].t<t-30) gasBr.shift();
+}
+function gasTick(dtSim){
+  if(!gas) gasReset();
+  const t=st.t, br=gasBr.filter(b=>b.t>=t-30);
+  const apneia=!br.length||t-br[br.length-1].t>15;
+  // ventilação por minuto medida entre respirações (evita subestimar no início)
+  let va=0, ve=0;
+  if(!apneia&&br.length>=3){const span=Math.max(t-br[0].t,br[br.length-1].t-br[0].t), sv=br.slice(1);
+    const T=Math.max(.5,br[br.length-1].t-br[0].t); void span; va=sv.reduce((s,b)=>s+b.va,0)/T*60/1000; ve=sv.reduce((s,b)=>s+b.vte,0)/T*60/1000;}
+  else if(!apneia&&br.length){va=gas.va||0;ve=gas.ve||0; if(!gas.init) return;}
+  const vco2=pat.vco2, vo2=vco2/.8;
+  const Patm=set.patm, FiO2=set.fio2/100;
+  // CO₂
+  const pco2T=va>.3?Math.min(160,.863*vco2/va):160;
+  const spd=gasSpeed;
+  if(!gas.init&&t>6&&br.length>=3){gas.paco2=pco2T;gas.init='co2'}
+  const tauC=(pco2T>gas.paco2?480:240)/spd;                               // subida mais lenta que a queda (estoques)
+  gas.paco2+=(pco2T-gas.paco2)*Math.min(1,dtSim/tauC);
+  // O₂: recrutamento pelo volume pulmonar médio (fração aberta da curva P×V)
+  const xm=st.xAvg??.3, g=clamp((xm-.08)/.45,0,1);
+  const shunt=clamp(pat.sfix+pat.srec*(1-g),0,.7), low=pat.lowvq;
+  const pmean=st.pmean||set.peep, co=Math.max(2.8,5.5*(1-.012*Math.max(0,pmean-8)));
+  const PAO2=Math.max(0,FiO2*(Patm-47)-gas.paco2/.8), hb=pat.hb, D=vo2/(10*co);
+  const Cc=o2c(PAO2,hb); let Ca=Cc-D*.3;
+  for(let i=0;i<6;i++){ const Cv=Math.max(4,Ca-D), Pv=pFromC(Cv,hb), Plow=Pv+(PAO2-Pv)*.35, Clow=o2c(Plow,hb);
+    Ca=((1-shunt-low)*Cc+low*Clow-shunt*D)/(1-shunt); }
+  const pao2T=pFromC(Math.max(2,Ca),hb);
+  if(gas.init==='co2'){gas.pao2=pao2T;gas.init=true}
+  gas.pao2+=(pao2T-gas.pao2)*Math.min(1,dtSim/(60/spd));
+  // ácido-base
+  const dP=gas.paco2-pat.pchab, hco3=pat.hco3+metOff()+(dP>0?.1*dP:.2*dP);
+  const ph=6.1+Math.log10(hco3/(.0307*gas.paco2));
+  const be=.93*(hco3-24.4+14.8*(ph-7.4));
+  const last=br[br.length-1]; const vdalv=last?last.vdalv:pat.vdalv;
+  const vdvt=ve>0?1-va/ve:null;
+  Object.assign(gas,{va,ve,vco2,pco2T,pao2T,PAO2,shunt,low,co,hco3,ph,be,sao2:sev(gas.pao2)*100,
+    etco2:apneia?0:gas.paco2*(1-vdalv),vdvt,apneia,fio2:FiO2});
+}
+function metOff(){return {none:0,acid:-10,alk:8}[pat.met]||0}
+// capnograma volumétrico-temporal (sensor na peça em Y): o CO₂ acompanha o VOLUME exalado, não o tempo.
+//  fase I: sai o espaço morto (via aérea + circuito) sem CO₂; fase II: transição sigmoide (mais larga com
+//  esvaziamento heterogêneo/obstrução); fase III: platô com inclinação crescente até o fim do fluxo; fase 0: queda
+//  rápida quando o gás fresco inspirado chega ao sensor. Resposta do sensor ~60 ms (10–90%).
+function capno(){
+  if(!gas||!gas.init) return 0;
+  const et=gas.etco2, W=pbw(), vd=1.5*W+(set.hme==='1'?50:0);
+  const obs=Math.max(0,pat.Re-10);
+  let tgt;
+  if(st.ph==='exp'&&!(man.occ&&man.occ.on)&&st.expPause==null){
+    const ve=Math.max(0,(st.vExp-st.V)*1000), vt=Math.max(50,(st.vExp-st.vStart)*1000);
+    const w=12+obs*1.6, s3=Math.min(.35,.05+obs*.008);
+    const frac=clamp(ve/vt,0,1);
+    tgt=et*sig((ve-vd)/w)*(1-s3*(1-frac)*1.4);
+    gas.co2hold=tgt;
+  } else if(st.ph==='insp'){
+    const vi=Math.max(0,(st.V-st.vStart)*1000);
+    tgt=(gas.co2hold||0)*(1-sig((vi-12)/4));
+  } else tgt=gas.co2hold||0;
+  gas.co2w+=(tgt-gas.co2w)*Math.min(1,DT/.025);
+  return gas.co2w;
+}
+function interpABG(g){
+  const out=[]; if(!g||!g.init) return out;
+  const ph=g.ph,p=g.paco2,h=g.hco3, hab=pat.pchab;
+  const acid=ph<7.35, alk=ph>7.45;
+  if(acid&&p>45) out.push(h>pat.hco3+metOff()+.1*Math.max(0,p-hab)+2?'Acidose respiratória com componente metabólico compensatório':(hab>40?'Acidose respiratória aguda sobre crônica':'Acidose respiratória aguda'));
+  else if(acid&&h<22) out.push(p<35?'Acidose metabólica com compensação respiratória':'Acidose metabólica'+(p>=40?' com acidose respiratória associada (compensação inadequada)':''));
+  else if(alk&&p<35) out.push('Alcalose respiratória'+(hab>40?' (hiperventilação de paciente hipercápnico crônico)':' aguda'));
+  else if(alk&&h>26) out.push('Alcalose metabólica');
+  else if(!acid&&!alk&&p>45&&h>26) out.push('pH normal com PaCO₂ e HCO₃⁻ altos: hipercapnia crônica compensada');
+  else if(!acid&&!alk) out.push('Equilíbrio ácido-base dentro da faixa normal');
+  if(h<22&&!(acid&&h<22)) out.push('HCO₃⁻ baixo');
+  // Winter: PaCO₂ esperada na acidose metabólica = 1,5·HCO₃⁻ + 8 ± 2
+  if(h<20){const w=1.5*h+8; if(p>w+2) out.push(`PaCO₂ acima da esperada por Winter (${fmt(w,0)} ± 2): ventilação insuficiente para a acidose metabólica`); else if(p<w-2) out.push('PaCO₂ abaixo da esperada por Winter: alcalose respiratória associada');}
+  const pf=g.pao2/g.fio2;
+  if(g.pao2<60) out.push('Hipoxemia (PaO₂ < 60 mmHg)');
+  if(pf<=300&&set.peep>=5) out.push(`P/F ${fmt(pf,0)}: faixa de SDRA ${pf<=100?'grave':pf<=200?'moderada':'leve'} (Berlim, PEEP ≥ 5)`);
+  if(g.pao2>150&&g.fio2>.4) out.push('Hiperóxia: considere reduzir a FiO₂');
+  return out;
+}
+
+let gasSpeed=20;
 /* =================== MANOBRAS =================== */
 function setMsg(s){$('manMsg').textContent=s}
 function recordInspPause(pplat){
@@ -482,7 +641,7 @@ $('mExp').onclick=()=>{ if(set.mode==='PSV'){setMsg('Em PSV use a oclusão: o es
 $('mOcc').onclick=()=>{ if(pat.pm<=0||pat.eff==='none'){setMsg('A oclusão mede o esforço: ajuste o paciente com esforço espontâneo.');return} man.occ={on:false,min:null,p01:null}; setMsg('Oclusão agendada para a próxima expiração.')};
 
 /* =================== DESENHO =================== */
-const CH={P:{col:'#ffc93c',min:-5,max:40,grid:[0,10,20,30]},F:{col:'#4be39a',min:-80,max:80,grid:[-60,-30,0,30,60]},V:{col:'#5cc8ff',min:-50,max:700,grid:[0,200,400,600]}};
+const CH={P:{col:'#ffc93c',min:-5,max:40,grid:[0,10,20,30]},F:{col:'#4be39a',min:-80,max:80,grid:[-60,-30,0,30,60]},V:{col:'#5cc8ff',min:-50,max:700,grid:[0,200,400,600]},C:{col:'#d9e2e7',min:0,max:60,grid:[20,40],win:24}};
 let dpr=1, WIN=10, frozen=false, showPm=false, lastX=null;
 function setupCanvases(){
   dpr=Math.min(2,window.devicePixelRatio||1);
@@ -506,6 +665,7 @@ function drawGrid(k){
 }
 function rescale(){
   let ch=false;
+  if(gas&&gas.init){const cm=gas.etco2>52?Math.ceil((gas.etco2+12)/20)*20:60; if(cm!==CH.C.max){CH.C.max=cm;CH.C.grid=cm>60?[20,40,60,80,100].filter(v=>v<cm):[20,40];ch=true}}
   const pmax=Math.max(35,Math.ceil(((stats.ppk||20)+8)/10)*10), pmin=-Math.max(5,Math.ceil((pat.pm+3)/5)*5);
   if(pmax!==CH.P.max||pmin!==CH.P.min){CH.P.max=pmax;CH.P.min=pmin;CH.P.grid=[0,10,20,30,40,50,60].filter(v=>v<pmax);ch=true}
   const fm=Math.max(60,Math.ceil((Math.max(set.mode==='VCV'?set.flow:0,Math.abs(stats.qpkAbs||0))+15)/20)*20);
@@ -517,9 +677,8 @@ function rescale(){
 // monitor: filtro passa-baixa de 2ª ordem (~13 Hz) como no pneumotacógrafo, e traçado em um único caminho por quadro
 const FT=.012, fa=DT/(FT+DT);
 function plot(s){
-  const frac=(st.t%WIN)/WIN;
   for(const k in CH){
-    const ch=CH[k], raw=k==='V'?s.V:s[k];
+    const ch=CH[k], raw=k==='V'?s.V:s[k], wn=ch.win||WIN, frac=(st.t%wn)/wn;
     if(ch.f1==null){ch.f1=raw;ch.f2=raw}
     ch.f1+=(raw-ch.f1)*fa; ch.f2+=(ch.f1-ch.f2)*fa;
     const v=k==='V'?raw:ch.f2, x=frac*ch.W;
@@ -586,6 +745,7 @@ function renderNums(){
     ['p','Pmédia','cmH₂O',fmt(st.pmean,0)],['p','PEEP tot','cmH₂O',fmt(peepTot,0)],
     ['p','ΔP (driving)','cmH₂O',fmt(dp,0),dp>15],['m','Cst','mL/cmH₂O',fmt(cst,0)],
     ['vv','VTe','mL',fmt(vte,0),vte/W>8.5],['vv','VTe/PBW','mL/kg',fmt(vte/W,1),vte/W>8.5],
+    ['e','SpO₂','%',gas&&gas.init?fmt(Math.min(100,gas.sao2),0):'—',gas&&gas.init&&gas.sao2<90],['m','EtCO₂','mmHg',gas&&gas.init?fmt(gas.etco2,0):'—'],
     ['f','f total','rpm',fmt(f,0)],['f','VE','L/min',fmt(vte&&f?vte*f/1000:null,1)],
     ['m','Stress index','',fmt(stats.si,2),stats.si!=null&&(stats.si<.95||stats.si>1.05)],
     ['m','Ti','s',fmt(stats.ti,2)],['m','I:E','',ie?'1:'+fmt(ie,1):'—'],
@@ -709,7 +869,7 @@ function setMode(m){
   buildCtls(); renderNums(); renderResults(); renderTab();
 }
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
-$('profile').onchange=e=>{const p=PROF[e.target.value];if(!p)return;Object.assign(pat,{C:p.C,Ri:p.Ri,Re:p.Re,pinf:p.pinf,dw:p.dw});buildCtls()};
+$('profile').onchange=e=>{const p=PROF[e.target.value];if(!p)return;{const q={...p};delete q.nome;Object.assign(pat,q);}gasReset();buildCtls()};
 $('bPmus').onclick=()=>{showPm=!showPm;$('bPmus').classList.toggle('on',showPm);$('bPmus').setAttribute('aria-pressed',showPm)};
 $('bFreeze').onclick=()=>{frozen=!frozen;$('bFreeze').classList.toggle('on',frozen);$('bFreeze').textContent=frozen?'Continuar':'Congelar';lastFrame=null};
 $('vwWaves').onclick=()=>view('w'); $('vwLoops').onclick=()=>view('l');
@@ -759,7 +919,7 @@ const DEMOS=[
   fix:{set:{f:12,flow:70,vt:400}},fixTxt:'Reduzir f e VT e aumentar o fluxo (Ti menor, Te maior); tratar o broncoespasmo.'}
 ];
 function applyCfg(c){
-  if(c.pat){ if(c.pat.prof){const p=PROF[c.pat.prof];Object.assign(pat,{C:p.C,Ri:p.Ri,Re:p.Re,pinf:p.pinf,dw:p.dw});$('profile').value=c.pat.prof} const q={...c.pat};delete q.prof;Object.assign(pat,q) }
+  if(c.pat){ if(c.pat.prof){const p=PROF[c.pat.prof];{const q={...p};delete q.nome;Object.assign(pat,q);}$('profile').value=c.pat.prof} const q={...c.pat};delete q.prof;Object.assign(pat,q) }
   if(c.set){ Object.assign(set,c.set) }
 }
 function runDemo(id){
@@ -776,7 +936,7 @@ function runDemo(id){
 }
 
 /* =================== MÓDULO DE APRENDIZADO =================== */
-const TABS=[['fund','Fundamentos'],['modos','Modos'],['mec','Mecânica'],['assinc','Assincronias'],['esf','Esforço em PSV']];
+const TABS=[['fund','Fundamentos'],['modos','Modos'],['mec','Mecânica'],['assinc','Assincronias'],['esf','Esforço em PSV'],['gas','Gasometria']];
 let tab='fund';
 function renderTabs(){$('tabs').innerHTML=TABS.map(([k,l])=>`<button role="tab" aria-selected="${k===tab}" data-t="${k}">${l}</button>`).join('');
   document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;renderTabs();renderTab()})}
@@ -825,6 +985,14 @@ function renderTab(){
   </div>
   <div class="card"><h4>Exercício guiado</h4><ul><li>Carregue PSV 10, paciente com esforço Pmus 12.</li><li>Faça a oclusão e a pausa inspiratória; compare a Pmus estimada com a programada no gabarito.</li><li>Suba a PS para 18 e repita: o esforço cai (e pode surgir esforço ineficaz).</li></ul><div class="acts"><button class="btn primary" id="goEsf">Preparar exercício</button></div>
   <p class="src">Fontes: Bertoni et al., Crit Care 2019 (Pmus = −¾ΔPocc; ΔPL,dyn = ΔPaw − ⅔ΔPocc); de Vries et al., Ann Intensive Care 2023 (limiares de P0.1, ΔPocc e PMI para Pmus &gt; 10 e &lt; 5 cmH₂O).</p></div>`;
+  if(tab==='gas') h=`
+  <div class="eq">PaCO₂ = 0,863 × VCO₂ / V<sub>A</sub> · V<sub>A</sub> = f × (VT − VD)<small>A PaCO₂ depende da ventilação alveolar, não do volume-minuto: aumentar f com VT pequeno ventila mais espaço morto. Espaço morto do circuito (HME) pesa mais quanto menor o VT.</small></div>
+  <div class="eq">PAO₂ = FiO₂ × (Patm − 47) − PaCO₂/0,8<small>O gradiente A-a separa hipoventilação (gradiente normal) de distúrbio V/Q ou shunt (gradiente alto). V/Q baixo corrige com FiO₂; shunt verdadeiro não: precisa recrutar (PEEP).</small></div>
+  <div class="cards">
+    <div class="card"><h4>Experimentos com CO₂</h4><ul><li>Pulmão normal: f 16 → 24 e observe a PaCO₂ cair até ~26 e o pH subir (alcalose respiratória aguda).</li><li>SDRA com f 28: troque HME por umidificador aquecido e veja a PaCO₂ cair sem mudar o VE.</li><li>DPOC: hiperventilar até PaCO₂ 40 gera alcalose (pH ~7,55) porque o HCO₃⁻ é crônico (32).</li><li>Aumente a VCO₂ (febre, sepse) com o ventilador fixo.</li></ul></div>
+    <div class="card"><h4>Experimentos com O₂</h4><ul><li>SDRA, FiO₂ 60%: PEEP 5 → 10 → 14 e acompanhe o P/F (recrutamento reduz o shunt).</li><li>SDRA: suba a FiO₂ para 100% com PEEP 10: a PaO₂ melhora pouco (shunt).</li><li>DPOC em ar ambiente: hipoxemia de V/Q baixo, que corrige com FiO₂ 30%.</li><li>Compare pressão barométrica de 760 e 700 mmHg em ar ambiente.</li></ul></div>
+    <div class="card"><h4>Regras de compensação</h4><ul><li>Acidose respiratória aguda: HCO₃⁻ +1 por 10 mmHg; crônica: +4 por 10.</li><li>Alcalose respiratória aguda: HCO₃⁻ −2 por 10; crônica: −5 por 10.</li><li>Acidose metabólica (Winter): PaCO₂ esperada = 1,5 × HCO₃⁻ + 8 ± 2.</li><li>Gradiente A-a normal ≈ (idade + 10)/4.</li></ul></div>
+  </div>`;
   el.innerHTML=h;
   el.querySelectorAll('[data-demo]').forEach(b=>b.onclick=()=>runDemo(b.dataset.demo));
   el.querySelectorAll('[data-load]').forEach(b=>b.onclick=()=>{const k=b.dataset.load;if(k==='CPAP'){set.ps=0;setMode('PSV')}else{if(k==='PSV'&&set.ps===0)set.ps=10;setMode(k)}window.scrollTo({top:0,behavior:'smooth'})});
@@ -834,6 +1002,44 @@ function renderTab(){
   const ge=$('goEsf'); if(ge) ge.onclick=()=>{Object.assign(set,{mode:'PSV',ps:10,peep:5,ets:25,rise:.1,trigType:'flow',trigF:2});applyCfg({pat:{prof:'normal',eff:'spont',pm:12,fp:20,tin:1,leak:0}});resetSim();res={};setMode('PSV');setupCanvases();$('demo').hidden=true;window.scrollTo({top:0,behavior:'smooth'})};
 }
 
+
+/* =================== PAINEL DE GASOMETRIA =================== */
+const ABGREF={ph:[7.35,7.45],paco2:[35,45],pao2:[80,100],hco3:[22,26],be:[-2,2],sao2:[95,100]};
+function flag(k,v){const r=ABGREF[k];if(!r||v==null)return'';return v<r[0]?'L':v>r[1]?'H':''}
+function abgLine(n,v,d,u,k,ref){const f=flag(k,v);return `<div class="ln"><span>${n}</span><b>${fmt(v,d)}</b><span class="fl">${f}</span><span class="rf">${u} · ${ref}</span></div>`}
+function renderABG(){
+  if(!$('abgLive')) return;
+  const g=gas;
+  if(!g||!g.init){$('abgLive').innerHTML='<div class="hd"><span>GASOMETRIA ARTERIAL</span><span>aguardando equilíbrio…</span></div><p style="margin:6px 0">Coletando os primeiros ciclos.</p>';$('abgDer').innerHTML='';$('abgInt').innerHTML='';return}
+  const trend=(a,b)=>Math.abs(a-b)<.6?'':a<b?' ↗':' ↘';
+  $('abgLive').innerHTML=`<div class="hd"><span>GASOMETRIA ARTERIAL · FiO₂ ${fmt(g.fio2*100,0)}% · ${fmt(set.patm,0)} mmHg</span><span>tempo real</span></div>
+   ${abgLine('pH',g.ph,2,'','ph','7,35–7,45')}
+   ${abgLine('PaCO₂'+trend(g.paco2,g.pco2T),g.paco2,0,'mmHg','paco2','35–45')}
+   ${abgLine('PaO₂'+trend(g.pao2,g.pao2T),g.pao2,0,'mmHg','pao2','80–100 (ar ambiente)')}
+   ${abgLine('HCO₃⁻',g.hco3,1,'mEq/L','hco3','22–26')}
+   ${abgLine('BE',g.be,1,'mEq/L','be','−2 a +2')}
+   ${abgLine('SaO₂',Math.min(100,g.sao2),1,'%','sao2','95–100')}
+   <div class="ln tr"><span>Equilíbrio</span><b>${fmt(g.pco2T,0)}</b><span></span><span class="rf">PaCO₂ para a qual o paciente converge</span></div>`;
+  const aa=g.PAO2-g.pao2, pf=g.pao2/g.fio2;
+  const D=[['P/F',fmt(pf,0),''],['PAO₂','mmHg',fmt(g.PAO2,0)],['Gradiente A-a','mmHg',fmt(aa,0)],['VE','L/min',fmt(g.ve,1)],['V alveolar','L/min',fmt(g.va,1)],['VD/VT','',fmt(g.vdvt,2)],['EtCO₂','mmHg',fmt(g.etco2,0)],['PaCO₂ − EtCO₂','mmHg',fmt(g.paco2-g.etco2,0)],['Shunt (gabarito)','%',fmt(g.shunt*100,0)]];
+  $('abgDer').innerHTML=D.map(x=>x.length===3&&x[2]===''?`<div><span>${x[0]}</span><b>${x[1]}</b></div>`:`<div><span>${x[0]}${x[1]?' · '+x[1]:''}</span><b>${x[2]}</b></div>`).join('');
+  const it=interpABG(g);
+  if(g.apneia) it.unshift('Sem ventilação efetiva: PaCO₂ subindo');
+  if(g.paco2-g.etco2>10) it.push('Gradiente PaCO₂ − EtCO₂ alto: espaço morto alveolar aumentado (SDRA, hiperdistensão, baixo débito, TEP)');
+  $('abgInt').innerHTML=it.map(x=>`<li>${x}</li>`).join('');
+}
+function collectABG(){
+  if(!gas||!gas.init) return;
+  const g=gas, f=rr();
+  abgLog.push({t:st.t,mode:set.mode,vt:stats.vte,f,peep:set.peep,fio2:g.fio2*100,ph:g.ph,paco2:g.paco2,pao2:g.pao2,hco3:g.hco3,be:g.be,pf:g.pao2/g.fio2,et:g.etco2});
+  abgLog=abgLog.slice(-8);
+  $('abgLogBox').hidden=false;
+  $('abgLog').innerHTML='<thead><tr><th>#</th><th>Modo</th><th>VT</th><th>f</th><th>PEEP</th><th>FiO₂</th><th>pH</th><th>PaCO₂</th><th>PaO₂</th><th>HCO₃⁻</th><th>BE</th><th>P/F</th><th>EtCO₂</th></tr></thead><tbody>'+
+   abgLog.map((x,i)=>`<tr><td>${i+1}</td><td>${x.mode}</td><td class="v">${fmt(x.vt,0)}</td><td class="v">${fmt(x.f,0)}</td><td class="v">${fmt(x.peep,0)}</td><td class="v">${fmt(x.fio2,0)}</td><td class="v ${flag('ph',x.ph)?'bad':''}">${fmt(x.ph,2)}</td><td class="v ${flag('paco2',x.paco2)?'bad':''}">${fmt(x.paco2,0)}</td><td class="v">${fmt(x.pao2,0)}</td><td class="v">${fmt(x.hco3,1)}</td><td class="v">${fmt(x.be,1)}</td><td class="v">${fmt(x.pf,0)}</td><td class="v">${fmt(x.et,0)}</td></tr>`).join('')+'</tbody>';
+}
+$('bABG').onclick=collectABG;
+$('gSpd').onchange=e=>{gasSpeed=+e.target.value};
+$('gPatm').onchange=e=>{set.patm=+e.target.value};
 /* =================== LOOP =================== */
 let lastFrame=null, numT=0;
 function frame(ts){
@@ -842,7 +1048,7 @@ function frame(ts){
   if(!frozen){
     const n=Math.round(dt/DT);
     for(let i=0;i<n;i++){const s=step();plot(s)} flushPlot();
-    numT+=dt; if(numT>.5){numT=0;rescale();renderNums();if(set.mode==='VCV'&&!document.activeElement?.closest?.('#results'))renderResults()}
+    numT+=dt; if(numT>.5){numT=0;rescale();renderNums();renderABG();if(set.mode==='VCV'&&!document.activeElement?.closest?.('#results'))renderResults()}
   }
   requestAnimationFrame(frame);
 }
