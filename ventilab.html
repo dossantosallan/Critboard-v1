@@ -1,6 +1,4 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>VentiLab</title>
 <meta name="description" content="Simulador didático de ventilação mecânica com curvas, mecânica, assincronias e monitorização de esforço em PSV">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -162,6 +160,7 @@ td.v{font-family:var(--num);font-size:17px;font-weight:600;white-space:nowrap}
 <div class="wrap">
   <header class="top">
     <div>
+<a href="index.html#simuladores" style="display:inline-block;margin-bottom:6px;font:600 12px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8a9cab;text-decoration:none">← CritBoard · Simuladores</a>
       <h1>Venti<span>Lab</span></h1>
       <p>Ventilação mecânica didática · equação do movimento em tempo real · preparação TEMI</p>
     </div>
@@ -239,7 +238,7 @@ td.v{font-family:var(--num);font-size:17px;font-weight:600;white-space:nowrap}
       <ul class="note" style="margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px">
         <li><b>PaCO₂ = 0,863 × VCO₂ / VA</b>, com VA = f × [VT × (1 − VDalv) − VD anatômico (1,5 mL/kg PBW com tubo) − circuito (HME 50 mL)]. O espaço morto alveolar cresce com hiperdistensão (fim da inspiração no topo da curva P×V).</li>
         <li>Estoques de CO₂: a PaCO₂ converge para o novo equilíbrio com constante de ~4 min quando cai e ~8 min quando sobe (o tempo fisiológico pode ser acelerado).</li>
-        <li><b>PAO₂ = FiO₂ × (Patm − 47) − PaCO₂/0,8</b>. Oxigenação por 3 compartimentos: normal, V/Q baixo (corrige com FiO₂) e shunt verdadeiro (não corrige). O shunt da SDRA diminui com o recrutamento, que depende do volume pulmonar médio (PEEP, VT, I:E).</li>
+        <li><b>PAO₂ = FiO₂ × (Patm − 47) − PaCO₂/0,8</b>. Oxigenação por 3 compartimentos: normal, V/Q baixo (corrige com FiO₂) e shunt verdadeiro (não corrige). O shunt da SDRA diminui com o recrutamento, que depende do volume pulmonar médio (PEEP, VT, I:E) e é tempo-dependente: abre em minutos (τ ~3 min), colapsa mais rápido (τ ~1 min) e nunca é total. Hiperdistensão desvia fluxo para áreas não aeradas, reduz o débito e aumenta o espaço morto: PEEP excessiva piora o P/F.</li>
         <li>CvO₂ = CaO₂ − VO₂/(10 × DC); PEEP e pressão média altas reduzem o DC e a PvO₂, o que piora a PaO₂ quando há shunt. Saturação pela equação de Severinghaus.</li>
         <li>pH por Henderson-Hasselbalch; HCO₃⁻ agudo: +1 por 10 mmHg de PaCO₂ acima e −2 por 10 abaixo da PaCO₂ habitual (DPOC: habitual 55 com HCO₃⁻ 32).</li>
       </ul></details>
@@ -520,9 +519,9 @@ function gasBreath(t,vte){
   const W=pbw(), vdan=1.5*W,   // anatômico com tubo traqueal (via aérea superior é contornada)
    vdap=set.hme==='1'?50:0;
   const xei=stats.xei??.5, over=Math.max(0,xei-.8)/.2;         // hiperdistensão → espaço morto alveolar
-  const vdalv=clamp(pat.vdalv+.6*over,0,.9);
+  const vdalv=clamp(pat.vdalv+.15*over,0,.9);         // ↑ modesto de VD/VT com hiperdistensão (compressão capilar)
   const va=Math.max(0,(vte-vdan-vdap)*(1-vdalv));
-  gasBr.push({t,vte,va,vdalv,vdan:vdan+vdap}); while(gasBr.length&&gasBr[0].t<t-30) gasBr.shift();
+  gasBr.push({t,vte,va,vdalv,over,vdan:vdan+vdap}); while(gasBr.length&&gasBr[0].t<t-30) gasBr.shift();
 }
 function gasTick(dtSim){
   if(!gas) gasReset();
@@ -542,8 +541,13 @@ function gasTick(dtSim){
   const tauC=(pco2T>gas.paco2?480:240)/spd;                               // subida mais lenta que a queda (estoques)
   gas.paco2+=(pco2T-gas.paco2)*Math.min(1,dtSim/tauC);
   // O₂: recrutamento pelo volume pulmonar médio (fração aberta da curva P×V)
-  const xm=st.xAvg??.3, g=clamp((xm-.08)/.45,0,1);
-  const shunt=clamp(pat.sfix+pat.srec*(1-g),0,.7), low=pat.lowvq;
+  // recrutamento é tempo-dependente: abre alvéolos em minutos (τ ~3 min) e colapsa mais rápido (τ ~1 min);
+  // mesmo com PEEP alta só ~75% do tecido recrutável abre; hiperdistensão desvia fluxo para áreas não aeradas
+  const xm=st.xAvg??.3, gT=.75*clamp((xm-.1)/.45,0,1);
+  if(gas.rec==null||gas.init!==true) gas.rec=gT;
+  gas.rec+=(gT-gas.rec)*Math.min(1,dtSim*spd/(gT>gas.rec?180:60));
+  const lastB=br[br.length-1], over=lastB?lastB.over:0;
+  const shunt=clamp(pat.sfix+pat.srec*(1-gas.rec)+.04*over,0,.7), low=pat.lowvq;
   const pmean=st.pmean||set.peep, co=Math.max(2.8,5.5*(1-.012*Math.max(0,pmean-8)));
   const PAO2=Math.max(0,FiO2*(Patm-47)-gas.paco2/.8), hb=pat.hb, D=vo2/(10*co);
   const Cc=o2c(PAO2,hb); let Ca=Cc-D*.3;
@@ -1056,5 +1060,6 @@ let rT; window.addEventListener('resize',()=>{clearTimeout(rT);rT=setTimeout(set
 function start(){resetSim();buildCtls();renderTabs();renderTab();setupCanvases();renderNums();renderResults();requestAnimationFrame(frame)}
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(start); else start();
 </script>
+
 
 </body></html>

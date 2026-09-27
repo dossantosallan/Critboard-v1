@@ -162,13 +162,14 @@ a{color:var(--spo2)}
 
 <div class="wrap">
   <header class="top">
+    <a href="index.html#simuladores" style="flex-basis:100%;font:600 12px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8a9cab;text-decoration:none">← CritBoard · Simuladores</a>
     <div class="brand"><h1>Neuro<b>Sim</b></h1><span>Simulador de neurointensivismo</span></div>
     <div class="cases" id="cases" role="group" aria-label="Casos clínicos"></div>
     <div class="clock"><span id="clockLbl">Tempo</span><strong id="clock">00:00</strong><span class="chip" id="typeChip"><i></i><span>—</span></span></div>
   </header>
 
   <div class="intro" id="intro">
-    <p><b>Como funciona.</b> Cada conduta consome tempo simulado e altera um modelo fisiológico (curva pressão-volume, reatividade ao CO₂, autorregulação, oferta de O₂). As opções seguem os tiers da SIBICC (TCE) e as diretrizes AHA/ASA (HSA 2023, AVCH 2022). O caso termina com estabilidade sustentada por 90 min, herniação ou fim do tempo; o debriefing classifica cada decisão. Modelo didático simplificado.</p>
+    <p><b>Como funciona.</b> Cada conduta consome tempo simulado e altera um modelo fisiológico (curva pressão-volume, reatividade ao CO₂, autorregulação, oferta de O₂). As opções seguem os tiers da SIBICC (TCE), as diretrizes AHA/ASA (HSA 2023, AVCH 2022), ESCMID (meningite) e EASL (insuficiência hepática aguda). O caso termina com estabilidade sustentada por 90 min, herniação ou fim do tempo; o debriefing classifica cada decisão. Modelo didático simplificado.</p>
     <button class="x" id="introX" aria-label="Fechar instruções">Fechar</button>
   </div>
 
@@ -246,7 +247,12 @@ const REF={
   train:['TRAIN — transfusão liberal vs restritiva na lesão cerebral aguda (JAMA 2024)','https://jamanetwork.com/journals/jama/fullarticle/2824930'],
   mca:['Hemicraniectomia no infarto maligno de ACM — síntese de diretrizes (Stroke Manual)','https://www.stroke-manual.com/decompressive-craniectomy/'],
   swell:['AHA/ASA — infartos cerebral e cerebelar com edema (declaração científica, 2014)','https://tstelemed.com/wp-content/uploads/2019/08/AHA-ASA-Recommendation-for-Management-of-Cerebral-and-Cerebellar-Infarction-with-Swelling.pdf'],
-  tx:['HEMOTION, TRAIN e SAHaRA — visão dos investigadores (Intensive Care Med 2025)','https://link.springer.com/article/10.1007/s00134-025-08164-w']
+  tx:['HEMOTION, TRAIN e SAHaRA — visão dos investigadores (Intensive Care Med 2025)','https://link.springer.com/article/10.1007/s00134-025-08164-w'],
+  escmid:['ESCMID — diagnóstico e tratamento da meningite bacteriana aguda (Clin Microbiol Infect 2016)','https://pubmed.ncbi.nlm.nih.gov/27062097/'],
+  degans:['Dexametasona na meningite bacteriana do adulto (de Gans, NEJM 2002)','https://www.nejm.org/doi/full/10.1056/NEJMoa021334'],
+  mourv:['Hipotermia induzida na meningite bacteriana grave (Mourvillier, JAMA 2013)','https://pubmed.ncbi.nlm.nih.gov/24105303/'],
+  easlalf:['EASL — insuficiência hepática aguda (fulminante) (J Hepatol 2017)','https://www.journal-of-hepatology.eu/article/S0168-8278(16)30708-5/abstract'],
+  jhepalf:['Insuficiência hepática aguda: atualização prática (JHEP Reports 2024)','https://www.jhep-reports.eu/article/S2589-5559(24)00135-6/fulltext']
 };
 
 /* ---------------- Casos ---------------- */
@@ -471,6 +477,76 @@ const CASES=[
     'O tier 0 vale para todos: cabeceira elevada, controle de náusea e agitação, normotermia, normocapnia.'
   ],
   refs:['avch','mmm']
+},
+{
+  id:'men', tag:'MEN', name:'Meningite bacteriana · pneumococo',
+  pt:'M, 58 a · 80 kg · otite média há 5 dias',
+  mon:{icp:true,icpNeedsProbe:true,pbt:false,lpr:false,tcd:false,gcs:'motor'},
+  clock0:150, clockLbl:'Chegada ao PS',
+  hist:'Febre, cefaleia e rigidez de nuca há 24 h, rebaixamento progressivo. ECG 7 no PS, intubado. Hemoculturas colhidas. Punção lombar e antibiótico foram adiados "até a TC", que ainda não saiu (tomógrafo ocupado). Chegou à UTI há 20 min.',
+  exam:'RASS −3, tosse ao aspirar, assincronia. Pupilas 3 mm, NPi 3,9. Otorreia purulenta à E. PA 96/52, FC 122, T 39,4 °C. Cabeceira a 10°. Sem petéquias. Sem monitor de PIC.',
+  ct0:'TC ainda não realizada.',
+  init:{mass:0,edema:22,edemaMax:50,venous:3,agitation:.4,temp:39.4,tempDrift:39.6,paco2:34,fio2:.4,pf:280,hb:12.4,na:131,mapBase:72,pp:55,hr:122,autoreg:false,lla:65,pbtBase:25,inf:.8},
+  tick(S){
+    if(S.atbT==null){ S.inf=Math.min(1.4,S.inf+.002);
+      if(S.t===30) ev(S,'Já são 3 h da chegada ao PS sem antibiótico. Cada hora de atraso aumenta a mortalidade na meningite bacteriana.'); }
+    else S.inf=Math.max(0,S.inf-1/300);
+    const dx=S.dexaOk?.55:1;
+    if(S.inf>.25){ if(S.edema<S.edemaMax) S.edema+=(.4+S.inf)*1.6*dx/60; }
+    else if(S.edema>18) S.edema-=.8/60;
+    S.tempDrift=37.2+1.9*Math.min(1,S.inf);
+    if(S.t===90&&!S.szDone){S.szDone=true;S.seizure=true;
+      ev(S,'Desvio conjugado do olhar para a D e mioclonias palpebrais intermitentes; taquicardia e hipertensão súbitas.');}
+  },
+  ct(S){
+    S.ctDone=true;
+    const tight=S.edema>=34;
+    return `Edema cerebral difuso ${tight?'moderado a grave, cisternas basais comprimidas':'leve a moderado, cisternas basais visíveis'}; otomastoidite E com velamento das células mastoideas. Sem abscesso, empiema ou hidrocefalia.`+(tight?' Punção lombar contraindicada neste momento.':'');
+  },
+  goal:S=>S.t>=120&&S.atbT!=null&&S.dexaOk&&S.icp<22&&S.cpp>=60&&!S.seizure&&S.temp<38.5,
+  goalTxt:'Meta: antibiótico + dexametasona em tempo, sem crises, T < 38,5, PIC < 22 e PPC ≥ 60 por 90 min',
+  maxT:600,
+  teach:[
+    'Antibiótico em até 1 h da chegada, sem esperar TC nem PL. Com ECG < 10, déficit focal, crise nova ou imunossupressão grave, a TC vem antes da PL — mas a antibioticoterapia e a dexametasona começam antes da TC (ESCMID 2016).',
+    'Adulto > 50 anos: ceftriaxona 2 g 12/12 h + amoxicilina/ampicilina 2 g 4/4 h (Listeria); vancomicina 10–20 mg/kg 8–12/12 h onde há pneumococo resistente.',
+    'Dexametasona 10 mg 6/6 h por 4 dias, junto ou antes da 1ª dose do antibiótico (aceitável até 4 h depois). Benefício concentrado na meningite pneumocócica (de Gans 2002); suspender se Listeria.',
+    'Adjuvantes para HIC: a ESCMID não recomenda tratamento guiado por PIC de rotina, glicerol nem hipotermia — o ensaio de hipotermia (Mourvillier 2013) foi interrompido por excesso de mortalidade. Tier 0 continua valendo: cabeceira, febre, normocapnia, Na ≥ 135 e tratar crises (comuns na pneumocócica).'
+  ],
+  refs:['escmid','degans','mourv','mmm']
+},
+{
+  id:'iha', tag:'IHA', name:'Insuficiência hepática aguda · hiperamonemia',
+  pt:'F, 24 a · 55 kg · ingestão de paracetamol',
+  mon:{icp:true,icpNeedsProbe:true,pbt:false,lpr:false,tcd:false,gcs:'motor'},
+  clock0:0, clockLbl:'Admissão',
+  hist:'Ingestão de ~30 g de paracetamol há 3 dias, apresentação tardia. Encefalopatia grau IV, intubada no PS. Transferida para centro transplantador. N-acetilcisteína não iniciada na origem.',
+  exam:'RASS −4 sem sedação profunda, hiper-reflexia, pupilas 4 mm lentamente reativas (NPi 3,6). PA 88/46, FC 118. Sem monitor de PIC.',
+  ct0:'Edema cerebral difuso discreto, sem hemorragia. Laboratório: INR 6,8, creatinina 3,6 mg/dL, pH 7,24 e lactato 4,5 mmol/L após ressuscitação volêmica, amônia arterial 240 µmol/L, glicemia 64 mg/dL.',
+  init:{mass:0,edema:28,edemaMax:62,venous:0,agitation:.3,temp:37.6,tempDrift:37.9,paco2:36,fio2:.35,pf:300,hb:10.8,na:134,mapBase:66,pp:48,hr:118,autoreg:false,lla:60,pbtBase:25,nh3:240},
+  tick(S){
+    const tgt=S.crrt?80:(S.nac?230:280);
+    S.nh3+=(tgt-S.nh3)/(S.crrt?300:240);
+    const d=(S.nh3-150)/100;
+    if(d>0){ if(S.edema<S.edemaMax) S.edema+=d*2.4/60; } else S.edema=Math.max(20,S.edema+d*4/60);
+    S.osmo=Math.max(S.osmo,(S.na-140)*.9);            // hipernatremia sustentada: efeito osmótico contínuo
+    if(S.crrt&&!S.feverCtrl) S.tempDrift=Math.min(S.tempDrift,37.1);
+    if(S.t===90&&!S.crrt) ev(S,`Pupilas 5 mm pouco reativas, hipertensão com bradicardia relativa. Amônia ${Math.round(S.nh3)} µmol/L.`);
+  },
+  ct(S){
+    const sev=S.edema>=42;
+    return `Edema cerebral difuso ${sev?'grave, cisternas apagadas':'moderado, cisternas visíveis'}; sem hemorragia intracraniana.`;
+  },
+  goal:S=>S.t>=150&&S.nac&&S.crrt&&S.listed&&S.nh3<150&&S.icp<22&&S.cpp>=55,
+  goalTxt:'Meta: NAC, CRRT, listada para transplante, NH₃ < 150, PIC < 22 e PPC ≥ 55 por 90 min',
+  maxT:600,
+  teach:[
+    'Amônia arterial > 150–200 µmol/L com encefalopatia III/IV marca alto risco de hipertensão intracraniana, sobretudo na IHA hiperaguda (paracetamol). A CRRT precoce reduz a amônia (alvo < 100) mesmo sem critério dialítico clássico.',
+    'N-acetilcisteína IV na IHA por paracetamol mesmo com apresentação tardia (protocolo de 21 h: 150 mg/kg em 1 h, 50 mg/kg em 4 h, 100 mg/kg em 16 h), mantida até melhora do INR.',
+    'Critérios do King\'s College (paracetamol): pH < 7,30 após ressuscitação, ou INR > 6,5 + creatinina > 3,4 mg/dL + encefalopatia III/IV → listar para transplante de urgência.',
+    'Edema cerebral: sódio no limite alto (hipernatremia induzida com salina hipertônica — alvos de 140–145 a 145–155 conforme a fonte), normotermia, normocapnia e osmoterapia em bolus para picos. Hipotermia moderada profilática não trouxe benefício (Bernal 2016) — só como resgate. Lactulose não é recomendada (distensão, aspiração, sem benefício). Não corrigir INR com plasma sem sangramento ou procedimento.',
+    'Monitor invasivo de PIC é excepcional (coagulopatia); ultrassom da bainha do nervo óptico e Doppler transcraniano são as alternativas não invasivas.'
+  ],
+  refs:['easlalf','jhepalf','mmm']
 }
 ];
 
@@ -498,7 +574,7 @@ function newState(c){
 }
 const osmOf=s=>2*s.na+14+s.manGap;
 const snap=s=>({t:s.t,icp:s.icp,cpp:s.cpp,pbt:s.pbto2,hideIcp:icpHidden(s)});
-const icpHidden=s=>s.c.mon.noIcp||(s.c.mon.icpNeedsEvd&&!s.evd);
+const icpHidden=s=>s.c.mon.noIcp||(s.c.mon.icpNeedsEvd&&!s.evd)||(s.c.mon.icpNeedsProbe&&!s.probe);
 
 function mapOf(s){return clamp(s.mapBase+8*s.ne-(s.sedDeep?6:0)-(s.barb?15:0)-(s.nimo&&!s.nimoSplit?4:0),35,190);}
 
@@ -606,6 +682,8 @@ act({id:'asm0',grp:'0',label:'Profilaxia anticonvulsivante (7 dias)',sub:'Leveti
    if(caseIs(s,'tce','hic','tcec')) return R('ok','BTF: reduz crises pós-traumáticas precoces (primeiros 7 dias), sem efeito sobre epilepsia tardia. Faz parte do tier 0 da SIBICC.');
    if(caseIs(s,'hsa')) return R('warn','AHA 2023: profilaxia de rotina não recomendada na HSA; considerar apenas curto prazo em alto risco. Fenitoína deve ser evitada.');
    if(caseIs(s,'mca')) return R('bad','Profilaxia anticonvulsivante não é recomendada no AVC isquêmico. Tratar crises documentadas.');
+   if(caseIs(s,'men')) return R('warn','Sem recomendação de profilaxia de rotina na meningite bacteriana (ESCMID). Crises são frequentes na pneumocócica: vigiar com EEG e tratar as documentadas.');
+   if(caseIs(s,'iha')) return R('bad','Anticonvulsivante profilático não previne edema nem crises na IHA (fenitoína sem benefício). Tratar crises documentadas.');
    return R('bad','AHA 2022: anticonvulsivante profilático no AVCH não traz benefício (classe 3). Tratar crises clínicas ou eletrográficas documentadas.'); }});
 act({id:'hb0',grp:'0',label:'Transfundir 1 CH (gatilho Hb < 9)',sub:'TRAIN 2024',mins:30,
  run(s){ const h=s.hb; s.hb+=1;
@@ -632,6 +710,8 @@ act({id:'evd1',grp:'1',label:'DVE: inserir / abrir drenagem de LCR',sub:'Drenage
    if(s.evd){ if(s.evdOpen) return R('neu','Drenagem já aberta.'); s.evdOpen=true;
      if(caseIs(s,'hsa')) return R('ok','DVE aberta: hidrocefalia aguda com rebaixamento é indicação de drenagem (AHA 2023). Evitar drenagem excessiva antes de ocluir o aneurisma.');
      return R('ok','Tier 1: drenagem de LCR é a forma mais rápida de reduzir volume intracraniano.'); }
+   if(caseIs(s,'iha')) return R('bad','INR 6,8 e plaquetopenia: DVE tem alto risco de hemorragia e não há hidrocefalia. Na IHA a PIC, quando medida, é parenquimatosa e excepcional.');
+   if(caseIs(s,'men')) return R('bad','Sem hidrocefalia na TC: ventrículos pequenos, pouco volume drenável. A ESCMID não recomenda drenagem de LCR de rotina.');
    if(caseIs(s,'mca')) return R('bad','Sem hidrocefalia: a DVE não trata o edema hemisférico e, com o ventrículo colabado, o ganho é mínimo. A descompressão cirúrgica é a medida definitiva.');
    s.evd=true; s.evdOpen=true;
    if(caseIs(s,'cereb')){ s.evdT=s.t; return s.evac?R('ok','DVE complementar à descompressão suboccipital para a hidrocefalia residual.'):R('warn','DVE isolada não é recomendada quando há critério cirúrgico (≥ 15 mL, compressão do tronco, hidrocefalia): risco de herniação ascendente. Pode acompanhar a cirurgia, não substituí-la.'); }
@@ -680,6 +760,8 @@ act({id:'pao2',grp:'2',label:'PaO₂ até 150 mmHg',sub:'FiO₂/PEEP — tipo C/
 act({id:'dc',grp:'3',label:'Craniectomia descompressiva secundária',sub:'Hemicraniectomia ampla ou bifrontal',mins:120,
  run(s){ if(s.dc) return R('neu','Já realizada.'); s.dc=true;
    if(caseIs(s,'mca')) return s.npiAsym?R('warn','Hemicraniectomia após sinais de herniação: ainda indicada dentro de 48 h, mas o maior benefício ocorre quando feita antes. Em < 60 anos reduz mortalidade e melhora o desfecho funcional.'):R('ok','Hemicraniectomia precoce (< 48 h, antes da herniação) em paciente < 60 anos: reduz mortalidade e aumenta a sobrevida com incapacidade moderada (análise conjunta DECIMAL/DESTINY/HAMLET).');
+   if(caseIs(s,'iha')) return R('bad','Coagulopatia grave e lesão potencialmente reversível com transplante: craniectomia não é conduta na IHA.');
+   if(caseIs(s,'men')) return R('warn','Craniectomia na meningite: apenas relatos de casos em edema refratário. Não é conduta padronizada.');
    if(caseIs(s,'cereb')) return R('warn','Na fossa posterior, a descompressão indicada é suboccipital com evacuação do hematoma (ver Específicas).');
    return R('ok','RESCUEicp: menos mortalidade que o tratamento clínico, com mais sobreviventes em estado vegetativo ou incapacidade grave. DECRA (DC precoce como 1ª linha) piorou desfecho. Alinhar metas com a família.'); }});
 act({id:'barb',grp:'3',label:'Coma barbitúrico até surto-supressão',sub:'Tiopental/pentobarbital guiado por EEG',mins:30,
@@ -687,7 +769,9 @@ act({id:'barb',grp:'3',label:'Coma barbitúrico até surto-supressão',sub:'Tiop
    if(unstable) return R('warn','Queda de PAM esperada (~15 mmHg) sem vasopressor pronto: a BTF exige estabilidade hemodinâmica antes e durante. Garanta noradrenalina.');
    return R('ok','Tier 3: titular pelo EEG. Efeitos: hipotensão, imunossupressão, íleo, hipocalemia de rebote e exame perdido por dias.'); }});
 act({id:'hypo',grp:'3',label:'Hipotermia leve 35–36 °C',sub:'Resfriamento ativo',mins:60,
- run(s){ if(s.hypothermia) return R('neu','Já em hipotermia.'); if(caseIs(s,'mca')){s.hypothermia=true;s.feverCtrl=true;s.tempTarget=35.5;return R('bad','Hipotermia não é recomendada no infarto maligno de ACM (DEPTH-SOS sem benefício, mais complicações).');} if(pbtOn(s)&&s.icp<22&&s.pbto2<20){s.hypothermia=true;s.feverCtrl=true;s.tempTarget=35.5;return R('bad','SIBICC: hipotermia não é tratamento para PbtO₂ baixa com PIC normal.');} s.hypothermia=true; s.feverCtrl=true; s.tempTarget=35.5;
+ run(s){ if(s.hypothermia) return R('neu','Já em hipotermia.'); if(caseIs(s,'men')){s.hypothermia=true;s.feverCtrl=true;s.tempTarget=35.5;s.hypoMen=true;return R('bad','Hipotermia na meningite bacteriana grave: ensaio interrompido por mortalidade maior no grupo hipotermia (Mourvillier, JAMA 2013). ESCMID: não usar.');}
+   if(caseIs(s,'iha')){s.hypothermia=true;s.feverCtrl=true;s.tempTarget=35.5; return s.icp>=25&&!icpHidden(s)?R('warn','Resgate para HIC refratária. Como profilaxia, a hipotermia moderada não reduziu HIC nem mortalidade na IHA (Bernal 2016); aumenta risco de infecção e sangramento.'):R('bad','Hipotermia profilática não reduziu HIC nem mortalidade na IHA (Bernal 2016). Reserve como resgate de HIC refratária; mantenha normotermia.');}
+   if(caseIs(s,'mca')){s.hypothermia=true;s.feverCtrl=true;s.tempTarget=35.5;return R('bad','Hipotermia não é recomendada no infarto maligno de ACM (DEPTH-SOS sem benefício, mais complicações).');} if(pbtOn(s)&&s.icp<22&&s.pbto2<20){s.hypothermia=true;s.feverCtrl=true;s.tempTarget=35.5;return R('bad','SIBICC: hipotermia não é tratamento para PbtO₂ baixa com PIC normal.');} s.hypothermia=true; s.feverCtrl=true; s.tempTarget=35.5;
    return R('ok','Tier 3 apenas. Eurotherm3235 (NEJM 2015): hipotermia como 2ª linha piorou o desfecho — por isso só como resgate, e nunca < 35 °C.'); }});
 act({id:'hv3',grp:'3',label:'Hiperventilação moderada (PaCO₂ 30–32)',sub:'Só tipo B',mins:10,
  run(s){ const p=s.paco2; s.paco2=31;
@@ -774,13 +858,57 @@ act({id:'sbp120',grp:'out',label:'Redução intensiva: PAS < 120',sub:'',mins:15
 act({id:'plq',grp:'out',label:'Transfusão de plaquetas',sub:'',mins:30,show:s=>s.c.id==='avch',
  run(s){ return R('bad','Sem antiagregante e com plaquetas normais não há racional; em usuários de antiagregante, o PATCH mostrou pior desfecho.'); }});
 
+// Monitorização para casos sem PIC de rotina
+act({id:'onsd',grp:'dx',label:'US da bainha do nervo óptico + DTC',sub:'Estimativa não invasiva de PIC',mins:10,show:s=>caseIs(s,'men','iha'),
+ run(s){ const d=clamp(5+(s.icp-15)*.08,4.4,7.5), pi=clamp(.85+(s.icp-15)*.035,.7,2.2);
+   const hi=d>=5.8||pi>=1.4;
+   return R('ok',`DBNO ${f1(d)} mm, índice de pulsatilidade ${f1(pi)}. ${hi?'Achados compatíveis com PIC elevada (DBNO > 5,8–6 mm; IP > 1,3–1,4).':'Sem sinais indiretos claros de HIC.'} Métodos de triagem: não substituem a medida invasiva quando ela é indicada.`); }});
+act({id:'probe',grp:'dx',label:'Monitor de PIC parenquimatoso',sub:'Cateter intraparenquimatoso',mins:40,show:s=>caseIs(s,'men','iha')&&!s.probe,
+ run(s){ s.probe=true;
+   if(caseIs(s,'iha')) return R('warn','Na IHA, monitor invasivo é excepcional pelo risco de hemorragia com coagulopatia; considerado em centros transplantadores para pacientes de alto risco. PIC agora visível.');
+   return R('warn','ESCMID não recomenda tratamento guiado por PIC de rotina; dados observacionais sugerem benefício em centros experientes. PIC agora visível.'); }});
+// Específicas meningite
+act({id:'atbmen',grp:'esp',label:'Antibiótico empírico agora',sub:'Ceftriaxona 2 g 12/12 h + ampicilina 2 g 4/4 h ± vancomicina',mins:10,show:s=>s.c.id==='men',
+ run(s){ if(s.atbT!=null) return R('neu','Antibiótico já em curso.'); s.atbT=s.t;
+   const late=(s.c.clock0+s.t)>60;
+   return R(s.t<=30?'ok':'warn',`ESCMID 2016: iniciar em até 1 h da chegada, sem aguardar TC ou PL. > 50 anos: cobertura para Listeria (amoxicilina/ampicilina). Vancomicina onde há pneumococo resistente.`+(late?` Porta-antibiótico: ${Math.round((s.c.clock0+s.t)/60*10)/10} h.`:'')+(s.dexa?'':' Dexametasona deve acompanhar a 1ª dose.')); }});
+act({id:'dexamen',grp:'esp',label:'Dexametasona 10 mg 6/6 h (4 dias)',sub:'Junto da 1ª dose do antibiótico',mins:5,show:s=>s.c.id==='men',
+ run(s){ if(s.dexa) return R('neu','Dexametasona já prescrita.'); s.dexa=true;
+   if(s.atbT==null){ s.dexaOk=true; return R('ok','Dexametasona antes ou junto do antibiótico: reduz mortalidade e sequelas na meningite pneumocócica (de Gans 2002). Agora inicie o antibiótico.'); }
+   if(s.t-s.atbT<=240){ s.dexaOk=true; return R('ok','Dentro da janela aceita pela ESCMID (até 4 h após a 1ª dose do antibiótico). 10 mg 6/6 h por 4 dias; suspender se Listeria.'); }
+   s.dexaOk=false; return R('warn','Mais de 4 h após o antibiótico: benefício não demonstrado.'); }});
+act({id:'lpmen',grp:'esp',label:'Punção lombar',sub:'LCR: celularidade, bioquímica, Gram, cultura',mins:20,show:s=>s.c.id==='men'&&!s.lpDone,
+ run(s){
+   if(!s.ctDone||s.edema>=34){ s.mass+=5; return R('bad','ECG < 10 com edema sem TC (ou cisternas comprimidas): risco de herniação. A ESCMID indica TC antes da PL nesse cenário — e antibiótico antes de ambos.'); }
+   s.lpDone=true; s.imaging.push({t:clockStr(s),txt:'LCR turvo: 3.200 células/µL (92% neutrófilos), glicose 12 mg/dL (razão LCR/sérica 0,09), proteína 380 mg/dL, Gram com diplococos Gram-positivos.'});
+   return R(s.atbT!=null?'ok':'warn','LCR típico de meningite pneumocócica.'+(s.atbT==null?' Mas o antibiótico não pode esperar a PL.':' A cultura ainda é possível logo após o antibiótico; PCR e antígeno ajudam depois.')); }});
+act({id:'glicerol',grp:'out',label:'Glicerol oral',sub:'Adjuvante osmótico',mins:10,show:s=>s.c.id==='men',
+ run(s){ return R('bad','Glicerol não reduziu mortalidade e foi associado a dano em ensaio africano; a ESCMID não recomenda.'); }});
+// Específicas IHA
+act({id:'nac',grp:'esp',label:'N-acetilcisteína IV (21 h)',sub:'150 mg/kg em 1 h → 50 mg/kg em 4 h → 100 mg/kg em 16 h',mins:10,show:s=>s.c.id==='iha',
+ run(s){ if(s.nac) return R('neu','Já em infusão.'); s.nac=true; return R('ok','NAC na IHA por paracetamol mesmo em apresentação tardia; manter até melhora do INR.'); }});
+act({id:'crrt',grp:'esp',label:'CRRT precoce para amônia',sub:'Hemodiafiltração contínua, alvo NH₃ < 100',mins:60,show:s=>s.c.id==='iha',
+ run(s){ if(s.crrt) return R('neu','CRRT em curso.'); s.crrt=true;
+   return R('ok',`Amônia ${Math.round(s.nh3)} µmol/L: CRRT contínua reduz a amônia e está associada a maior sobrevida sem transplante, mesmo sem indicação renal clássica. Intermitente não: variação osmótica piora o edema.`); }});
+act({id:'hss3',grp:'esp',label:'Salina hipertônica contínua: Na 145–150',sub:'Hipernatremia induzida sustentada',mins:30,show:s=>s.c.id==='iha'&&!s.naInd,
+ run(s){ s.naInd=true; s.naBase=148; s.na=Math.max(s.na,145);
+   return R('ok','Hipernatremia induzida reduziu a incidência de HIC na IHA grave (Murphy 2004). Evitar Na > 155 e correções rápidas; ajuste do banho da CRRT.'); }});
+act({id:'listtx',grp:'esp',label:'Listar para transplante hepático de urgência',sub:'Critérios do King\'s College',mins:30,show:s=>s.c.id==='iha'&&!s.listed,
+ run(s){ s.listed=true; return R('ok','King\'s College (paracetamol): pH 7,24 após ressuscitação já preenche critério; INR 6,8 + creatinina 3,6 + encefalopatia IV também. Listagem de prioridade máxima.'); }});
+act({id:'lactu',grp:'out',label:'Lactulose por SNG',sub:'',mins:10,show:s=>s.c.id==='iha',
+ run(s){ s.agitation=Math.max(s.agitation,.2); return R('bad','Na IHA a lactulose não traz benefício e causa distensão abdominal, aspiração e dificuldade técnica no transplante.'); }});
+act({id:'pfc',grp:'out',label:'Plasma para corrigir INR',sub:'Sem sangramento ativo',mins:30,show:s=>s.c.id==='iha',
+ run(s){ s.pf=Math.max(200,s.pf-40); return R('bad','Corrigir INR sem sangramento ou procedimento de alto risco não é indicado: sobrecarga volêmica e perda do INR como marcador prognóstico.'); }});
+
 // Condutas não recomendadas (SIBICC tabela 1 e outras)
 act({id:'manInf',grp:'out',label:'Manitol em infusão contínua',sub:'',mins:15,
  run(s){ s.osmo+=2; s.manGap+=18; return R('bad','SIBICC: manitol em infusão contínua e osmoterapia em horário fixo estão na lista de não recomendados. Acumula gap osmolar e lesão renal.'); }});
 act({id:'furo',grp:'out',label:'Furosemida para a PIC',sub:'',mins:10,
  run(s){ s.mapBase-=5; return R('bad','SIBICC: furosemida não é recomendada no manejo da HIC; causa hipovolemia e reduz a PPC.'); }});
 act({id:'dexa',grp:'out',label:'Dexametasona',sub:'',mins:5,
- run(s){ return R('bad', caseIs(s,'tce','hic')?'BTF: corticoide é contraindicado no TCE (CRASH: aumento de mortalidade).':'Corticoide não trata edema citotóxico/vasogênico de hemorragia; sem benefício e com dano metabólico e infeccioso.'); }});
+ run(s){ if(caseIs(s,'men')) return A.find(x=>x.id==='dexamen').run(s);
+   if(caseIs(s,'iha')) return R('bad','Corticoide não trata o edema citotóxico da hiperamonemia e aumenta o risco infeccioso na IHA.');
+   return R('bad', caseIs(s,'tce','hic')?'BTF: corticoide é contraindicado no TCE (CRASH: aumento de mortalidade).':'Corticoide não trata edema citotóxico/vasogênico de hemorragia; sem benefício e com dano metabólico e infeccioso.'); }});
 act({id:'lumbar',grp:'out',label:'Drenagem lombar de LCR',sub:'',mins:20,
  run(s){ s.mass+=3; return R('bad','SIBICC: drenagem lombar não recomendada. Com efeito de massa e cisternas comprimidas, o gradiente craniocaudal favorece herniação.'); }});
 act({id:'hv25',grp:'out',label:'Hiperventilação PaCO₂ < 30',sub:'',mins:10,
@@ -913,10 +1041,11 @@ function renderCase(){
     ['PaO₂',f0(s.pao2),'',''],
     ['P/F',f0(s.pf),'',s.pf<200?'hi':'']
   ];
+  if(s.nh3!=null) labs.push(['NH₃',f0(s.nh3),'µmol/L',s.nh3>=200?'crit':s.nh3>=150?'hi':'']);
   const dev=[];
   if(c.mon.icp) dev.push(icpHidden(s)?'PIC: não':(s.evd&&!c.mon.pbt&&c.id==='avch'?'PIC via DVE':'PIC'));
   if(c.mon.pbt) dev.push('PbtO₂'); if(c.mon.lpr) dev.push('Microdiálise'); if(s.eeg) dev.push('cEEG'); if(s.evd) dev.push('DVE');
-  if(s.ne>0) dev.push('Noradrenalina');
+  if(s.ne>0) dev.push('Noradrenalina'); if(s.crrt) dev.push('CRRT'); if(s.nac) dev.push('NAC');
   if(s.dc) dev.push('Pós-craniectomia'); if(s.barb) dev.push('Tiopental');
   $('#caseCard').innerHTML=`
     <div class="eyebrow">${c.tag} · ${s.phase===2?'Dia 7':'Fase aguda'}</div>
