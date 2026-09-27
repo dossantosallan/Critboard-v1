@@ -388,7 +388,7 @@ tr[data-info] td:first-child::after{content:" ⓘ";color:var(--muted);font-size:
       </div>
       <button class="btn primary" id="bTP" hidden>Injetar bolus frio ×3</button>
       <label for="evCVP">PVC (entrada manual para RVS)</label><input id="evCVP" type="number" min="0" max="40" step="1">
-      <span class="note">Índices dinâmicos assumem VM controlada, VC ≥ 8 mL/kg, ritmo sinusal e tórax fechado. Layout inspirado no EV1000; simulação educacional sem vínculo com o fabricante.</span>
+      <span class="note">Índices dinâmicos assumem VM controlada, VC ≥ 8 mL/kg, ritmo sinusal e tórax fechado. FEVD e volumes do VD vêm do cateter de AP volumétrico (modo Swan-Ganz), não do FloTrac/Acumen nem da TPTD. Layout inspirado no EV1000; simulação educacional sem vínculo com o fabricante.</span>
     </div>
   </section>
 
@@ -612,7 +612,7 @@ S.push(
 const byId=Object.fromEntries(S.map(s=>[s.id,s]));
 
 /* ============ ESTADO ============ */
-let mode='treino', sc=S[0], mCO=null, mPAOP=null, wedge=false, wedgeT0=0, blend=0;
+let mode='treino', sc=S[0], mCO=null, mPAOP=null, mRV=null, wedge=false, wedgeT0=0, blend=0;
 let score={ok:0,n:0}, quiz=null, derivedOpen=true, thermo=null;
 const $=id=>document.getElementById(id);
 const fmt=(v,d=0)=>v.toFixed(d).replace('.',',');
@@ -787,7 +787,7 @@ function drawThermo(k){
   for(let i=0;i<=N;i++){const x=i/120*W;const tt=i/120*6;const v=Math.pow(tt/ (2*tau),2)*Math.exp(2-tt/tau);const y=H-3*dpr-amp*v*(H-8*dpr);i?ctx.lineTo(x,y):ctx.moveTo(x,y)}
   ctx.stroke();
 }
-function stepThermo(dt){thermo.p+=dt/3.2;drawThermo(Math.min(1,thermo.p));if(thermo.p>=1){mCO=thermo.co;thermo=null;$('bCO').disabled=false;updateMeasured()}}
+function stepThermo(dt){thermo.p+=dt/3.2;drawThermo(Math.min(1,thermo.p));if(thermo.p>=1){mCO=thermo.co;mRV=sc.rvEDV;thermo=null;$('bCO').disabled=false;updateMeasured()}}
 $('bCO').onclick=()=>{ if(thermo)return; thermo={p:0,co:Math.round(sc.co*(1+rnd(-.03,.03))*10)/10}; $('bCO').disabled=true; $('nCO').textContent='...'; };
 
 /* ============ EV1000 · FLOTRAC / ACUMEN IQ ============ */
@@ -1013,6 +1013,7 @@ function renderDerivedEV(el){
 /* ============ DERIVADAS ============ */
 const NORM={
  dc:[4,8],ic:[2.5,4],vs:[60,100],ivs:[33,47],rvs:[800,1200],irvs:[1970,2390],rvp:[20,160],wu:[.25,2],itsve:[50,62],itsvd:[5,10],cpo:[.6,1.5],papi:[.9,99],
+ fevd:[40,60],vdfvdi:[59,94],vsfvd:[50,100],
  pam:[65,105],papm:[9,20],gtp:[0,12],gdp:[0,7],rel:[0,.8],cao2:[17,20],do2i:[500,600],vo2i:[120,160],teo2:[22,30],pp:[30,60]
 };
 function calc(){
@@ -1021,7 +1022,8 @@ function calc(){
   const cao2=1.34*sc.hb*sc.sao2/100+.003*sc.pao2; r.cao2=cao2;
   if(co){const ci=co/sc.bsa, sv=co/sc.hr*1000;Object.assign(r,{dc:co,ic:ci,vs:sv,ivs:sv/sc.bsa,rvs:80*(pam-sc.cvp)/co,cpo:pam*co/451,
     do2i:ci*cao2*10});const cvo2=1.34*sc.hb*sc.svo2/100+.003*40;r.vo2i=ci*(cao2-cvo2)*10;r.teo2=(cao2-cvo2)/cao2*100;r.irvs=r.rvs*sc.bsa;
-    r.itsvd=r.ivs*(papm-sc.cvp)*.0136;}
+    r.itsvd=r.ivs*(papm-sc.cvp)*.0136;
+    if(mRV){r.fevd=Math.min(75,sv/mRV*100);r.vdfvdi=mRV/sc.bsa;r.vsfvd=Math.max(0,mRV-sv);}}
   if(pa){r.gtp=papm-pa;r.gdp=sc.pD-pa;r.rel=sc.cvp/pa}
   if(co&&pa){r.rvp=80*(papm-pa)/co;r.wu=(papm-pa)/co;r.itsve=r.ivs*(pam-pa)*.0136}
   r.papi=(sc.pS-sc.pD)/sc.cvp;
@@ -1038,7 +1040,8 @@ const ROWS=[
  ['Ventrículo esquerdo',[
   ['itsve','ITSVE','IVS·(PAM − POAP)·0,0136','g·m/m²',0],['cpo','CPO','PAM·DC/451','W',2]]],
  ['Ventrículo direito',[
-  ['papi','PAPi','(PAPs − PAPd)/PVC','',2],['rel','PVC/POAP','','',2],['itsvd','ITSVD','IVS·(PAPm − PVC)·0,0136','g·m/m²',1]]],
+  ['papi','PAPi','(PAPs − PAPd)/PVC','',2],['rel','PVC/POAP','','',2],['itsvd','ITSVD','IVS·(PAPm − PVC)·0,0136','g·m/m²',1],
+  ['fevd','FEVD','VS/VDF · cateter volumétrico','%',0],['vdfvdi','VDFVDi','VDF do VD/SC','mL/m²',0],['vsfvd','VSFVD','VDF − VS','mL',0]]],
  ['Oxigenação',[
   ['cao2','CaO₂','1,34·Hb·SaO₂ + 0,003·PaO₂','mL/dL',1],['do2i','DO₂I','IC·CaO₂·10','mL/min/m²',0],['vo2i','VO₂I','IC·(CaO₂ − CvO₂)·10','mL/min/m²',0],['teo2','TEO₂','(CaO₂ − CvO₂)/CaO₂','%',0]]]
 ];
@@ -1194,7 +1197,7 @@ function evoAfter(b,x){
 function evoArrest(r,why){
   evo.arrest={r,why,t:evo.t}; evo.rhythm=r; evoLog('PARADA CARDÍACA: '+why);
   const mf=Math.round((sc.cvp+sc.paop)/2); Object.assign(sc,{aS:mf+3,aD:mf+2,pS:mf+2,pD:mf+1,cvp:mf,paop:mf,co:.3,coSys:.3,svo2:20,svc:20,sao2:70,pulsus:0,hr:38});
-  if(mode==='treino'){mCO=sc.co;mPAOP=sc.paop;updateMeasured()}
+  if(mode==='treino'){mCO=sc.co;mPAOP=sc.paop;mRV=sc.rvEDV;updateMeasured()}
   if(mode==='prova') score.pcr=(score.pcr||0)+1;
   showArrest(); renderEvo();
 }
@@ -1289,7 +1292,8 @@ function makeLive(s){
     LVm={A,beta,Vd,V0,pext,RF0,lv:lvDrv,Ees0:pes/(edv0-svt-V0),Ea0:pes/svt,hr0:s.hr,edv0,P0,svt0:svt};
   }
   const e=EVP[s.id];
-  return Object.assign({},s,{wW:s.wW?{...s.wW}:undefined,coSys:s.co/q,qpqs:q,dpF:1,hpiD:0,gediF:1,elwiD:0,EesR:1,
+  const rvEDV0=(s.co/s.hr*1000)/(RVEF0[s.id]||.5);
+  return Object.assign({},s,{rvEDV:rvEDV0,rvEDV0,wW:s.wW?{...s.wW}:undefined,coSys:s.co/q,qpqs:q,dpF:1,hpiD:0,gediF:1,elwiD:0,EesR:1,
     lvEDV:LVm.edv0,lvSVt:LVm.svt0,lvEes:LVm.Ees0,lvEa:LVm.Ea0,lvPes:LVm.Ea0*LVm.svt0,lvPext:LVm.pext,
     svvNow:e.svv,ppvNow:e.ppv,pulsus:s.pulsus||Math.max(3,e.ppv/100*(s.aS-s.aD)*1.1)});
 }
@@ -1453,7 +1457,11 @@ function tickModel(dt){
   sc.hpiD=hf(MAP)-hf(map0);
   sc.gediF=clamp(1+(M.drv==='rv'?(cvpPre-b.cvp):(paopPre-b.paop))/40,.6,1.5);
   sc.elwiD=elwiD;
-  if(mode==='treino'){mCO=sc.co;mPAOP=sc.paop}
+  { const svR=Qp/HR*1000, E0=sc.rvEDV0;
+    if(b.id==='tamp') sc.rvEDV=clamp(svR/RVEF0.tamp,E0*.5,E0*2.5);   // restrição pericárdica: o VD enche quando o pericárdio é drenado
+    else { const pm=(cvp+b.cvp)/2, C=.05*E0*Math.exp(-Math.max(0,pm-6)/10); sc.rvEDV=clamp(E0+C*(cvp-b.cvp),E0*.5,E0*1.8); }
+    sc.rvEDV=Math.max(sc.rvEDV,svR/.75); }
+  if(mode==='treino'){mCO=sc.co;mPAOP=sc.paop;mRV=sc.rvEDV}
   if((CH.PAP.max===60&&sc.pS>58)||(CH.PAP.max===100&&sc.pS<50&&!(sc.wW&&sc.wW.v>15))) applyScales();
   evoAfter(b,{MAP,aD,paop,cvp,HR,svo2:M.qpqs?svc:svo2,lac:lacNow,sao2});
   renderResp(); renderAlerts(); renderEvo();
@@ -1538,6 +1546,9 @@ function renderResp(){
 const LVP={vsve:{edv:70},neurog:{edv:110},normal:{edv:140},hipo:{edv:40},sephiper:{edv:115},vasopl:{edv:120},sephipo:{edv:130},cardio:{edv:150},
  iamvd:{edv:90,pext:3},tamp:{edv:50,pext:15},tep:{edv:50,pext:4},hap:{edv:80,pext:2},cpc:{edv:200},iminsuf:{edv:150},civ:{edv:160}};
 const PV_V0=5;
+/* VD (cateter de AP volumétrico, termistor de resposta rápida + ECG): FEVD basal por cenário.
+   VDF do VD = VS do VD/FEVD; depois varia com a PVC pela complacência do VD (menor quanto mais distendido). */
+const RVEF0={normal:.52,hipo:.50,sephiper:.45,vasopl:.45,sephipo:.28,cardio:.25,iamvd:.20,tamp:.45,tep:.14,hap:.25,cpc:.28,iminsuf:.30,civ:.40,vsve:.55,neurog:.55};
 let pvBase=null;
 const edpvr=(v,pext)=>LVm.A*(Math.exp(LVm.beta*(v-LVm.Vd))-1)+pext;
 function lvState(x){
@@ -1620,7 +1631,7 @@ function equilibrate(){
 }
 function loadScenario(s,keepMeasures){
   B=s; sc=makeLive(s); evoReset(); resetInterventions(); equilibrate(); evo.pre=false; showArrest(); renderEvo(); $('stBsa').textContent=fmt(sc.bsa,2); curT=60/sc.hr; applyScales();
-  if(mode==='treino'){mCO=sc.co;mPAOP=sc.paop}else{mCO=null;mPAOP=null}
+  if(mode==='treino'){mCO=sc.co;mPAOP=sc.paop;mRV=sc.rvEDV}else{mCO=null;mPAOP=null;mRV=null}
   if(wedge){wedge=false;blend=0;$('bWedge').classList.remove('on');$('bWedge').lastChild.textContent='Insuflar balão'}
   thermo=null;$('bCO').disabled=false;
   cvpIn=sc.cvp; $('evCVP').value=sc.cvp; vvSnap=null; if(mode==='treino') snapVV(); if(tpTimer){clearInterval(tpTimer);tpTimer=null} $('tpOv').hidden=true; hpiDismissed=false; hpiSec=false; evJitter(); evNext=20; buildHist(); drawTrend(); renderTiles();
@@ -1690,6 +1701,9 @@ $('scSel').onchange=e=>loadScenario(byId[e.target.value]);
 /* ============ SIGNIFICADO CLÍNICO DE CADA PARÂMETRO (clique) ============ */
 const INFO_ALIAS={dc:'co',ic:'ci',vs:'sv',ivs:'svi',rvs:'svr',irvs:'svri',pam:'map',pr:'hr'};
 const INFO={
+ fevd:{t:'Fração de ejeção do VD (FEVD)',ref:'40–60% (termodiluição, cateter de AP volumétrico)',up:'VD hiperdinâmico: pré-carga baixa (hipovolemia, tamponamento restritivo) ou inotrópico.',dn:'Disfunção sistólica do VD ou pós-carga alta: IAM de VD, TEP, HP, sepse com disfunção miocárdica. Dobutamina, milrinona e redução da RVP a elevam; vasoconstrição pulmonar e volume excessivo a reduzem.',note:'Medida pelo cateter volumétrico (termistor de resposta rápida sincronizado ao ECG): exige ritmo regular e é pouco confiável com FC alta, arritmia ou insuficiência tricúspide importante. Valores de termodiluição são menores que os da RM. Não é medida pelo FloTrac/Acumen nem pela TPTD, cuja GEF é global.'},
+ vdfvdi:{t:'Volume diastólico final do VD indexado (VDFVDi)',ref:'59–94 mL/m²',up:'VD dilatado: sobrecarga de volume ou de pressão (TEP, HP, IAM de VD). Com VDFVDi alto, mais volume tende a não aumentar o DC e piora a interdependência.',dn:'Pré-carga volumétrica baixa (hipovolemia, venodilatação) ou restrição ao enchimento (tamponamento, apesar da PVC alta).',note:'Estimativa volumétrica de pré-carga do VD, menos afetada que a PVC pela pressão intratorácica e pela complacência.'},
+ vsfvd:{t:'Volume sistólico final do VD (VSFVD)',ref:'50–100 mL',up:'VD que esvazia pouco: disfunção contrátil ou pós-carga alta.',dn:'VD que esvazia bem ou pequeno (hipovolemia, estado hiperdinâmico).'},
  hr:{t:'Frequência cardíaca',ref:'60–100 bpm',up:'Taquicardia: dor, febre, hipovolemia, sepse, inotrópico β1, arritmia. Encurta a diástole: pode reduzir o enchimento e o VS, e aumenta o consumo de O₂ miocárdico.',dn:'Bradicardia: bloqueio AV (IAM inferior), hipóxia grave, vasopressina, betabloqueador. Com VS fixo, o DC cai.'},
  art:{t:'Pressão arterial invasiva',ref:'PAS 90–140 · PAD 60–90 · PAM 70–105 mmHg',up:'PAS alta com PP larga: aorta rígida, VS alto. PAD alta: vasoconstrição.',dn:'PAD baixa com PP larga: tônus vascular baixo (vasoplegia). PP estreita (< 25% da PAS): VS baixo (hipovolemia, falência de VE, tamponamento).',note:'Curva amortecida subestima a PAS e superestima a PAD; a PAM é a medida mais robusta.'},
  map:{t:'Pressão arterial média',ref:'65–105 mmHg · alvo no choque ≥ 65 mmHg (SSC 2021)',up:'Pós-carga maior; em choque com PAM alta por vasopressor, cheque se o fluxo (DC, lactato, perfusão) acompanha.',dn:'Pressão de perfusão orgânica insuficiente; abaixo da faixa de autorregulação (~65) rim e cérebro passam a depender da pressão.'},
