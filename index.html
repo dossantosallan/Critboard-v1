@@ -8,34 +8,35 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>CritBoard v2 — HRO UTI</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 :root {
-  --bg:        #080C14;
-  --bg2:       #0C1220;
-  --surface:   #101828;
-  --surface2:  #162035;
-  --surface3:  #1C2B44;
-  --border:    rgba(148,163,184,0.10);
-  --border2:   rgba(148,163,184,0.18);
-  --accent:    #38BDF8;
-  --accent-dim: rgba(56,189,248,0.12);
-  --accent2:   #7DD3FC;
-  --danger:    #F87171;
-  --danger-dim: rgba(248,113,113,0.10);
-  --warning:   #FB923C;
-  --warning-dim: rgba(251,146,60,0.10);
-  --ok:        #34D399;
-  --ok-dim:    rgba(52,211,153,0.10);
-  --palliative:#C084FC;
-  --t1:        #F1F5F9;
-  --t2:        #94A3B8;
-  --t3:        #475569;
-  --t4:        #1E293B;
-  --mono:      'Space Mono', monospace;
-  --display:   'Syne', sans-serif;
-  --sans:      'Lato', sans-serif;
-  --radius:    6px;
+  color-scheme: dark;
+  --bg:        #0a0e12;
+  --bg2:       #0d1217;
+  --surface:   #11171d;
+  --surface2:  #161e25;
+  --surface3:  #1b252d;
+  --border:    #1c2731;
+  --border2:   #2a3844;
+  --accent:    #ffc93c;
+  --accent-dim: rgba(255,201,60,0.12);
+  --accent2:   #ffd86e;
+  --danger:    #ff5c66;
+  --danger-dim: rgba(255,92,102,0.10);
+  --warning:   #ff9a3c;
+  --warning-dim: rgba(255,154,60,0.10);
+  --ok:        #39e27a;
+  --ok-dim:    rgba(57,226,122,0.10);
+  --palliative:#c9a2ff;
+  --t1:        #dbe4ea;
+  --t2:        #8497a3;
+  --t3:        #62747f;
+  --t4:        #1b252d;
+  --mono:      'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+  --display:   'Barlow Condensed', 'Arial Narrow', 'Roboto Condensed', sans-serif;
+  --sans:      'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --radius:    7px;
   --radius-lg: 10px;
 }
 
@@ -45,23 +46,12 @@ body {
   background: var(--bg);
   color: var(--t1);
   font-family: var(--sans);
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 13.5px;
+  line-height: 1.55;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Subtle noise texture */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(56,189,248,0.06) 0%, transparent 60%),
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: -1;
-}
 
 .app { position: relative; z-index: 1; }
 
@@ -75,11 +65,11 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 58px;
+  height: 60px;
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 1px 0 rgba(56,189,248,0.08), 0 4px 24px rgba(0,0,0,0.4);
+  box-shadow: 0 1px 0 rgba(255,201,60,0.08), 0 4px 24px rgba(0,0,0,0.4);
 }
 
 .logo { display: flex; align-items: center; gap: 14px; }
@@ -87,8 +77,8 @@ header {
 .logo-icon {
   width: 34px;
   height: 34px;
-  background: linear-gradient(135deg, rgba(56,189,248,0.2), rgba(125,211,252,0.1));
-  border: 1px solid rgba(56,189,248,0.3);
+  background: linear-gradient(135deg, rgba(255,201,60,0.2), rgba(255,216,110,0.1));
+  border: 1px solid rgba(255,201,60,0.3);
   border-radius: var(--radius);
   display: flex;
   align-items: center;
@@ -101,7 +91,7 @@ header {
   position: absolute;
   inset: -1px;
   border-radius: var(--radius);
-  background: linear-gradient(135deg, rgba(56,189,248,0.4), transparent);
+  background: linear-gradient(135deg, rgba(255,201,60,0.4), transparent);
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: xor;
   -webkit-mask-composite: xor;
@@ -111,10 +101,10 @@ header {
 
 .logo-text {
   font-family: var(--display);
-  font-size: 22px;
-  font-weight: 900;
+  font-size: 28px;
+  font-weight: 700;
   color: var(--t1);
-  letter-spacing: -0.05em;
+  letter-spacing: 0.01em;
   line-height: 1;
 }
 .logo-text .logo-accent { color: var(--accent); }
@@ -139,8 +129,8 @@ header {
   animation: dash-move 1.8s ease forwards;
 }
 @keyframes glow-pulse {
-  0%, 100% { filter: drop-shadow(0 0 3px rgba(56,189,248,0.4)); }
-  50%       { filter: drop-shadow(0 0 8px rgba(56,189,248,0.9)); }
+  0%, 100% { filter: drop-shadow(0 0 3px rgba(255,201,60,0.4)); }
+  50%       { filter: drop-shadow(0 0 8px rgba(255,201,60,0.9)); }
 }
 .logo-svg { animation: glow-pulse 3s ease-in-out infinite; }
 
@@ -202,8 +192,8 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 .rta:focus {
-  border-color: rgba(56,189,248,0.4);
-  box-shadow: 0 0 0 3px rgba(56,189,248,0.06);
+  border-color: rgba(255,201,60,0.4);
+  box-shadow: 0 0 0 3px rgba(255,201,60,0.06);
 }
 .rta::placeholder { color: var(--t3); }
 
@@ -218,9 +208,9 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
 
 /* ── HINT ────────────────────────────────────────────────── */
 .hint, .vit-hint {
-  background: rgba(56,189,248,0.04);
-  border: 1px solid rgba(56,189,248,0.12);
-  border-left: 3px solid rgba(56,189,248,0.4);
+  background: rgba(255,201,60,0.04);
+  border: 1px solid rgba(255,201,60,0.12);
+  border-left: 3px solid rgba(255,201,60,0.4);
   border-radius: var(--radius);
   padding: 11px 15px;
   margin-top: 12px;
@@ -237,7 +227,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
   border: none;
   border-radius: var(--radius);
   padding: 13px 20px;
-  color: #050A14;
+  color: #1a1400;
   font-family: var(--display);
   font-weight: 700;
   font-size: 13px;
@@ -256,7 +246,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
   background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
   pointer-events: none;
 }
-.btn-go:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(56,189,248,0.3); }
+.btn-go:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,201,60,0.3); }
 .btn-go:active { transform: translateY(0); }
 .btn-go:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
 
@@ -273,7 +263,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
   flex-wrap: wrap;
 }
 .sb-item { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 44px; }
-.sb-val { font-family: var(--display); font-size: 24px; font-weight: 800; letter-spacing: -0.04em; line-height: 1; }
+.sb-val { font-family: var(--display); font-size: 24px; font-weight: 800; letter-spacing: 0.01em; line-height: 1; }
 .sb-lbl { font-family: var(--mono); font-size: 9px; color: var(--t3); text-transform: uppercase; letter-spacing: 0.1em; }
 .sb-div { width: 1px; height: 32px; background: var(--border2); }
 .sb-actions { margin-left: auto; display: flex; gap: 8px; }
@@ -301,7 +291,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
   border: none;
   border-radius: var(--radius);
   padding: 6px 14px;
-  color: #050A14;
+  color: #1a1400;
   font-family: var(--display);
   font-weight: 700;
   font-size: 11px;
@@ -361,7 +351,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
   width: 20px;
   flex-shrink: 0;
 }
-.patient-name { font-family: var(--display); font-size: 14px; font-weight: 700; flex: 1; letter-spacing: -0.01em; }
+.patient-name { font-family: var(--display); font-size: 14px; font-weight: 700; flex: 1; letter-spacing: 0.01em; }
 .patient-meta { font-family: var(--mono); font-size: 10px; color: var(--t3); display: flex; gap: 12px; flex-wrap: wrap; }
 .patient-badges { display: flex; gap: 6px; align-items: center; }
 .pbadge { padding: 2px 9px; border-radius: 3px; font-family: var(--mono); font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em; }
@@ -471,6 +461,8 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
 /* ── NAV TABS ────────────────────────────────────────────── */
 .nav-tabs {
   display: flex;
+  flex-wrap: wrap;
+  row-gap: 2px;
   gap: 0;
   border-bottom: 1px solid var(--border2);
   margin-bottom: 0;
@@ -485,23 +477,28 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
-  padding: 12px 16px;
+  padding: 12px 14px 10px;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   flex-shrink: 0;
   cursor: pointer;
-  color: var(--t3);
+  color: var(--t2);
   font-family: var(--display);
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  transition: all 0.15s;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: color 0.15s, border-color 0.15s;
   margin-bottom: -1px;
   white-space: nowrap;
 }
 .nav-tab.on { color: var(--accent); border-bottom-color: var(--accent); }
 .nav-tab:hover:not(.on) { color: var(--t1); }
+.nav-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.nav-sep { flex: 0 0 1px; background: var(--border2); margin: 10px 8px; }
+.nav-grp { flex-shrink: 0; align-self: center; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--t3); padding: 0 4px 0 2px; }
+.nav-tab.ext::after { content: '↗'; font-size: 11px; margin-left: 4px; color: var(--t3); }
+.nav-tab.ext:hover::after { color: var(--accent); }
 
 .tab-page { display: none !important; padding-top: 30px; padding-left: 32px; padding-right: 32px; padding-bottom: 40px; }
 .tab-page.on { display: block !important; }
@@ -551,7 +548,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
   text-align: right;
   transition: border-color 0.15s;
 }
-.calc-input:focus { border-color: rgba(56,189,248,0.4); }
+.calc-input:focus { border-color: rgba(255,201,60,0.4); }
 .calc-select {
   background: var(--bg2);
   border: 1px solid var(--border2);
@@ -564,7 +561,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
   min-width: 160px;
   transition: border-color 0.15s;
 }
-.calc-select:focus { border-color: rgba(56,189,248,0.4); }
+.calc-select:focus { border-color: rgba(255,201,60,0.4); }
 .calc-result {
   background: var(--bg2);
   border-radius: var(--radius);
@@ -619,7 +616,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
   padding: 16px 12px;
   text-align: center;
 }
-.vcard-val { font-family: var(--display); font-size: 26px; font-weight: 800; margin-bottom: 2px; letter-spacing: -0.04em; line-height: 1.1; }
+.vcard-val { font-family: var(--display); font-size: 26px; font-weight: 800; margin-bottom: 2px; letter-spacing: 0.01em; line-height: 1.1; }
 .vcard-lbl { font-family: var(--mono); font-size: 9px; color: var(--t3); text-transform: uppercase; letter-spacing: 0.12em; }
 .vcard-sub { font-family: var(--mono); font-size: 9.5px; color: var(--t3); margin-top: 2px; }
 .vcard.alert { border-color: rgba(248,113,113,0.35); background: rgba(248,113,113,0.04); }
@@ -697,7 +694,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
 .atb-badge.ok   { background: var(--ok-dim);      border-color: rgba(52,211,153,0.2); color: var(--ok); }
 .dva-badge {
   background: var(--accent-dim);
-  border: 1px solid rgba(56,189,248,0.2);
+  border: 1px solid rgba(255,201,60,0.2);
   border-radius: 3px;
   padding: 2px 9px;
   font-family: var(--mono);
@@ -727,7 +724,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
 }
 #plantaoTable tr:hover td { background: rgba(255,255,255,0.018); }
 
-.pt-name { font-family: var(--display); font-weight: 700; color: var(--t1); font-size: 13px; letter-spacing: -0.01em; }
+.pt-name { font-family: var(--display); font-weight: 700; color: var(--t1); font-size: 13px; letter-spacing: 0.01em; }
 .pt-sub  { font-family: var(--mono); font-size: 10px; color: var(--t3); margin-top: 1px; }
 
 .pt-atb {
@@ -747,7 +744,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
 .pt-dva {
   display: inline-block;
   background: var(--accent-dim);
-  border: 1px solid rgba(56,189,248,0.2);
+  border: 1px solid rgba(255,201,60,0.2);
   border-radius: 3px;
   padding: 1px 7px;
   font-family: var(--mono);
@@ -801,7 +798,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
 .painel-field label { display:block;font-size:10px;color:var(--t3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px; }
 .painel-field .calc-input, .painel-field .calc-select { width:100%;font-size:12px; }
 .leito-btn { padding:6px 14px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--surface2);color:var(--t2);font-family:var(--display);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s; }
-.leito-btn.active { background:var(--accent);border-color:var(--accent);color:#fff; }
+.leito-btn.active { background:var(--accent);border-color:var(--accent);color:#1a1400; }
 .registro-card { background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);margin-bottom:10px;overflow:hidden;cursor:pointer;transition:border-color 0.15s; }
 .registro-card:hover { border-color:var(--accent); }
 .registro-card-header { padding:10px 14px;background:var(--surface3);display:flex;align-items:center;justify-content:space-between; }
@@ -841,8 +838,8 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
   }
   .nav-tabs::-webkit-scrollbar { display: none; }
   .nav-tab {
-    padding: 10px 12px;
-    font-size: 11px;
+    padding: 10px 11px 8px;
+    font-size: 15px;
     flex-shrink: 0;
   }
 
@@ -926,7 +923,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
 /* ── Tablet: 641–900px ── */
 @media (min-width: 641px) and (max-width: 900px) {
   header { padding: 0 20px; }
-  .nav-tab { padding: 10px 13px; font-size: 11px; }
+  .nav-tab { padding: 10px 12px 8px; font-size: 15px; }
   .tab-page { padding-top: 20px; padding-left: 18px; padding-right: 18px; }
   #calcGrid { grid-template-columns: 1fr 1fr !important; gap: 12px; }
   #pageIOT [style*="grid-template-columns:repeat(auto-fit,minmax(260px"] {
@@ -955,7 +952,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
 
 .pass-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden;}
 .pass-header{display:flex;align-items:center;gap:10px;padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border);}
-.pass-num{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#0a0e1a;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pass-num{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#1a1400;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .pass-name{font-weight:700;font-size:14px;flex:1;}
 .pass-leito{font-size:11px;color:var(--muted);background:var(--surface3);padding:2px 8px;border-radius:6px;}
 .pass-field{padding:10px 18px;border-bottom:1px solid var(--border);}
@@ -990,13 +987,13 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
     <div style="background:none;border:none;padding:0;overflow:visible;line-height:0;"><svg class="logo-svg" width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="bgGrad" x1="0" y1="0" x2="52" y2="52" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#0D2137"/>
-      <stop offset="100%" stop-color="#091520"/>
+      <stop offset="0%" stop-color="#1b252d"/>
+      <stop offset="100%" stop-color="#0d1217"/>
     </linearGradient>
     <linearGradient id="ecgGrad" x1="0" y1="0" x2="52" y2="0" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.3"/>
-      <stop offset="40%" stop-color="#38BDF8"/>
-      <stop offset="100%" stop-color="#7DD3FC"/>
+      <stop offset="0%" stop-color="#ffc93c" stop-opacity="0.3"/>
+      <stop offset="40%" stop-color="#ffc93c"/>
+      <stop offset="100%" stop-color="#ffd86e"/>
     </linearGradient>
     <filter id="ecgGlow" x="-20%" y="-50%" width="140%" height="200%">
       <feGaussianBlur stdDeviation="1.5" result="blur"/>
@@ -1004,18 +1001,18 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
     </filter>
   </defs>
   <rect width="52" height="52" rx="10" fill="url(#bgGrad)"/>
-  <rect x="0" y="0" width="52" height="2" rx="1" fill="#38BDF8" opacity="0.6"/>
-  <line x1="17.3" y1="6" x2="17.3" y2="46" stroke="rgba(56,189,248,0.08)" stroke-width="0.8"/>
-  <line x1="34.6" y1="6" x2="34.6" y2="46" stroke="rgba(56,189,248,0.08)" stroke-width="0.8"/>
-  <line x1="6"    y1="17.3" x2="46" y2="17.3" stroke="rgba(56,189,248,0.08)" stroke-width="0.8"/>
-  <line x1="6"    y1="34.6" x2="46" y2="34.6" stroke="rgba(56,189,248,0.08)" stroke-width="0.8"/>
+  <rect x="0" y="0" width="52" height="2" rx="1" fill="#ffc93c" opacity="0.6"/>
+  <line x1="17.3" y1="6" x2="17.3" y2="46" stroke="rgba(255,201,60,0.08)" stroke-width="0.8"/>
+  <line x1="34.6" y1="6" x2="34.6" y2="46" stroke="rgba(255,201,60,0.08)" stroke-width="0.8"/>
+  <line x1="6"    y1="17.3" x2="46" y2="17.3" stroke="rgba(255,201,60,0.08)" stroke-width="0.8"/>
+  <line x1="6"    y1="34.6" x2="46" y2="34.6" stroke="rgba(255,201,60,0.08)" stroke-width="0.8"/>
   <polyline points="4,26 12,26 16,10 21,40 25,17 30,26 38,26 42,22 46,26 50,26"
-    stroke="#38BDF8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"
+    stroke="#ffc93c" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"
     fill="none" opacity="0.15" filter="url(#ecgGlow)"/>
   <polyline class="ecg-line" points="4,26 12,26 16,10 21,40 25,17 30,26 38,26 42,22 46,26 50,26"
     stroke="url(#ecgGrad)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"
     fill="none" filter="url(#ecgGlow)"/>
-  <circle cx="16" cy="10" r="2.5" fill="#38BDF8" opacity="0.9"/>
+  <circle cx="16" cy="10" r="2.5" fill="#ffc93c" opacity="0.9"/>
   <circle cx="16" cy="10" r="1.2" fill="#fff"/>
 </svg></div>
     <div>
@@ -1036,10 +1033,12 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
     <button class="nav-tab" data-tab="atbdose" id="navAtbDose">&#x1F489; Doses</button>
     <button class="nav-tab" data-tab="iot" id="navIOT">&#x1F4A8; IOT</button>
     <button class="nav-tab" data-tab="ref" id="navRef">&#x1F4D0; Referência</button>
-    <button class="nav-tab" data-tab="painel" id="navPainel">&#x1F4CA; Painel</button>
-    <button class="nav-tab" onclick="window.open('cad.html','_blank')" id="navCAD" style="color:#f87171;border-bottom:2px solid transparent;">&#x1FA78; CAD</button>
-    <button class="nav-tab" onclick="window.open('neurosim.html','_blank')" id="navNeuro" style="color:#fbbf24;border-bottom:2px solid transparent;">&#x1F9E0; NeuroSim</button>
-    <button class="nav-tab" onclick="window.open('swanganz.html','_blank')" id="navSwan" style="color:#60a5fa;border-bottom:2px solid transparent;">&#x1FAC0; Swan-Ganz</button>
+<span class="nav-sep" aria-hidden="true"></span>
+    <span class="nav-grp">Ferramentas</span>
+    <button class="nav-tab ext" onclick="window.open('cad.html','_blank')" id="navCAD">&#x1FA78; CAD</button>
+    <button class="nav-tab ext" onclick="window.open('neurosim.html','_blank')" id="navNeuro">&#x1F9E0; NeuroSim</button>
+    <button class="nav-tab ext" onclick="window.open('swanganz.html','_blank')" id="navSwan">&#x1FAC0; Swan-Ganz</button>
+    <button class="nav-tab ext" onclick="window.open('ventilab.html','_blank')" id="navVent">&#x1FAC1; VentiLab</button>
   </div>
 
   <!-- LAB -->
@@ -1529,28 +1528,28 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
         <!-- LEMON -->
         <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);overflow:hidden;">
           <div style="background:linear-gradient(135deg,#7c3aed22,#4f46e511);border-bottom:1px solid var(--border2);padding:12px 16px;display:flex;align-items:center;gap:10px;">
-            <div style="font-family:var(--display);font-size:22px;font-weight:900;color:#a78bfa;letter-spacing:-0.03em;">LEMON</div>
+            <div style="font-family:var(--display);font-size:22px;font-weight: 700;color:#a78bfa;letter-spacing: 0.01em;">LEMON</div>
             <div style="font-size:11px;color:var(--t3);">Predição de via aérea difícil</div>
           </div>
           <div style="padding:4px 0;">
             <div style="display:flex;padding:9px 16px;border-bottom:1px solid var(--border);gap:12px;align-items:flex-start;">
-              <div style="font-family:var(--display);font-weight:900;font-size:16px;color:#a78bfa;min-width:16px;">L</div>
+              <div style="font-family:var(--display);font-weight: 700;font-size:16px;color:#a78bfa;min-width:16px;">L</div>
               <div><div style="font-size:12px;color:var(--t1);font-weight:600;">Look externally</div><div style="font-size:11px;color:var(--t3);margin-top:1px;">Fácies anormal, trauma, obesidade mórbida, barba, pescoço curto</div></div>
             </div>
             <div style="display:flex;padding:9px 16px;border-bottom:1px solid var(--border);gap:12px;align-items:flex-start;background:var(--surface2);">
-              <div style="font-family:var(--display);font-weight:900;font-size:16px;color:#a78bfa;min-width:16px;">E</div>
+              <div style="font-family:var(--display);font-weight: 700;font-size:16px;color:#a78bfa;min-width:16px;">E</div>
               <div><div style="font-size:12px;color:var(--t1);font-weight:600;">Evaluate 3-3-2</div><div style="font-size:11px;color:var(--t3);margin-top:1px;">Abertura oral ≥3 dedos · Mento-hioide ≥3 dedos · Hioide-tireóide ≥2 dedos</div></div>
             </div>
             <div style="display:flex;padding:9px 16px;border-bottom:1px solid var(--border);gap:12px;align-items:flex-start;">
-              <div style="font-family:var(--display);font-weight:900;font-size:16px;color:#a78bfa;min-width:16px;">M</div>
+              <div style="font-family:var(--display);font-weight: 700;font-size:16px;color:#a78bfa;min-width:16px;">M</div>
               <div><div style="font-size:12px;color:var(--t1);font-weight:600;">Mallampati</div><div style="font-size:11px;color:var(--t3);margin-top:1px;">Classe III–IV = VA difícil. Avaliado sentado, língua para fora, sem fonação</div></div>
             </div>
             <div style="display:flex;padding:9px 16px;border-bottom:1px solid var(--border);gap:12px;align-items:flex-start;background:var(--surface2);">
-              <div style="font-family:var(--display);font-weight:900;font-size:16px;color:#a78bfa;min-width:16px;">O</div>
+              <div style="font-family:var(--display);font-weight: 700;font-size:16px;color:#a78bfa;min-width:16px;">O</div>
               <div><div style="font-size:12px;color:var(--t1);font-weight:600;">Obstruction / Obesity</div><div style="font-size:11px;color:var(--t3);margin-top:1px;">Epiglotite, abscesso, angioedema, tumor, IMC &gt;35</div></div>
             </div>
             <div style="display:flex;padding:9px 16px;gap:12px;align-items:flex-start;">
-              <div style="font-family:var(--display);font-weight:900;font-size:16px;color:#a78bfa;min-width:16px;">N</div>
+              <div style="font-family:var(--display);font-weight: 700;font-size:16px;color:#a78bfa;min-width:16px;">N</div>
               <div><div style="font-size:12px;color:var(--t1);font-weight:600;">Neck mobility</div><div style="font-size:11px;color:var(--t3);margin-top:1px;">Rigidez cervical, colar, artrite, trauma — considerar videolaringoscópio</div></div>
             </div>
           </div>
@@ -1560,55 +1559,55 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
         <!-- ROMAN -->
         <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);overflow:hidden;">
           <div style="background:linear-gradient(135deg,#0ea5e922,#06b6d411);border-bottom:1px solid var(--border2);padding:12px 16px;display:flex;align-items:center;gap:10px;">
-            <div style="font-family:var(--display);font-size:22px;font-weight:900;color:#38bdf8;letter-spacing:-0.03em;">ROMAN</div>
+            <div style="font-family:var(--display);font-size:22px;font-weight: 700;color:#38bdf8;letter-spacing: 0.01em;">ROMAN</div>
             <div style="font-size:11px;color:var(--t3);">Predição de ventilação com máscara difícil</div>
           </div>
           <div style="padding:4px 0;">
             <div style="display:flex;padding:9px 16px;border-bottom:1px solid var(--border);gap:12px;align-items:flex-start;">
-              <div style="font-family:var(--display);font-weight:900;font-size:16px;color:#38bdf8;min-width:16px;">R</div>
+              <div style="font-family:var(--display);font-weight: 700;font-size:16px;color:#38bdf8;min-width:16px;">R</div>
               <div><div style="font-size:12px;color:var(--t1);font-weight:600;">Radiation / Restriction</div><div style="font-size:11px;color:var(--t3);margin-top:1px;">Radioterapia prévia de cabeça/pescoço · rigidez pulmonar (DPOC, fibrose)</div></div>
             </div>
             <div style="display:flex;padding:9px 16px;border-bottom:1px solid var(--border);gap:12px;align-items:flex-start;background:var(--surface2);">
-              <div style="font-family:var(--display);font-weight:900;font-size:16px;color:#38bdf8;min-width:16px;">O</div>
+              <div style="font-family:var(--display);font-weight: 700;font-size:16px;color:#38bdf8;min-width:16px;">O</div>
               <div><div style="font-size:12px;color:var(--t1);font-weight:600;">Obesity / Obstruction</div><div style="font-size:11px;color:var(--t3);margin-top:1px;">IMC &gt;26 · obstrução de VA superior</div></div>
             </div>
             <div style="display:flex;padding:9px 16px;border-bottom:1px solid var(--border);gap:12px;align-items:flex-start;">
-              <div style="font-family:var(--display);font-weight:900;font-size:16px;color:#38bdf8;min-width:16px;">M</div>
+              <div style="font-family:var(--display);font-weight: 700;font-size:16px;color:#38bdf8;min-width:16px;">M</div>
               <div><div style="font-size:12px;color:var(--t1);font-weight:600;">Mallampati III–IV</div><div style="font-size:11px;color:var(--t3);margin-top:1px;">Classe III ou IV prediz também dificuldade de ventilação</div></div>
             </div>
             <div style="display:flex;padding:9px 16px;border-bottom:1px solid var(--border);gap:12px;align-items:flex-start;background:var(--surface2);">
-              <div style="font-family:var(--display);font-weight:900;font-size:16px;color:#38bdf8;min-width:16px;">A</div>
+              <div style="font-family:var(--display);font-weight: 700;font-size:16px;color:#38bdf8;min-width:16px;">A</div>
               <div><div style="font-size:12px;color:var(--t1);font-weight:600;">Age &gt;55</div><div style="font-size:11px;color:var(--t3);margin-top:1px;">Perda de tônus muscular facial e faríngeo</div></div>
             </div>
             <div style="display:flex;padding:9px 16px;gap:12px;align-items:flex-start;">
-              <div style="font-family:var(--display);font-weight:900;font-size:16px;color:#38bdf8;min-width:16px;">N</div>
+              <div style="font-family:var(--display);font-weight: 700;font-size:16px;color:#38bdf8;min-width:16px;">N</div>
               <div><div style="font-size:12px;color:var(--t1);font-weight:600;">No teeth (edêntulo)</div><div style="font-size:11px;color:var(--t3);margin-top:1px;">Ausência de dentes → vedamento da máscara comprometido</div></div>
             </div>
           </div>
-          <div style="padding:10px 16px;background:rgba(56,189,248,0.06);border-top:1px solid var(--border2);font-size:10px;color:var(--t3);font-family:var(--mono);">≥2 fatores = VMF difícil → preparar dispositivo supraglótico de 2ª geração</div>
+          <div style="padding:10px 16px;background:rgba(255,201,60,0.06);border-top:1px solid var(--border2);font-size:10px;color:var(--t3);font-family:var(--mono);">≥2 fatores = VMF difícil → preparar dispositivo supraglótico de 2ª geração</div>
         </div>
 
         <!-- RODS -->
         <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);overflow:hidden;">
           <div style="background:linear-gradient(135deg,#10b98122,#059e6911);border-bottom:1px solid var(--border2);padding:12px 16px;display:flex;align-items:center;gap:10px;">
-            <div style="font-family:var(--display);font-size:22px;font-weight:900;color:#34d399;letter-spacing:-0.03em;">RODS</div>
+            <div style="font-family:var(--display);font-size:22px;font-weight: 700;color:#34d399;letter-spacing: 0.01em;">RODS</div>
             <div style="font-size:11px;color:var(--t3);">Predição de dificuldade com DSG</div>
           </div>
           <div style="padding:4px 0;">
             <div style="display:flex;padding:9px 16px;border-bottom:1px solid var(--border);gap:12px;align-items:flex-start;">
-              <div style="font-family:var(--display);font-weight:900;font-size:16px;color:#34d399;min-width:16px;">R</div>
+              <div style="font-family:var(--display);font-weight: 700;font-size:16px;color:#34d399;min-width:16px;">R</div>
               <div><div style="font-size:12px;color:var(--t1);font-weight:600;">Restricted mouth opening</div><div style="font-size:11px;color:var(--t3);margin-top:1px;">Abertura oral &lt;3 dedos — impede inserção do DSG</div></div>
             </div>
             <div style="display:flex;padding:9px 16px;border-bottom:1px solid var(--border);gap:12px;align-items:flex-start;background:var(--surface2);">
-              <div style="font-family:var(--display);font-weight:900;font-size:16px;color:#34d399;min-width:16px;">O</div>
+              <div style="font-family:var(--display);font-weight: 700;font-size:16px;color:#34d399;min-width:16px;">O</div>
               <div><div style="font-size:12px;color:var(--t1);font-weight:600;">Obstruction</div><div style="font-size:11px;color:var(--t3);margin-top:1px;">Massa ou corpo estranho subglótico — DSG não resolve obstrução infraglótica</div></div>
             </div>
             <div style="display:flex;padding:9px 16px;border-bottom:1px solid var(--border);gap:12px;align-items:flex-start;">
-              <div style="font-family:var(--display);font-weight:900;font-size:16px;color:#34d399;min-width:16px;">D</div>
+              <div style="font-family:var(--display);font-weight: 700;font-size:16px;color:#34d399;min-width:16px;">D</div>
               <div><div style="font-size:12px;color:var(--t1);font-weight:600;">Disrupted / Distorted airway</div><div style="font-size:11px;color:var(--t3);margin-top:1px;">Trauma, hematoma, cirurgia prévia alterando anatomia laríngea</div></div>
             </div>
             <div style="display:flex;padding:9px 16px;gap:12px;align-items:flex-start;background:var(--surface2);">
-              <div style="font-family:var(--display);font-weight:900;font-size:16px;color:#34d399;min-width:16px;">S</div>
+              <div style="font-family:var(--display);font-weight: 700;font-size:16px;color:#34d399;min-width:16px;">S</div>
               <div><div style="font-size:12px;color:var(--t1);font-weight:600;">Stiff lungs / Stiff neck</div><div style="font-size:11px;color:var(--t3);margin-top:1px;">Alta resistência pulmonar → vazamento perilaríngeo · rigidez cervical dificulta posicionamento</div></div>
             </div>
           </div>
@@ -1618,28 +1617,28 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
         <!-- SMART -->
         <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);overflow:hidden;">
           <div style="background:linear-gradient(135deg,#f59e0b22,#d9770611);border-bottom:1px solid var(--border2);padding:12px 16px;display:flex;align-items:center;gap:10px;">
-            <div style="font-family:var(--display);font-size:22px;font-weight:900;color:#fbbf24;letter-spacing:-0.03em;">SMART</div>
+            <div style="font-family:var(--display);font-size:22px;font-weight: 700;color:#fbbf24;letter-spacing: 0.01em;">SMART</div>
             <div style="font-size:11px;color:var(--t3);">Predição de cricotireoidotomia difícil</div>
           </div>
           <div style="padding:4px 0;">
             <div style="display:flex;padding:9px 16px;border-bottom:1px solid var(--border);gap:12px;align-items:flex-start;">
-              <div style="font-family:var(--display);font-weight:900;font-size:16px;color:#fbbf24;min-width:16px;">S</div>
+              <div style="font-family:var(--display);font-weight: 700;font-size:16px;color:#fbbf24;min-width:16px;">S</div>
               <div><div style="font-size:12px;color:var(--t1);font-weight:600;">Surgery / Scarring</div><div style="font-size:11px;color:var(--t3);margin-top:1px;">Cirurgia prévia de pescoço · traqueostomia anterior · radioterapia</div></div>
             </div>
             <div style="display:flex;padding:9px 16px;border-bottom:1px solid var(--border);gap:12px;align-items:flex-start;background:var(--surface2);">
-              <div style="font-family:var(--display);font-weight:900;font-size:16px;color:#fbbf24;min-width:16px;">M</div>
+              <div style="font-family:var(--display);font-weight: 700;font-size:16px;color:#fbbf24;min-width:16px;">M</div>
               <div><div style="font-size:12px;color:var(--t1);font-weight:600;">Mass / Morphology</div><div style="font-size:11px;color:var(--t3);margin-top:1px;">Massa cervical · pescoço curto e largo · obesidade</div></div>
             </div>
             <div style="display:flex;padding:9px 16px;border-bottom:1px solid var(--border);gap:12px;align-items:flex-start;">
-              <div style="font-family:var(--display);font-weight:900;font-size:16px;color:#fbbf24;min-width:16px;">A</div>
+              <div style="font-family:var(--display);font-weight: 700;font-size:16px;color:#fbbf24;min-width:16px;">A</div>
               <div><div style="font-size:12px;color:var(--t1);font-weight:600;">Access / Anatomy</div><div style="font-size:11px;color:var(--t3);margin-top:1px;">Membrana cricotireóidea não palpável · anatomia distorcida</div></div>
             </div>
             <div style="display:flex;padding:9px 16px;border-bottom:1px solid var(--border);gap:12px;align-items:flex-start;background:var(--surface2);">
-              <div style="font-family:var(--display);font-weight:900;font-size:16px;color:#fbbf24;min-width:16px;">R</div>
+              <div style="font-family:var(--display);font-weight: 700;font-size:16px;color:#fbbf24;min-width:16px;">R</div>
               <div><div style="font-size:12px;color:var(--t1);font-weight:600;">Radiation</div><div style="font-size:11px;color:var(--t3);margin-top:1px;">Fibrose pós-radioterapia cervical — tecido friável e vascularizado</div></div>
             </div>
             <div style="display:flex;padding:9px 16px;gap:12px;align-items:flex-start;">
-              <div style="font-family:var(--display);font-weight:900;font-size:16px;color:#fbbf24;min-width:16px;">T</div>
+              <div style="font-family:var(--display);font-weight: 700;font-size:16px;color:#fbbf24;min-width:16px;">T</div>
               <div><div style="font-size:12px;color:var(--t1);font-weight:600;">Tumor / Trauma</div><div style="font-size:11px;color:var(--t3);margin-top:1px;">Tumor cervical invasivo · trauma com hematoma ou enfisema subcutâneo</div></div>
             </div>
           </div>
@@ -1651,19 +1650,19 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
       <!-- Resumo de uso -->
       <div style="margin-top:14px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:14px 18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;">
         <div style="display:flex;align-items:center;gap:10px;">
-          <div style="font-family:var(--display);font-weight:900;font-size:15px;color:#a78bfa;">LEMON</div>
+          <div style="font-family:var(--display);font-weight: 700;font-size:15px;color:#a78bfa;">LEMON</div>
           <div style="font-size:11px;color:var(--t3);">Laringoscopia / intubação difícil</div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;">
-          <div style="font-family:var(--display);font-weight:900;font-size:15px;color:#38bdf8;">ROMAN</div>
+          <div style="font-family:var(--display);font-weight: 700;font-size:15px;color:#38bdf8;">ROMAN</div>
           <div style="font-size:11px;color:var(--t3);">Ventilação com máscara difícil</div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;">
-          <div style="font-family:var(--display);font-weight:900;font-size:15px;color:#34d399;">RODS</div>
+          <div style="font-family:var(--display);font-weight: 700;font-size:15px;color:#34d399;">RODS</div>
           <div style="font-size:11px;color:var(--t3);">Dispositivo supraglótico difícil</div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;">
-          <div style="font-family:var(--display);font-weight:900;font-size:15px;color:#fbbf24;">SMART</div>
+          <div style="font-family:var(--display);font-weight: 700;font-size:15px;color:#fbbf24;">SMART</div>
           <div style="font-size:11px;color:var(--t3);">Cricotireoidotomia difícil</div>
         </div>
       </div>
@@ -1804,217 +1803,6 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
 
   </div><!-- /pageRef -->
 
-  <!-- PAINEL -->
-  <div class="tab-page" id="pagePainel">
-    <div class="slabel">Painel de Evolução — Registro Diário por Leito</div>
-
-    <!-- SELETOR DE LEITO -->
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
-      <div style="font-family:var(--mono);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:0.12em;padding-top:2px;">Leito</div>
-      <div id="painel_leitos" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
-      <button onclick="painelAddLeito()" style="padding:5px 12px;background:var(--surface3);border:1px dashed var(--border2);border-radius:var(--radius);color:var(--t3);font-size:12px;cursor:pointer;">+ Leito</button>
-      <div style="margin-left:auto;display:flex;gap:8px;">
-        <button onclick="painelExportJSON()" style="padding:5px 12px;background:var(--surface3);border:1px solid var(--border2);border-radius:var(--radius);color:var(--t2);font-size:11px;cursor:pointer;font-family:var(--mono);">⬇ Export JSON</button>
-        <button onclick="painelImportJSON()" style="padding:5px 12px;background:var(--surface3);border:1px solid var(--border2);border-radius:var(--radius);color:var(--t2);font-size:11px;cursor:pointer;font-family:var(--mono);">⬆ Import JSON</button>
-        <input type="file" id="painel_import_input" accept=".json" style="display:none;" onchange="painelHandleImport(event)">
-      </div>
-    </div>
-
-    <!-- CONTEÚDO DO LEITO SELECIONADO -->
-    <div id="painel_content" style="display:none;">
-
-      <!-- Header do leito -->
-      <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-        <div style="display:flex;align-items:center;gap:14px;">
-          <div id="painel_leito_badge" style="font-family:var(--display);font-size:22px;font-weight:900;color:var(--accent);"></div>
-          <div>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <input id="painel_iniciais" type="text" maxlength="6" placeholder="Iniciais" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:4px 10px;color:var(--t1);font-family:var(--display);font-weight:700;font-size:14px;width:80px;" oninput="painelSaveIniciais()">
-              <span style="font-size:11px;color:var(--t3);font-family:var(--mono);">Admissão:</span>
-              <input id="painel_admissao" type="date" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:4px 10px;color:var(--t1);font-size:12px;font-family:var(--mono);" oninput="painelSaveIniciais()">
-            </div>
-            <div id="painel_dias_internacao" style="font-size:10px;color:var(--t3);font-family:var(--mono);margin-top:3px;"></div>
-          </div>
-        </div>
-        <button onclick="painelNovoRegistro()" style="padding:8px 18px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-family:var(--display);font-weight:700;font-size:13px;cursor:pointer;">+ Registro de Hoje</button>
-      </div>
-
-      <!-- Timeline -->
-      <div id="painel_split_grid" style="display:grid;grid-template-columns:1fr 340px;gap:14px;align-items:start;">
-
-        <!-- Lista de registros -->
-        <div>
-          <div style="font-family:var(--mono);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:10px;">Histórico</div>
-          <div id="painel_timeline"></div>
-        </div>
-
-        <!-- Gráficos / tendências -->
-        <div>
-          <div style="font-family:var(--mono);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:10px;">Tendências</div>
-          <div id="painel_charts"></div>
-        </div>
-
-      </div>
-    </div>
-
-    <div id="painel_empty" style="text-align:center;padding:40px 20px;color:var(--t3);font-family:var(--mono);font-size:12px;">
-      Selecione ou adicione um leito para começar
-    </div>
-
-    <!-- MODAL DE REGISTRO -->
-    <div id="painel_modal_bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;overflow-y:auto;">
-      <div style="max-width:720px;margin:30px auto;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius-lg);overflow:hidden;">
-
-        <div style="background:var(--surface3);padding:16px 22px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;">
-          <div style="font-family:var(--display);font-size:16px;font-weight:800;" id="painel_modal_title">Registro Diário</div>
-          <button onclick="painelCloseModal()" style="background:none;border:none;color:var(--t3);font-size:20px;cursor:pointer;padding:0 4px;">✕</button>
-        </div>
-
-        <div style="padding:20px 22px;max-height:75vh;overflow-y:auto;">
-
-          <!-- SEÇÃO: Laboratorial -->
-          <div class="painel-section">
-            <div class="painel-section-title">🧪 Laboratorial</div>
-            <div class="painel-grid-3">
-              <div class="painel-field"><label>Hb (g/dL)</label><input id="p_hb" type="number" step="0.1" class="calc-input"></div>
-              <div class="painel-field"><label>Ht (%)</label><input id="p_ht" type="number" class="calc-input"></div>
-              <div class="painel-field"><label>Leucócitos (/mm³)</label><input id="p_leuco" type="number" class="calc-input"></div>
-              <div class="painel-field"><label>Plaquetas (×10³)</label><input id="p_plaq" type="number" class="calc-input"></div>
-              <div class="painel-field"><label>Na⁺ (mEq/L)</label><input id="p_na" type="number" class="calc-input"></div>
-              <div class="painel-field"><label>K⁺ (mEq/L)</label><input id="p_k" type="number" step="0.1" class="calc-input"></div>
-              <div class="painel-field"><label>Creatinina (mg/dL)</label><input id="p_cr" type="number" step="0.1" class="calc-input"></div>
-              <div class="painel-field"><label>Ureia (mg/dL)</label><input id="p_ur" type="number" class="calc-input"></div>
-              <div class="painel-field"><label>Bilirrubina T (mg/dL)</label><input id="p_bili" type="number" step="0.1" class="calc-input"></div>
-              <div class="painel-field"><label>PCR (mg/L)</label><input id="p_pcr" type="number" step="0.1" class="calc-input"></div>
-              <div class="painel-field"><label>Lactato (mmol/L)</label><input id="p_lac" type="number" step="0.1" class="calc-input"></div>
-              <div class="painel-field"><label>Glicose (mg/dL)</label><input id="p_gli" type="number" class="calc-input"></div>
-            </div>
-          </div>
-
-          <!-- SEÇÃO: Gasometria -->
-          <div class="painel-section">
-            <div class="painel-section-title">🩸 Gasometria</div>
-            <div class="painel-grid-3">
-              <div class="painel-field"><label>pH</label><input id="p_ph" type="number" step="0.01" class="calc-input"></div>
-              <div class="painel-field"><label>pCO₂ (mmHg)</label><input id="p_pco2" type="number" class="calc-input"></div>
-              <div class="painel-field"><label>HCO₃ (mEq/L)</label><input id="p_hco3" type="number" step="0.1" class="calc-input"></div>
-              <div class="painel-field"><label>PaO₂ (mmHg)</label><input id="p_pao2" type="number" class="calc-input"></div>
-              <div class="painel-field"><label>FiO₂ (%)</label><input id="p_fio2" type="number" class="calc-input"></div>
-              <div class="painel-field"><label>P/F calculado</label><input id="p_pf_calc" type="text" class="calc-input" readonly style="color:var(--accent);font-weight:700;" placeholder="auto"></div>
-            </div>
-          </div>
-
-          <!-- SEÇÃO: VM -->
-          <div class="painel-section">
-            <div class="painel-section-title">💨 Ventilação Mecânica</div>
-            <div style="margin-bottom:8px;display:flex;align-items:center;gap:8px;">
-              <input type="checkbox" id="p_em_vm" onchange="painelToggleVM()" style="width:16px;height:16px;accent-color:var(--accent);">
-              <label for="p_em_vm" style="font-size:12px;color:var(--t2);cursor:pointer;">Paciente em VM</label>
-            </div>
-            <div id="p_vm_fields" style="display:none;">
-              <div class="painel-grid-3">
-                <div class="painel-field"><label>Modo</label>
-                  <select id="p_vm_modo" class="calc-select">
-                    <option value="">—</option>
-                    <option>VCV</option><option>PCV</option><option>PSV</option>
-                    <option>PRVC</option><option>APRV</option><option>CPAP</option>
-                  </select>
-                </div>
-                <div class="painel-field"><label>VC (mL)</label><input id="p_vm_vc" type="number" class="calc-input"></div>
-                <div class="painel-field"><label>FR prog. (irpm)</label><input id="p_vm_fr" type="number" class="calc-input"></div>
-                <div class="painel-field"><label>PEEP (cmH₂O)</label><input id="p_vm_peep" type="number" class="calc-input"></div>
-                <div class="painel-field"><label>Pplat (cmH₂O)</label><input id="p_vm_pplat" type="number" class="calc-input"></div>
-                <div class="painel-field"><label>Driving P (cmH₂O)</label><input id="p_vm_dp" type="text" class="calc-input" readonly style="color:var(--accent);font-weight:700;" placeholder="auto"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- SEÇÃO: Vasopressores / Sedação -->
-          <div class="painel-section">
-            <div class="painel-section-title">💉 Vasopressores & Sedação</div>
-            <div class="painel-grid-3">
-              <div class="painel-field"><label>Norepinefrina (mcg/kg/min)</label><input id="p_ne" type="number" step="0.01" class="calc-input" placeholder="0 = ausente"></div>
-              <div class="painel-field"><label>Vasopressina (U/h)</label><input id="p_vaso" type="number" step="0.1" class="calc-input"></div>
-              <div class="painel-field"><label>Dobutamina (mcg/kg/min)</label><input id="p_dob" type="number" step="0.1" class="calc-input"></div>
-              <div class="painel-field"><label>Midazolam (mL/h)</label><input id="p_midaz" type="number" step="0.1" class="calc-input"></div>
-              <div class="painel-field"><label>Propofol (mL/h)</label><input id="p_prop" type="number" step="0.1" class="calc-input"></div>
-              <div class="painel-field"><label>Fentanil (mL/h)</label><input id="p_fent" type="number" step="0.1" class="calc-input"></div>
-              <div class="painel-field"><label>Dexmedetomidina (mL/h)</label><input id="p_dex" type="number" step="0.1" class="calc-input"></div>
-              <div class="painel-field"><label>RASS alvo</label>
-                <select id="p_rass" class="calc-select">
-                  <option value="">—</option>
-                  <option>+1</option><option>0</option><option>-1</option>
-                  <option>-2</option><option>-3</option><option>-4</option><option>-5</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <!-- SEÇÃO: Antimicrobianos -->
-          <div class="painel-section">
-            <div class="painel-section-title">🦠 Antimicrobianos</div>
-            <div id="p_atb_list"></div>
-            <button onclick="painelAddATB()" style="margin-top:8px;padding:6px 14px;background:var(--surface3);border:1px dashed var(--border2);border-radius:var(--radius);color:var(--t3);font-size:12px;cursor:pointer;">+ Adicionar ATB</button>
-          </div>
-
-          <!-- SEÇÃO: Culturas -->
-          <div class="painel-section">
-            <div class="painel-section-title">🔬 Culturas</div>
-            <div id="p_cult_list"></div>
-            <button onclick="painelAddCultura()" style="margin-top:8px;padding:6px 14px;background:var(--surface3);border:1px dashed var(--border2);border-radius:var(--radius);color:var(--t3);font-size:12px;cursor:pointer;">+ Adicionar Cultura</button>
-          </div>
-
-          <!-- SEÇÃO: Evolução -->
-          <div class="painel-section">
-            <div class="painel-section-title">📋 Resumo da Evolução</div>
-            <textarea id="p_evolucao" rows="4" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;color:var(--t1);font-size:12px;resize:vertical;" placeholder="Resumo clínico do dia..."></textarea>
-          </div>
-
-        </div><!-- /scroll -->
-
-        <div style="padding:14px 22px;border-top:1px solid var(--border2);display:flex;gap:10px;justify-content:flex-end;background:var(--surface);">
-          <button onclick="painelCloseModal()" style="padding:8px 18px;background:var(--surface3);border:1px solid var(--border2);border-radius:var(--radius);color:var(--t2);font-size:13px;cursor:pointer;">Cancelar</button>
-          <button onclick="painelSaveRegistro()" style="padding:8px 22px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-family:var(--display);font-weight:700;font-size:13px;cursor:pointer;">💾 Salvar Registro</button>
-        </div>
-      </div>
-    </div><!-- /modal bg -->
-
-
-    <!-- MODAL DE CONFIRMAÇÃO DE SINCRONIZAÇÃO -->
-    <div id="sync_modal_bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:2000;overflow-y:auto;">
-      <div style="max-width:600px;margin:40px auto;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius-lg);overflow:hidden;">
-        <div style="background:var(--surface3);padding:14px 20px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;">
-          <div style="font-family:var(--display);font-size:15px;font-weight:800;">⚡ Sincronizar com Painel</div>
-          <button onclick="syncClose()" style="background:none;border:none;color:var(--t3);font-size:20px;cursor:pointer;">✕</button>
-        </div>
-        <div style="padding:16px 20px;">
-          <div style="font-size:12px;color:var(--t3);margin-bottom:14px;font-family:var(--mono);">Confirme o leito de cada paciente para registrar os dados de hoje no Painel.</div>
-          <div id="sync_patients_list"></div>
-        </div>
-        <div style="padding:12px 20px;border-top:1px solid var(--border2);display:flex;gap:10px;justify-content:flex-end;background:var(--surface);">
-          <button onclick="syncClose()" style="padding:8px 16px;background:var(--surface3);border:1px solid var(--border2);border-radius:var(--radius);color:var(--t2);font-size:12px;cursor:pointer;">Cancelar</button>
-          <button onclick="syncConfirm()" style="padding:8px 20px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-family:var(--display);font-weight:700;font-size:13px;cursor:pointer;">💾 Registrar no Painel</button>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- MODAL FALLBACK: leitos não detectados -->
-    <div id="sync_modal_bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:2000;overflow-y:auto;">
-      <div style="max-width:580px;margin:40px auto;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius-lg);overflow:hidden;">
-        <div style="background:var(--surface3);padding:14px 20px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;">
-          <div style="font-family:var(--display);font-size:15px;font-weight:800;">📊 Confirmar Leitos</div>
-          <button onclick="syncClose()" style="background:none;border:none;color:var(--t3);font-size:20px;cursor:pointer;">✕</button>
-        </div>
-        <div style="padding:16px 20px;max-height:70vh;overflow-y:auto;"><div id="sync_patients_list"></div></div>
-        <div style="padding:12px 20px;border-top:1px solid var(--border2);display:flex;gap:10px;justify-content:flex-end;background:var(--surface);">
-          <button onclick="syncClose()" style="padding:8px 16px;background:var(--surface3);border:1px solid var(--border2);border-radius:var(--radius);color:var(--t2);font-size:12px;cursor:pointer;">Cancelar</button>
-          <button onclick="syncConfirm()" style="padding:8px 20px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-family:var(--display);font-weight:700;font-size:13px;cursor:pointer;">💾 Registrar</button>
-        </div>
-      </div>
-    </div>
-
-  </div><!-- /pagePainel -->
 </main>
 </div>
 <script>
@@ -2028,8 +1816,8 @@ function switchNav(tab) {
     t.classList.remove('on');
     t.style.display = 'none';
   });
-  var navMap = {lab:'navLab',vit:'navVit',resume:'navResume',presc:'navPresc',calc:'navCalc',atbdose:'navAtbDose',iot:'navIOT',ref:'navRef',painel:'navPainel'};
-  var pageMap = {lab:'pageLab',vit:'pageVit',resume:'pageResume',presc:'pagePresc',calc:'pageCalc',atbdose:'pageAtbDose',iot:'pageIOT',ref:'pageRef',painel:'pagePainel'};
+  var navMap = {lab:'navLab',vit:'navVit',resume:'navResume',presc:'navPresc',calc:'navCalc',atbdose:'navAtbDose',iot:'navIOT',ref:'navRef'};
+  var pageMap = {lab:'pageLab',vit:'pageVit',resume:'pageResume',presc:'pagePresc',calc:'pageCalc',atbdose:'pageAtbDose',iot:'pageIOT',ref:'pageRef'};
   if (navMap[tab]) document.getElementById(navMap[tab]).classList.add('on');
   if (pageMap[tab]) {
     var pageEl = document.getElementById(pageMap[tab]);
@@ -3168,7 +2956,7 @@ function calcAtbDose() {
   var pesoDoseHtml = '';
   if (db.peso_ajuste && peso && db.peso_dose > 0) {
     var calc = peso * db.peso_dose;
-    pesoDoseHtml = '<div style="margin-top:8px;padding:10px 14px;background:rgba(56,189,248,0.07);border:1px solid rgba(56,189,248,0.2);border-radius:var(--radius);">'
+    pesoDoseHtml = '<div style="margin-top:8px;padding:10px 14px;background:rgba(255,201,60,0.07);border:1px solid rgba(255,201,60,0.2);border-radius:var(--radius);">'
       + '<span style="font-family:var(--mono);font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:0.1em;">Dose calculada para '+peso+'kg</span><br>'
       + '<span style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--accent);">'
       + calc.toFixed(0) + ' mg</span>'
@@ -3180,7 +2968,7 @@ function calcAtbDose() {
 
   // Header
   html += '<div style="background:var(--surface3);padding:14px 20px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;">';
-  html += '<div><div style="font-family:var(--display);font-size:16px;font-weight:800;letter-spacing:-0.02em;">'+db.name+'</div>';
+  html += '<div><div style="font-family:var(--display);font-size:16px;font-weight:800;letter-spacing: 0.01em;">'+db.name+'</div>';
   html += '<div style="font-family:var(--mono);font-size:10px;color:var(--t3);margin-top:2px;">'+db.classe+' &nbsp;·&nbsp; Via: '+db.via+'</div></div>';
   if (crcl !== null) {
     html += '<div style="text-align:right;">';
@@ -3212,7 +3000,7 @@ function calcAtbDose() {
   html += '<table style="width:100%;border-collapse:collapse;">';
   db.ajustes.forEach(function(aj) {
     var isMatch = matchedAjuste && aj.label === matchedAjuste.label;
-    var bg = isMatch ? 'background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.25);' : 'border:1px solid var(--border);';
+    var bg = isMatch ? 'background:rgba(255,201,60,0.08);border:1px solid rgba(255,201,60,0.25);' : 'border:1px solid var(--border);';
     html += '<tr style="'+bg+'">';
     html += '<td style="padding:8px 12px;font-family:var(--mono);font-size:10px;color:'+(isMatch?'var(--accent)':'var(--t3)')+';white-space:nowrap;font-weight:'+(isMatch?'700':'400')+';width:160px;">'+aj.label+'</td>';
     html += '<td style="padding:8px 12px;font-size:12px;color:'+(isMatch?'var(--t1)':'var(--t2)')+';">'+aj.dose+'</td>';
@@ -3450,9 +3238,9 @@ function calcSAPS3() {
   var html = '<div style="background:var(--surface2);border:2px solid '+col+';border-radius:var(--radius-lg);padding:22px;text-align:center;">';
   html += '<div style="display:flex;justify-content:center;gap:48px;flex-wrap:wrap;margin-bottom:14px;">';
   html += '<div><div style="font-family:var(--mono);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:0.1em;">Score SAPS3</div>';
-  html += '<div style="font-family:var(--display);font-size:52px;font-weight:800;letter-spacing:-0.04em;line-height:1;color:'+col+'">'+pts+'</div></div>';
+  html += '<div style="font-family:var(--display);font-size:52px;font-weight:800;letter-spacing: 0.01em;line-height:1;color:'+col+'">'+pts+'</div></div>';
   html += '<div><div style="font-family:var(--mono);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:0.1em;">Mortalidade Estimada</div>';
-  html += '<div style="font-family:var(--display);font-size:52px;font-weight:800;letter-spacing:-0.04em;line-height:1;color:'+col+'">'+mort.toFixed(1)+'<span style="font-size:26px;">%</span></div>';
+  html += '<div style="font-family:var(--display);font-size:52px;font-weight:800;letter-spacing: 0.01em;line-height:1;color:'+col+'">'+mort.toFixed(1)+'<span style="font-size:26px;">%</span></div>';
   html += '<div style="font-size:12px;color:'+col+';margin-top:4px;">'+risk+'</div></div>';
   html += '</div>';
   html += '<div style="background:rgba(255,255,255,0.06);border-radius:6px;height:10px;overflow:hidden;margin:0 auto;max-width:360px;">';
@@ -3638,7 +3426,7 @@ function calcIOT() {
       html += '<div style="flex:1;min-width:200px;">';
       html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">';
       html += '<span style="font-family:var(--display);font-weight:700;font-size:14px;">'+d.name+'</span>';
-      if (isRec) html += '<span style="font-family:var(--mono);font-size:9px;padding:2px 7px;background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.3);border-radius:3px;color:var(--accent);">RECOMENDADO</span>';
+      if (isRec) html += '<span style="font-family:var(--mono);font-size:9px;padding:2px 7px;background:rgba(255,201,60,0.12);border:1px solid rgba(255,201,60,0.3);border-radius:3px;color:var(--accent);">RECOMENDADO</span>';
       html += '</div>';
       html += '<div style="font-size:11px;color:var(--t3);margin-bottom:4px;">'+d.role+' · '+d.via+' · '+d.timing+'</div>';
       html += '<div style="font-size:11px;color:var(--t2);">Conc.: '+d.conc+'</div>';
@@ -3647,10 +3435,10 @@ function calcIOT() {
       html += '<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:12px 16px;text-align:center;min-width:160px;">';
       html += '<div style="font-family:var(--mono);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">'+d.dose_min+(d.dose_max!==d.dose_min?'–'+d.dose_max:'')+' '+d.unit+'</div>';
       if (c.mgMin === c.mgMax) {
-        html += '<div style="font-family:var(--display);font-size:22px;font-weight:800;color:var(--accent);letter-spacing:-0.03em;">'+c.mgMin+' <span style="font-size:14px;">'+c.mgUnit+'</span></div>';
+        html += '<div style="font-family:var(--display);font-size:22px;font-weight:800;color:var(--accent);letter-spacing: 0.01em;">'+c.mgMin+' <span style="font-size:14px;">'+c.mgUnit+'</span></div>';
         html += '<div style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent2);">'+c.min+' '+c.unit+'</div>';
       } else {
-        html += '<div style="font-family:var(--display);font-size:18px;font-weight:800;color:var(--accent);letter-spacing:-0.03em;">'+c.mgMin+'–'+c.mgMax+' <span style="font-size:13px;">'+c.mgUnit+'</span></div>';
+        html += '<div style="font-family:var(--display);font-size:18px;font-weight:800;color:var(--accent);letter-spacing: 0.01em;">'+c.mgMin+'–'+c.mgMax+' <span style="font-size:13px;">'+c.mgUnit+'</span></div>';
         html += '<div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent2);">'+c.min+'–'+c.max+' '+c.unit+'</div>';
       }
       html += '</div>';
@@ -3708,7 +3496,7 @@ function calcIOT() {
   ];
   plans.forEach(function(p) {
     html += '<div style="display:flex;gap:12px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);">';
-    html += '<div style="font-family:var(--display);font-weight:900;font-size:20px;color:'+p.color+';min-width:28px;line-height:1.2;">'+p.plan+'</div>';
+    html += '<div style="font-family:var(--display);font-weight: 700;font-size:20px;color:'+p.color+';min-width:28px;line-height:1.2;">'+p.plan+'</div>';
     html += '<div><div style="font-weight:700;font-size:13px;color:var(--t1);">'+p.label+'</div>';
     html += '<div style="font-size:11px;color:var(--t2);line-height:1.6;margin-top:2px;">'+p.detail+'</div></div>';
     html += '</div>';
@@ -3882,7 +3670,7 @@ function calcSedContinua() {
 
   // Header
   html += '<div style="background:var(--surface3);padding:14px 20px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;">';
-  html += '<div><div style="font-family:var(--display);font-size:16px;font-weight:800;letter-spacing:-0.02em;">'+db.name+'</div>';
+  html += '<div><div style="font-family:var(--display);font-size:16px;font-weight:800;letter-spacing: 0.01em;">'+db.name+'</div>';
   html += '<div style="font-family:var(--mono);font-size:10px;color:var(--t3);margin-top:2px;">'+db.diluicao+'</div></div>';
   html += '<div style="text-align:right;">';
   html += '<div style="font-family:var(--mono);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:0.1em;">Concentração</div>';
@@ -4222,7 +4010,7 @@ function calcSOFA() {
 
   r.innerHTML = '<div style="padding:14px 16px;background:var(--surface2);border-radius:var(--radius);">'
     +'<div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;">'
-    +'<div><div style="font-family:var(--display);font-size:36px;font-weight:900;color:'+color+';">'+total+'</div>'
+    +'<div><div style="font-family:var(--display);font-size:36px;font-weight: 700;color:'+color+';">'+total+'</div>'
     +'<div style="font-size:10px;color:var(--t3);font-family:var(--mono);">SOFA TOTAL ('+filled+'/6 sistemas)</div></div>'
     +'<div><div style="font-size:12px;color:var(--t2);">Mortalidade estimada: <strong style="color:'+color+';">'+mort+'</strong></div>'
     +(total>=2?'<div style="font-size:11px;color:var(--danger);margin-top:2px;">⚠ Critério de disfunção orgânica (Sepsis-3)</div>':'')
@@ -4296,7 +4084,7 @@ function calcPEEPTable() {
 
   r.innerHTML = '<div style="display:flex;align-items:center;gap:16px;padding:12px 16px;background:var(--surface2);border-radius:var(--radius);margin-bottom:8px;">'
     +'<div><div style="font-size:9px;color:var(--t3);font-family:var(--mono);text-transform:uppercase;">PEEP recomendado</div>'
-    +'<div style="font-family:var(--display);font-size:32px;font-weight:900;color:'+color+';">'+peepVal+' <span style="font-size:14px;font-weight:400;">cmH₂O</span></div></div>'
+    +'<div style="font-family:var(--display);font-size:32px;font-weight: 700;color:'+color+';">'+peepVal+' <span style="font-size:14px;font-weight:400;">cmH₂O</span></div></div>'
     +'<div style="font-size:12px;color:var(--t2);">FiO₂ '+(strategy==='high'?'alto':'baixo')+' · FiO₂ mais próxima: <strong>'+closest.fio2+'%</strong></div>'
     +'</div>';
 }
@@ -5248,7 +5036,6 @@ document.addEventListener('DOMContentLoaded', function() {
   calcSAPS3();
   initCalcCollapse();
   initPEEPTable();
-  painelInit();
   // Ensure first tab visible on Safari iOS
   var firstPage = document.getElementById('pageLab');
   if (firstPage) firstPage.style.display = 'block';
