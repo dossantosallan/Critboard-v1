@@ -17,6 +17,7 @@
   --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{background:var(--bg)}
 body{color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5;padding-inline:16px;padding-block:14px 48px}
 .wrap{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
@@ -230,13 +231,13 @@ const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const rnd=(a,b)=>a+Math.random()*(b-a);
 
 const PROF={
-  normal:{nome:'Pulmão normal',C:55,Ri:8,Re:8,pinf:14,dw:14},
+  normal:{nome:'Pulmão normal',C:55,Ri:8,Re:8,pinf:8,dw:16},
   sdra:{nome:'SDRA',C:35,Ri:12,Re:12,pinf:18,dw:6},
   dpoc:{nome:'DPOC',C:60,Ri:18,Re:28,pinf:6,dw:10},
   asma:{nome:'Asma grave',C:50,Ri:30,Re:40,pinf:8,dw:10}
 };
 const set={mode:'VCV',vt:420,f:16,flow:50,fpat:'quad',pause:0,peep:5,trigType:'flow',trigF:2,trigP:2,pi:15,ti:1.0,rise:.1,ps:10,ets:25};
-const pat={C:55,Ri:8,Re:8,pinf:14,dw:14,pm:0,fp:18,tin:1.0,eff:'none',leak:0,card:1,alt:170,sexo:'M'};
+const pat={C:55,Ri:8,Re:8,pinf:8,dw:16,pm:0,fp:18,tin:1.0,eff:'none',leak:0,card:1,alt:170,sexo:'M'};
 
 const CTL_V=[
  {k:'vt',l:'Volume corrente',u:'mL',min:200,max:900,st:10,d:0,m:['VCV']},
@@ -274,6 +275,8 @@ const CTL_P=[
    Equação do movimento: Paw + Pmus = V/C + R·V̇ + Pve
    V inclui o volume da PEEP (em repouso V/C = PEEP). Pve = elemento viscoelástico (P1 → P2 na pausa). */
 const DT=.005, R2=1.2, TAU2=.06;
+// dinâmica real das válvulas: o ventilador não produz degraus instantâneos
+const TAU_V=.025, TAU_P=.035, TAU_E=.03, lag=(cur,tgt,tau)=>cur+(tgt-cur)*Math.min(1,DT/tau);
 /* Curva P×V estática sigmoide (Venegas): V(P) = a + b/(1 + e^(−(P−c)/d)), com V(0) = 0.
    Complacência máxima (= C) no centro c; cai abaixo (colapso/recrutamento) e acima (hiperdistensão). */
 const sig=x=>1/(1+Math.exp(-x));
@@ -372,15 +375,17 @@ function step(){
     st.tph+=DT;
     if(mode==='VCV'){
       const qs=set.flow/60, T=set.fpat==='quad'?set.vt/1000/qs:2*set.vt/1000/qs;
-      Q=set.fpat==='quad'?qs:Math.max(qs*.05,qs*(1-st.tph/T));
+      const Qc=set.fpat==='quad'?qs:Math.max(qs*.05,qs*(1-st.tph/T));
+      Q=lag(st.tph<=DT*1.5?Math.max(0,st.Q):st.Q,Qc,TAU_V);
       Paw=Pe+st.Pve+pat.Ri*Q-Pm;
       if(set.fpat==='quad'&&!st.backup) st.siBuf.push([st.tph,Paw]);
       st.vi+=Q*DT;
-      if(st.vi>=set.vt/1000){st.V+=Q*DT;st.Q=Q;st.Paw=Paw;st.ppk=Math.max(st.ppk,Paw);endInsp();return fin(Paw,Q,Pm,leakQ,qc)}
+      if(st.vi>=set.vt/1000-Q*.012){   // antecipa o fechamento da válvula (o fluxo residual completa o VT)
+st.V+=Q*DT;st.Q=Q;st.Paw=Paw;st.ppk=Math.max(st.ppk,Paw);endInsp();return fin(Paw,Q,Pm,leakQ,qc)}
     } else {
       const Pset=mode==='PSV'?set.ps:(st.backup?15:set.pi);
       let Pt=peep+Pset*riseShape(st.tph);
-      Paw=Pt+(Pm<0?-Pm*.9:0);
+      Paw=lag(st.Paw,Pt+(Pm<0?-Pm*.9:0),TAU_P);
       Q=(Paw+Pm-Pe-st.Pve)/pat.Ri; if(Q<0) Q=(Paw+Pm-Pe-st.Pve)/pat.Re;
       st.qpk=Math.max(st.qpk,Q);
       const Ti=st.backup?1:set.ti;
@@ -389,8 +394,8 @@ function step(){
     }
     st.ppk=Math.max(st.ppk,Paw);
   } else if(st.ph==='pause'){
-    st.tph+=DT; Q=0; Paw=Pe+st.Pve-Pm;
-    if(st.p1==null&&st.tph>=.03) st.p1=Paw;
+    st.tph+=DT; Q=st.Q*Math.exp(-DT/.012); if(Q<1e-4) Q=0; Paw=Pe+st.Pve+pat.Ri*Q-Pm;
+    if(st.p1==null&&st.tph>=.06) st.p1=Paw;
     if(st.tph>=st.pauseDur){
       const pplat=Paw;
       stats.pplat=pplat;
@@ -401,7 +406,7 @@ function step(){
     st.tph+=DT;
     const closed=(man.occ&&man.occ.on)||(st.expPause!=null);
     if(closed){ Q=0; Paw=Pe+st.Pve-Pm; }
-    else { Paw=peep; Q=(Paw+Pm-Pe-st.Pve)/pat.Re; if(Q>0) Q=(Paw+Pm-Pe-st.Pve)/pat.Ri; }
+    else { Paw=lag(st.Paw,peep,TAU_E); Q=(Paw+Pm-Pe-st.Pve)/pat.Re; if(Q>0) Q=(Paw+Pm-Pe-st.Pve)/pat.Ri; }
     // manobras
     if(st.expPause!=null){
       st.expPause+=DT;
@@ -509,19 +514,41 @@ function rescale(){
   if(vm!==CH.V.max){CH.V.max=vm;CH.V.grid=[];for(let v=0;v<vm;v+=200)CH.V.grid.push(v);ch=true}
   if(ch) for(const k in CH){drawGrid(k)}
 }
+// monitor: filtro passa-baixa de 2ª ordem (~13 Hz) como no pneumotacógrafo, e traçado em um único caminho por quadro
+const FT=.012, fa=DT/(FT+DT);
 function plot(s){
   const frac=(st.t%WIN)/WIN;
   for(const k in CH){
-    const ch=CH[k],ctx=ch.ctx,x=frac*ch.W;
-    if(lastX!=null&&x<lastX){ch.last=null;ch.lastM=null}
-    ctx.clearRect(x,0,10*dpr,ch.H);
-    const y=yOf(ch,clamp(s[k],ch.min-5,ch.max+5));
-    if(ch.last){ctx.strokeStyle=ch.col;ctx.lineWidth=1.7*dpr;ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(ch.last[0],ch.last[1]);ctx.lineTo(x,y);ctx.stroke()}
-    ch.last=[x,y];
-    if(k==='P'&&showPm){const ym=yOf(ch,s.M);if(ch.lastM){ctx.strokeStyle='#ff6fd8';ctx.lineWidth=1.3*dpr;ctx.beginPath();ctx.moveTo(ch.lastM[0],ch.lastM[1]);ctx.lineTo(x,ym);ctx.stroke()}ch.lastM=[x,ym]}
+    const ch=CH[k], raw=k==='V'?s.V:s[k];
+    if(ch.f1==null){ch.f1=raw;ch.f2=raw}
+    ch.f1+=(raw-ch.f1)*fa; ch.f2+=(ch.f1-ch.f2)*fa;
+    const v=k==='V'?raw:ch.f2, x=frac*ch.W;
+    (ch.buf||(ch.buf=[])).push([x,yOf(ch,clamp(v,ch.min-5,ch.max+5)), k==='P'&&showPm?yOf(ch,s.M):null]);
   }
-  lastX=frac*CH.P.W;
 }
+function flushPlot(){
+  for(const k in CH){
+    const ch=CH[k],ctx=ch.ctx,b=ch.buf; if(!b||!b.length) continue;
+    ctx.lineJoin='round'; ctx.lineCap='round';
+    let seg=[]; const segs=[];
+    for(const p of b){ if(ch.last&&p[0]<ch.last[0]){ if(seg.length) segs.push(seg); seg=[]; ch.last=null; ch.lastM=null }
+      if(!seg.length){ seg.start=ch.last; seg.startM=ch.lastM } seg.push(p); ch.last=[p[0],p[1]]; ch.lastM=p[2]!=null?[p[0],p[2]]:null }
+    if(seg.length) segs.push(seg);
+    for(const sg of segs){
+      const x0=sg.start?sg.start[0]:sg[0][0], x1=sg[sg.length-1][0];
+      ctx.clearRect(x0+1,0,(x1-x0)+10*dpr,ch.H);
+      ctx.strokeStyle=ch.col; ctx.lineWidth=2*dpr; ctx.beginPath();
+      if(sg.start) ctx.moveTo(sg.start[0],sg.start[1]); else ctx.moveTo(sg[0][0],sg[0][1]);
+      for(const p of sg) ctx.lineTo(p[0],p[1]); ctx.stroke();
+      if(k==='P'&&showPm&&sg[0][2]!=null){ ctx.strokeStyle='#ff6fd8'; ctx.lineWidth=1.4*dpr; ctx.beginPath();
+        if(sg.startM) ctx.moveTo(sg.startM[0],sg.startM[1]); else ctx.moveTo(sg[0][0],sg[0][2]);
+        for(const p of sg) if(p[2]!=null) ctx.lineTo(p[0],p[2]); ctx.stroke(); }
+    }
+    ch.buf=[];
+  }
+  lastX=frac0();
+}
+const frac0=()=>(st.t%WIN)/WIN*CH.P.W;
 function drawLoops(){
   const data=trace.last&&trace.last.length>20?trace.last:null;
   const pv=$('lPV'),fv=$('lFV'); if(!pv||pv.width<20) return;
@@ -814,7 +841,7 @@ function frame(ts){
   const dt=Math.min(.1,(ts-lastFrame)/1000); lastFrame=ts;
   if(!frozen){
     const n=Math.round(dt/DT);
-    for(let i=0;i<n;i++){const s=step();plot(s)}
+    for(let i=0;i<n;i++){const s=step();plot(s)} flushPlot();
     numT+=dt; if(numT>.5){numT=0;rescale();renderNums();if(set.mode==='VCV'&&!document.activeElement?.closest?.('#results'))renderResults()}
   }
   requestAnimationFrame(frame);
