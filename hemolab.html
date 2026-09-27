@@ -105,7 +105,7 @@ details{border-top:1px solid var(--line);padding-top:10px}
 summary{cursor:pointer;font-family:var(--num);font-size:16px;letter-spacing:.05em;text-transform:uppercase;font-weight:600}
 .note{font-size:12.5px;color:var(--muted)}
 
-/* ===== EV1000-like ===== */
+/* ===== HemoSphere / EV1000-like ===== */
 .evmon{background:#0c0d0e;border-radius:22px;padding:14px 14px 10px;border:1px solid #2a2c2f;box-shadow:0 24px 50px -24px #000, inset 0 1px 0 #2c2f33;display:flex;flex-direction:column;gap:10px}
 .evscreen{--ev-f:"Helvetica Neue",Helvetica,Arial,sans-serif;font-family:var(--ev-f);background:radial-gradient(120% 90% at 50% 40%,#3a3d42 0%,#2a2c30 55%,#1f2124 100%);border-radius:4px;overflow:hidden;position:relative;display:grid;grid-template-columns:118px minmax(0,1fr) 150px;grid-template-areas:"ico main glob" "bar bar bar";border:2px solid #050506}
 .evicons{grid-area:ico;display:grid;grid-template-columns:1fr 1fr;align-content:start;gap:8px;padding:10px 8px}
@@ -278,12 +278,12 @@ tr[data-info] td:first-child::after{content:" ⓘ";color:var(--muted);font-size:
     <div>
 <a href="index.html#simuladores" style="display:inline-block;margin-bottom:6px;font:600 12px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8a9cab;text-decoration:none">← CritBoard · Simuladores</a>
       <h1>Hemo<span>Lab</span></h1>
-      <p>Simulador de monitorização hemodinâmica · cateter de AP, EV1000 e TPTD · preparação TEMI/AMIB · toque em qualquer parâmetro para ver o significado clínico</p>
+      <p>Simulador de monitorização hemodinâmica · cateter de AP, HemoSphere e TPTD · preparação TEMI/AMIB · toque em qualquer parâmetro para ver o significado clínico</p>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
     <div class="seg" role="group" aria-label="Monitor">
       <button id="vPAC" aria-pressed="true">Swan-Ganz</button>
-      <button id="vEV" aria-pressed="false">EV1000</button>
+      <button id="vEV" aria-pressed="false">HemoSphere</button>
     </div>
     <div class="seg" role="group" aria-label="Modo">
       <button id="mTreino" aria-pressed="true">Treino</button>
@@ -299,7 +299,7 @@ tr[data-info] td:first-child::after{content:" ⓘ";color:var(--muted);font-size:
           <button class="ico i-blue" id="nvMon" aria-pressed="false" title="Parâmetros e curva arterial" aria-label="Parâmetros"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="#7dff8a" stroke="none"/><path d="M12 1v5M12 18v5M1 12h5M18 12h5"/></svg></button>
           <button class="ico i-teal" id="nvPh" aria-pressed="true" title="Fisiologia" aria-label="Fisiologia"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 21s-7.5-4.6-9.3-9.2C1.4 8.4 3.4 4.8 7 4.8c2.1 0 3.7 1.2 5 3 1.3-1.8 2.9-3 5-3 3.6 0 5.6 3.6 4.3 7C19.5 16.4 12 21 12 21z"/></svg></button>
           <button class="ico i-steel" id="nvZero" title="Zerar transdutor" aria-label="Zerar transdutor"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M2 12h5M17 12h5"/><text x="12" y="16.5" fill="#fff" stroke="none" font-size="12" font-weight="700" text-anchor="middle" font-family="Arial">0</text></svg></button>
-          <button class="ico i-purple" id="nvSens" title="Trocar sensor (FloTrac / Acumen IQ)" aria-label="Trocar sensor"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg></button>
+          <button class="ico i-purple" id="nvSens" title="Trocar sensor (FloTrac / Acumen IQ / TPTD / Swan-Ganz)" aria-label="Trocar sensor"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg></button>
           <button class="ico i-red" id="nvMute" title="Silenciar alarme" aria-label="Silenciar alarme"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z" fill="rgba(255,255,255,.25)"/><path d="M10 20a2 2 0 0 0 4 0"/><path d="M3 3l18 18"/></svg></button>
         </div>
         <div class="icogrp">
@@ -335,15 +335,15 @@ tr[data-info] td:first-child::after{content:" ⓘ";color:var(--muted);font-size:
               <path d="M262 176 C258 200 262 228 276 246" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="2"/>
             </g>
             <!-- Frank-Starling / VVS -->
-            <g id="fsGroup">
+            <g id="fsGroup" class="nosg">
               <path d="M30 206 L30 296 L120 296" fill="none" stroke="#c9ced3" stroke-width="2"/>
               <path d="M34 292 C44 246 70 222 116 214" fill="none" stroke="#e9edf0" stroke-width="2.4"/>
               <circle id="fsDot" cx="104" cy="216" r="4.5" fill="#2fd35a"/>
             </g>
             <g font-weight="700" fill="#fff">
               <g id="pg-svi"><rect id="ps-svi" x="232" y="52" width="5" height="11" fill="#2fd35a"/><text id="pv-svi" x="242" y="64" font-size="22">--</text><text x="242" y="86" font-size="21">IVS</text><text x="243" y="97" font-size="8.5" font-weight="400">mL/b/m²</text></g>
-              <g id="pg-svv"><rect id="ps-svv" x="70" y="186" width="5" height="11" fill="#2fd35a"/><text id="pv-svv" x="80" y="198" font-size="22">--</text><text x="62" y="262" font-size="20">VVS</text><text x="72" y="274" font-size="9" font-weight="400">%</text></g>
-              <g id="pg-scvo2"><rect id="ps-scvo2" x="22" y="322" width="5" height="11" fill="#2fd35a"/><text id="pv-scvo2" x="32" y="334" font-size="22">--</text><text x="24" y="356" font-size="19">ScvO<tspan font-size="12" dy="4">2</tspan></text><text x="26" y="368" font-size="9" font-weight="400">%</text>
+              <g id="pg-svv" class="nosg"><rect id="ps-svv" x="70" y="186" width="5" height="11" fill="#2fd35a"/><text id="pv-svv" x="80" y="198" font-size="22">--</text><text x="62" y="262" font-size="20">VVS</text><text x="72" y="274" font-size="9" font-weight="400">%</text></g>
+              <g id="pg-scvo2"><rect id="ps-scvo2" x="22" y="322" width="5" height="11" fill="#2fd35a"/><text id="pv-scvo2" x="32" y="334" font-size="22">--</text><text x="24" y="356" font-size="19"><tspan id="scvL">ScvO</tspan><tspan font-size="12" dy="4">2</tspan></text><text x="26" y="368" font-size="9" font-weight="400">%</text>
                 <g id="scvBar"><rect x="24" y="374" width="64" height="11" fill="none" stroke="#c9ced3" stroke-width="1.4"/><rect id="scvFill" x="26" y="376" width="14" height="7" fill="#2fd35a"/><path d="M40 374v11M56 374v11M72 374v11" stroke="#c9ced3" stroke-width="1.2"/></g></g>
               <g id="pg-cvp"><rect id="ps-cvp" x="146" y="322" width="5" height="11" fill="#2fd35a"/><text id="pv-cvp" x="156" y="334" font-size="22">--</text><text x="150" y="356" font-size="19">PVC</text><text x="151" y="367" font-size="8.5" font-weight="400">mmHg</text></g>
               <g id="pg-svri"><rect id="ps-svri" x="206" y="322" width="5" height="11" fill="#2fd35a"/><text id="pv-svri" x="216" y="334" font-size="22">--</text><text x="210" y="356" font-size="19">IRVS</text><text x="211" y="367" font-size="8.5" font-weight="400">dyn·s·m²/cm⁵</text></g>
@@ -355,6 +355,11 @@ tr[data-info] td:first-child::after{content:" ⓘ";color:var(--muted);font-size:
                 <g id="pg-pvpi"><rect id="ps-pvpi" x="332" y="96" width="5" height="11" fill="#2fd35a"/><text id="pv-pvpi" x="342" y="108" font-size="22">--</text><text x="336" y="130" font-size="19">PVPI</text></g>
                 <g id="pg-gedi"><rect id="ps-gedi" x="192" y="226" width="5" height="11" fill="#2fd35a"/><text id="pv-gedi" x="202" y="238" font-size="22">--</text><text x="196" y="259" font-size="19">GEDI</text><text x="197" y="269" font-size="8.5" font-weight="400">mL/m²</text></g>
                 <g id="pg-gef"><rect id="ps-gef" x="320" y="236" width="5" height="11" fill="#2fd35a"/><text id="pv-gef" x="330" y="248" font-size="22">--</text><text x="324" y="269" font-size="19">GEF</text><text x="325" y="279" font-size="8.5" font-weight="400">%</text></g>
+              </g>
+              <g id="sgOnly" style="display:none">
+                <g id="pg-edvi"><rect id="ps-edvi" x="192" y="226" width="5" height="11" fill="#2fd35a"/><text id="pv-edvi" x="202" y="238" font-size="22">--</text><text x="196" y="259" font-size="19">VDFi</text><text x="197" y="269" font-size="8.5" font-weight="400">VD · mL/m²</text></g>
+                <g id="pg-rvef"><rect id="ps-rvef" x="30" y="226" width="5" height="11" fill="#2fd35a"/><text id="pv-rvef" x="40" y="238" font-size="22">--</text><text x="34" y="259" font-size="19">FEVD</text><text x="35" y="269" font-size="8.5" font-weight="400">%</text></g>
+                <g id="pg-esv"><rect id="ps-esv" x="332" y="96" width="5" height="11" fill="#2fd35a"/><text id="pv-esv" x="342" y="108" font-size="22">--</text><text x="336" y="130" font-size="19">VSF</text><text x="337" y="141" font-size="8.5" font-weight="400">VD · mL</text></g>
               </g>
               <g id="aqOnly">
                 <g id="pg-hpi"><rect id="ps-hpi" x="22" y="42" width="5" height="11" fill="#2fd35a"/><text id="pv-hpi" x="32" y="56" font-size="28">--</text><text x="24" y="80" font-size="20">HPI</text></g>
@@ -384,11 +389,12 @@ tr[data-info] td:first-child::after{content:" ⓘ";color:var(--muted);font-size:
       <div class="seg" role="group" aria-label="Sensor">
         <button id="sFT" aria-pressed="true">FloTrac</button>
         <button id="sAQ" aria-pressed="false">Acumen IQ</button>
-        <button id="sVV" aria-pressed="false">TPTD</button>
+        <button id="sVV" aria-pressed="false" title="Termodiluição transpulmonar (VolumeView, plataforma EV1000)">TPTD · EV1000</button>
+        <button id="sSG" aria-pressed="false">Swan-Ganz</button>
       </div>
       <button class="btn primary" id="bTP" hidden>Injetar bolus frio ×3</button>
-      <label for="evCVP">PVC (entrada manual para RVS)</label><input id="evCVP" type="number" min="0" max="40" step="1">
-      <span class="note">Índices dinâmicos assumem VM controlada, VC ≥ 8 mL/kg, ritmo sinusal e tórax fechado. Layout inspirado no EV1000; simulação educacional sem vínculo com o fabricante.</span>
+      <label for="evCVP" id="evCVPl">PVC (entrada manual para RVS)</label><input id="evCVP" type="number" min="0" max="40" step="1">
+      <span class="note">Índices dinâmicos assumem VM controlada, VC ≥ 8 mL/kg, ritmo sinusal e tórax fechado. HemoSphere: FloTrac, Acumen IQ (HPI) e módulo Swan-Ganz (cateter volumétrico CCOmbo V: DC contínuo, SvO₂, FEVD e VDF). A TPTD da Edwards (VolumeView) roda na plataforma EV1000, não no HemoSphere; por isso, nesse sensor, a tela passa a representar o EV1000. FloTrac/Acumen e TPTD não medem o VD. Layout inspirado nos monitores Edwards; simulação educacional sem vínculo com o fabricante.</span>
     </div>
   </section>
 
@@ -612,7 +618,7 @@ S.push(
 const byId=Object.fromEntries(S.map(s=>[s.id,s]));
 
 /* ============ ESTADO ============ */
-let mode='treino', sc=S[0], mCO=null, mPAOP=null, wedge=false, wedgeT0=0, blend=0;
+let mode='treino', sc=S[0], mCO=null, mPAOP=null, mRV=null, wedge=false, wedgeT0=0, blend=0;
 let score={ok:0,n:0}, quiz=null, derivedOpen=true, thermo=null;
 const $=id=>document.getElementById(id);
 const fmt=(v,d=0)=>v.toFixed(d).replace('.',',');
@@ -736,7 +742,7 @@ function frame(ts){
 /* ============ NUMÉRICOS ============ */
 const mean=(s,d)=>(s+2*d)/3;
 function updateNums(){
-  if(B&&$('drugs').children.length){if(evo.arrest) evoArrestTick(); else tickModel(1);drawPV();$('labs').innerHTML=labsHTML();updateMeasured();if(monitor==='ev')renderTiles();}
+  if(B&&$('drugs').children.length){if(evo.arrest) evoArrestTick(); else tickModel(1); sgCO=sgCO==null?sc.co:sgCO+(sc.co-sgCO)*.25;drawPV();$('labs').innerHTML=labsHTML();updateMeasured();if(monitor==='ev')renderTiles();}
   const j=()=>Math.round(rnd(-1,1));
   const arr=evo.arrest?evo.rhythm:null;
   $('nHR').textContent=arr==='vf'||arr==='asys'?'--':arr==='pea'?38:Math.round(sc.hr)+j();
@@ -787,11 +793,11 @@ function drawThermo(k){
   for(let i=0;i<=N;i++){const x=i/120*W;const tt=i/120*6;const v=Math.pow(tt/ (2*tau),2)*Math.exp(2-tt/tau);const y=H-3*dpr-amp*v*(H-8*dpr);i?ctx.lineTo(x,y):ctx.moveTo(x,y)}
   ctx.stroke();
 }
-function stepThermo(dt){thermo.p+=dt/3.2;drawThermo(Math.min(1,thermo.p));if(thermo.p>=1){mCO=thermo.co;thermo=null;$('bCO').disabled=false;updateMeasured()}}
+function stepThermo(dt){thermo.p+=dt/3.2;drawThermo(Math.min(1,thermo.p));if(thermo.p>=1){mCO=thermo.co;mRV=sc.rvEDV;thermo=null;$('bCO').disabled=false;updateMeasured()}}
 $('bCO').onclick=()=>{ if(thermo)return; thermo={p:0,co:Math.round(sc.co*(1+rnd(-.03,.03))*10)/10}; $('bCO').disabled=true; $('nCO').textContent='...'; };
 
-/* ============ EV1000 · FLOTRAC / ACUMEN IQ ============ */
-let monitor='pac', sensor='ft', evView='phys', zeroUntil=0, evNext=20, evJ={co:1,svv:0,ppv:0,dp:1,hpi:0}, cvpIn=null, hpiDismissed=false, hpiSec=false, hist=null;
+/* ============ HEMOSPHERE · FLOTRAC / ACUMEN IQ / SWAN-GANZ (+ EV1000 · VOLUMEVIEW) ============ */
+let sgCO=null, monitor='pac', sensor='ft', evView='phys', zeroUntil=0, evNext=20, evJ={co:1,svv:0,ppv:0,dp:1,hpi:0}, cvpIn=null, hpiDismissed=false, hpiSec=false, hist=null;
 const EVP={
  normal:{svv:8,ppv:9,dpdt:960,hpi:12}, hipo:{svv:19,ppv:21,dpdt:640,hpi:96}, sephiper:{svv:13,ppv:11,dpdt:780,hpi:100},
  sephipo:{svv:10,ppv:8,dpdt:520,hpi:100}, vasopl:{svv:13,ppv:9,dpdt:1000,hpi:100}, cardio:{svv:6,ppv:7,dpdt:430,hpi:88}, iamvd:{svv:14,ppv:15,dpdt:560,hpi:100},
@@ -836,6 +842,14 @@ function evVals(){
   const svr=80*(map-cvp)/co, svv=Math.max(2,sc.svvNow+evJ.svv), ppv=Math.max(2,sc.ppvNow+evJ.ppv);
   const r={map,co,ci:co/sc.bsa,sv,svi:sv/sc.bsa,svv,ppv,svr,svri:svr*sc.bsa,dpdt:e.dpdt*evJ.dp*sc.dpF,eadyn:ppv/svv,
     hpi:map<65?100:Math.max(0,Math.min(100,Math.round(e.hpi+sc.hpiD+evJ.hpi))),scvo2:sc.svc,pr:sc.hr,cvp};
+  if(sensor==='sg'){
+    // cateter de AP volumétrico: DC contínuo por termodiluição com filamento térmico (média móvel, mede Qp),
+    // SvO₂ contínua por fibra óptica, PVC do lúmen proximal, FEVD/VDF por termistor de resposta rápida + ECG
+    const cco=(sgCO??sc.co), sv2=cco/sc.hr*1000, cv=sc.cvp, reg=evo.rhythm==='sinus'&&!evo.arrest;
+    Object.assign(r,{co:cco,ci:cco/sc.bsa,sv:sv2,svi:sv2/sc.bsa,cvp:cv,svr:80*(map-cv)/cco,svri:80*(map-cv)/cco*sc.bsa,svo2:sc.svo2,scvo2:sc.svo2,
+      svv:null,ppv:null,eadyn:null,dpdt:null,hpi:null,
+      rvef:reg?Math.min(75,sv2/sc.rvEDV*100):null,edv:reg?sc.rvEDV:null,edvi:reg?sc.rvEDV/sc.bsa:null,esv:reg?Math.max(0,sc.rvEDV-sv2):null});
+  }
   if(sensor==='vv'){
     const w=VVP[sc.id];
     if(!vvSnap){['co','ci','sv','svi','svr','svri','gedi','elwi','pvpi','gef','cfi'].forEach(k=>r[k]=null)}
@@ -847,6 +861,7 @@ const PAR={
  co:['DC','L/min',1,[4,8]], ci:['IC','L/min/m²',1,[2.5,4]], sv:['VS','mL',0,[60,100]], svi:['IVS','mL/m²',0,[33,47]],
  svv:['VVS','%',0,[0,13]], ppv:['VPP','%',0,[0,13]], svr:['RVS','dyn·s·cm⁻⁵',0,[800,1200]], svri:['IRVS','dyn·s·cm⁻⁵·m²',0,[1970,2390]],
  map:['PAM','mmHg',0,[65,105]], pr:['FP','bpm',0,[60,100]], cvp:['PVC','mmHg',0,[2,6]], dpdt:['dP/dt','mmHg/s',0,null], eadyn:['Ea dyn','',2,null], hpi:['HPI','',0,null], scvo2:['ScvO₂','%',0,[70,80]],
+ svo2:['SvO₂','%',0,[60,80]], rvef:['FEVD','%',0,[40,60]], edvi:['VDFi','mL/m²',0,[59,94]], edv:['VDF','mL',0,[100,160]], esv:['VSF','mL',0,[50,100]],
  gedi:['GEDI','mL/m²',0,[680,800]], elwi:['ELWI','mL/kg',0,[3,7]], pvpi:['PVPI','',1,[1,3]], gef:['GEF','%',0,[25,35]], cfi:['CFI','1/min',1,[4.5,6.5]]
 };
 function stat(k,v){
@@ -861,7 +876,7 @@ function stat(k,v){
   const m=Math.max((t[1]-t[0])*.15,2);
   return (v<t[0]-m||v>t[1]+m)?'r':'y';
 }
-const SENS={vv:{main:['ci','gedi','elwi','pvpi'],sec:['svv','gef','cfi','svri']},ft:{main:['co','sv','svv','svr'],sec:['ci','svi','map','scvo2']},aq:{main:['hpi','co','svv','dpdt'],sec:['map','ppv','eadyn','svr']}};
+const SENS={sg:{main:['co','svo2','rvef','edvi'],sec:['ci','sv','svr','cvp']},vv:{main:['ci','gedi','elwi','pvpi'],sec:['svv','gef','cfi','svri']},ft:{main:['co','sv','svv','svr'],sec:['ci','svi','map','scvo2']},aq:{main:['hpi','co','svv','dpdt'],sec:['map','ppv','eadyn','svr']}};
 function tile(k,v,sm){
   const [l,u,d]=PAR[k], st=stat(k,v);
   const cap=k==='hpi'?'<div class="tc">prob. de PAM &lt; 65 em 15 min</div>':'';
@@ -876,22 +891,23 @@ function renderTiles(){
   renderHPI(v);
 }
 function arrow(k,v){if(v==null)return'';const s=stat(k,v);if(!s||s==='g')return'';const t=PAR[k][3];if(k==='dpdt')return' ▼';if(t&&v>t[1])return' ▲';return' ▼'}
-const GLOBES={vv:['ci','gedi','elwi','svv'],ft:['ci','svv','svri','scvo2'],aq:['hpi','ci','svv','dpdt']};
+const GLOBES={sg:['ci','svo2','rvef','edvi'],vv:['ci','gedi','elwi','svv'],ft:['ci','svv','svri','scvo2'],aq:['hpi','ci','svv','dpdt']};
 const SCOL={g:'#2fd35a',y:'#f2c037',r:'#ff4d5a','':'#8a9098'};
 function renderGlobes(v){
   $('globes').innerHTML=GLOBES[sensor].map(k=>{const [l,u,d]=PAR[k];const st=stat(k,v[k]);
     return `<div data-info="${k}" class="globe ${st}"><span class="lamp"></span><div class="dial"><b>${(v[k]==null?'--':fmt(v[k],k==='ci'?1:d))}</b><small>${u}</small></div><span class="gl">${l}</span></div>`}).join('');
 }
 function renderPhys(v){
-  ['svi','svv','scvo2','cvp','svri','pr','map','ci','hpi','dpdt','eadyn','elwi','pvpi','gedi','gef'].forEach(k=>{
+  ['svi','svv','scvo2','cvp','svri','pr','map','ci','hpi','dpdt','eadyn','elwi','pvpi','gedi','gef','rvef','edvi','esv'].forEach(k=>{
     const el=$('pv-'+k); if(!el) return; el.textContent=v[k]==null?'--':fmt(v[k],k==='ci'?1:PAR[k][2]);
     $('ps-'+k).setAttribute('fill',SCOL[stat(k,v[k])]);
   });
   // ponto na curva de Frank-Starling: VVS alta = parte íngreme
-  const f=Math.max(0,Math.min(1,(v.svv-4)/18)); const tt=1-f;
+  const f=Math.max(0,Math.min(1,((v.svv??8)-4)/18)); const tt=1-f;
   const bx=(1-tt)**3*34+3*(1-tt)**2*tt*44+3*(1-tt)*tt*tt*70+tt**3*116, by=(1-tt)**3*292+3*(1-tt)**2*tt*246+3*(1-tt)*tt*tt*222+tt**3*214;
   $('fsDot').setAttribute('cx',bx);$('fsDot').setAttribute('cy',by);$('fsDot').setAttribute('fill',SCOL[stat('svv',v.svv)]);
-  const n=Math.max(1,Math.min(4,Math.round((v.scvo2-40)/10))); $('scvFill').setAttribute('width',n*16-2);$('scvFill').setAttribute('fill',SCOL[stat('scvo2',v.scvo2)]);
+  const n=Math.max(1,Math.min(4,Math.round((v.scvo2-40)/10))); $('scvFill').setAttribute('width',n*16-2);$('scvFill').setAttribute('fill',SCOL[stat(sensor==='sg'?'svo2':'scvo2',v.scvo2)]);
+  if(sensor==='sg') $('ps-scvo2').setAttribute('fill',SCOL[stat('svo2',v.svo2)]);
   $('physSvg').style.setProperty('--hb',(60/sc.hr).toFixed(2)+'s');
 }
 let hpiKey='';
@@ -931,8 +947,11 @@ function drawTrend(){
     const p=hist[hist.length-1];ctx.fillStyle=col;ctx.beginPath();ctx.arc(xi(90),fy(p[key]),3.5*dpr,0,7);ctx.fill()};
   line('map',ym,'#ff4b55'); line('co',yc,'#e8eef3');
 }
-function setSensor(s){sensor=s;$('evSensL').textContent={ft:'FloTrac',aq:'Acumen IQ',vv:'VolumeView'}[s];$('aqOnly').style.display=s==='aq'?'':'none';$('vvOnly').style.display=s==='vv'?'':'none';$('bTP').hidden=s!=='vv';$('sFT').setAttribute('aria-pressed',s==='ft');$('sAQ').setAttribute('aria-pressed',s==='aq');$('sVV').setAttribute('aria-pressed',s==='vv');if(s!=='vv')$('tpOv').hidden=true;hpiDismissed=false;hpiSec=false;renderTiles();renderDerived()}
-$('sFT').onclick=()=>setSensor('ft'); $('sAQ').onclick=()=>setSensor('aq'); $('sVV').onclick=()=>setSensor('vv');
+function setSensor(s){sensor=s;$('evSensL').textContent={ft:'FloTrac',aq:'Acumen IQ',vv:'EV1000 · VolumeView',sg:'Swan-Ganz CCOmbo V'}[s];$('aqOnly').style.display=s==='aq'?'':'none';$('vvOnly').style.display=s==='vv'?'':'none';$('sgOnly').style.display=s==='sg'?'':'none';
+  document.querySelectorAll('#physSvg .nosg').forEach(e=>e.style.display=s==='sg'?'none':'');$('scvL').textContent=s==='sg'?'SvO':'ScvO';
+  $('evCVP').disabled=s==='sg';$('evCVPl').textContent=s==='sg'?'PVC medida pelo cateter (lúmen proximal)':'PVC (entrada manual para RVS)';
+  $('bTP').hidden=s!=='vv';$('sFT').setAttribute('aria-pressed',s==='ft');$('sAQ').setAttribute('aria-pressed',s==='aq');$('sVV').setAttribute('aria-pressed',s==='vv');$('sSG').setAttribute('aria-pressed',s==='sg');if(s!=='vv')$('tpOv').hidden=true;hpiDismissed=false;hpiSec=false;renderTiles();renderDerived()}
+$('sFT').onclick=()=>setSensor('ft'); $('sAQ').onclick=()=>setSensor('aq'); $('sVV').onclick=()=>setSensor('vv'); $('sSG').onclick=()=>setSensor('sg');
 /* ---- termodiluição transpulmonar ---- */
 let tpTimer=null;
 function tpCurve(ctx,W,H,co,k,idx){
@@ -971,7 +990,7 @@ $('bTP').onclick=runTPTD;
 function setView(v){evView=v;[['nvMon','mon'],['nvPh','phys'],['nvTr','tr']].forEach(([b,x])=>$(b).setAttribute('aria-pressed',v===x));
   $('evPhys').hidden=v!=='phys';$('evMon').hidden=v!=='mon';$('evTrend').hidden=v!=='tr';setupCanvases()}
 $('nvMon').onclick=()=>setView('mon'); $('nvPh').onclick=()=>setView('phys'); $('nvTr').onclick=()=>setView('tr');
-$('nvSens').onclick=()=>setSensor({ft:'aq',aq:'vv',vv:'ft'}[sensor]);
+$('nvSens').onclick=()=>setSensor({ft:'aq',aq:'vv',vv:'sg',sg:'ft'}[sensor]);
 $('nvZero').onclick=()=>{zeroUntil=t+3;if(evView!=='mon')setView('mon');$('evZeroL').hidden=false;setTimeout(()=>{$('evZeroL').hidden=true},3000)};
 $('nvMute').onclick=()=>{hpiDismissed=true;$('hpiAlert').hidden=true};
 $('nvHpi').onclick=()=>{if(sensor!=='aq'){setSensor('aq')}hpiDismissed=false;hpiSec=true;renderHPI(evVals(),true)};
@@ -985,26 +1004,30 @@ function setMonitor(m){
 $('vPAC').onclick=()=>setMonitor('pac'); $('vEV').onclick=()=>setMonitor('ev');
 
 function renderDerivedEV(el){
-  const v=evVals(), aq=sensor==='aq', vv=sensor==='vv';
-  const rows=[['Fluxo',['co','ci','sv','svi']],['Volumétricos · TPTD',['gedi','elwi','pvpi','gef','cfi']],['Pré-carga · índices dinâmicos',['svv','ppv']],['Pós-carga e tônus',['map','svr','svri','eadyn']],['Contratilidade',['dpdt']],['Predição',['hpi']]];
-  const only={ppv:1,eadyn:1,dpdt:1,hpi:1}, onlyVV={gedi:1,elwi:1,pvpi:1,gef:1,cfi:1};
-  const ref={co:'4,0–8,0',ci:'2,5–4,0',sv:'60–100',svi:'33–47',svv:'< 10 · > 13 responde',ppv:'< 10 · > 13 responde',map:'65–105',svr:'800–1200',svri:'1970–2390',eadyn:'≥ 0,73 → PAM responde a volume',dpdt:'tendência',hpi:'< 85',gedi:'680–800',elwi:'3–7 (> 10 edema)',pvpi:'1–3',gef:'25–35',cfi:'4,5–6,5'};
-  const fx={co:'contorno de pulso',ci:'DC/SC',sv:'DC/FC',svi:'VS/SC',svv:'(VSmáx − VSmín)/VSmédio',ppv:'(PPmáx − PPmín)/PPmédia',svr:'80·(PAM − PVC)/DC',svri:'RVS·SC',eadyn:'VPP/VVS',dpdt:'inclinação sistólica da curva arterial',hpi:'algoritmo da onda arterial',map:'',gedi:'volume diastólico final global indexado',elwi:'água pulmonar extravascular / peso predito',pvpi:'EVLW/volume sanguíneo pulmonar',gef:'4·VS/GEDV',cfi:'DC/GEDV'};
+  const v=evVals(), aq=sensor==='aq', vv=sensor==='vv', sg=sensor==='sg';
+  const rows=[['Fluxo',['co','ci','sv','svi']],['Swan-Ganz · oximetria e VD volumétrico',['svo2','rvef','edvi','edv','esv','cvp']],['Volumétricos · TPTD',['gedi','elwi','pvpi','gef','cfi']],['Pré-carga · índices dinâmicos',['svv','ppv']],['Pós-carga e tônus',['map','svr','svri','eadyn']],['Contratilidade',['dpdt']],['Predição',['hpi']]];
+  const only={ppv:1,eadyn:1,dpdt:1,hpi:1}, onlyVV={gedi:1,elwi:1,pvpi:1,gef:1,cfi:1}, onlySG={svo2:1,rvef:1,edvi:1,edv:1,esv:1}, noSG={svv:1,ppv:1,eadyn:1,dpdt:1,hpi:1};
+  const ref={co:'4,0–8,0',ci:'2,5–4,0',sv:'60–100',svi:'33–47',svv:'< 10 · > 13 responde',ppv:'< 10 · > 13 responde',map:'65–105',svr:'800–1200',svri:'1970–2390',eadyn:'≥ 0,73 → PAM responde a volume',dpdt:'tendência',hpi:'< 85',gedi:'680–800',elwi:'3–7 (> 10 edema)',pvpi:'1–3',gef:'25–35',cfi:'4,5–6,5',svo2:'60–80',rvef:'40–60',edvi:'59–94',edv:'100–160',esv:'50–100',cvp:'2–6'};
+  const fx={co:'contorno de pulso',ci:'DC/SC',sv:'DC/FC',svi:'VS/SC',svv:'(VSmáx − VSmín)/VSmédio',ppv:'(PPmáx − PPmín)/PPmédia',svr:'80·(PAM − PVC)/DC',svri:'RVS·SC',eadyn:'VPP/VVS',dpdt:'inclinação sistólica da curva arterial',hpi:'algoritmo da onda arterial',map:'',gedi:'volume diastólico final global indexado',elwi:'água pulmonar extravascular / peso predito',pvpi:'EVLW/volume sanguíneo pulmonar',gef:'4·VS/GEDV',cfi:'DC/GEDV',svo2:'oximetria contínua na AP',rvef:'VS/VDF · termistor rápido + ECG',edvi:'VDF do VD/SC',edv:'VS/FEVD',esv:'VDF − VS',cvp:'lúmen proximal (ou manual)'};
   let h='<div class="tw"><table><thead><tr><th>Variável</th><th>Valor</th><th>Referência</th></tr></thead><tbody>';
   rows.forEach(([g,ks])=>{h+=`<tr class="grp"><td colspan="3">${g}</td></tr>`;ks.forEach(k=>{
-    const [l,u,d]=PAR[k]; let val;
+    const [l,u,d]=PAR[k]; let val; const fxk=sg&&k==='co'?'termodiluição contínua (CCO) · mede Qp':sg&&k==='sv'?'DC contínuo/FC':fx[k];
     const mut=t=>`<span class="muted" style="font-size:12px;font-family:var(--sans);font-weight:400">${t}</span>`;
-    if(only[k]&&!aq) val=mut('requer Acumen IQ');
+    if(sg&&noSG[k]) val=mut('requer FloTrac/Acumen');
+    else if(onlySG[k]&&!sg) val=mut('requer Swan-Ganz');
+    else if(sg&&v[k]==null&&onlySG[k]) val=mut('requer ritmo regular');
+    else if(only[k]&&!aq) val=mut('requer Acumen IQ');
     else if(onlyVV[k]&&!vv) val=mut('requer TPTD');
     else if(v[k]==null) val=mut('injete o bolus');
     else {const s=stat(k,v[k]);const cls=s==='r'||s==='y'?(arrow(k,v[k]).includes('▲')?'hi':'lo'):'';val=`<span class="${cls}">${fmt(v[k],d)}<span class="flag">${arrow(k,v[k])}</span></span>`}
-    h+=`<tr data-info="${k}"><td>${l}<span class="fx">${fx[k]}${u?' · '+u:''}</span></td><td class="v">${val}</td><td class="r">${ref[k]}</td></tr>`})});
+    h+=`<tr data-info="${k}"><td>${l}<span class="fx">${fxk}${u?' · '+u:''}</span></td><td class="v">${val}</td><td class="r">${ref[k]}</td></tr>`})});
   h+='</tbody></table></div>';
   h+=`<ul class="note" style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px">
    <li>VVS/VPP só predizem fluido-responsividade em VM controlada, VC ≥ 8 mL/kg, ritmo sinusal e tórax fechado. Falsos-positivos: falência de VD, tamponamento, hipertensão intra-abdominal.</li>
    <li>Ea dyn (VPP/VVS) estima o tônus arterial dinâmico: ≥ 0,73 prediz aumento da PAM ≥ 10% após volume (García 2014); valores baixos sugerem que o ganho de fluxo não elevará a PAM.</li>
    <li>TPTD: bolus frio pelo acesso central (VCS) e termistor na artéria femoral; média de 3 bolus. Injeção femoral superestima o GEDI. Recalibrar o contorno de pulso a cada ~8 h ou após mudança hemodinâmica importante.</li>
    <li>ELWI &gt; 10 mL/kg indica edema pulmonar; PVPI &gt; 3 sugere edema por permeabilidade (SDRA), PVPI ≤ 3 sugere hidrostático. EVLW não é confiável no TEP, após ressecção pulmonar e em grandes derrames pleurais.</li>
+   <li>Swan-Ganz volumétrico: o DC contínuo é média móvel de alguns minutos (tendência, não resposta imediata) e mede o fluxo pulmonar (Qp). FEVD/VDF exigem ritmo regular e sinal de ECG; ficam indisponíveis na FA e são pouco confiáveis com FC alta ou insuficiência tricúspide importante.</li>
    <li>HPI ≥ 85 dispara alerta: probabilidade de PAM &lt; 65 mmHg por ≥ 1 min nos próximos 15 min.</li>
    <li>Contorno de pulso não mede POAP nem pressões pulmonares; erra com arritmia, BIA, IA grave, curva amortecida e vasoplegia extrema. No shunt intracardíaco mede o fluxo sistêmico (Qs).</li></ul>`;
   el.innerHTML=h;
@@ -1013,6 +1036,7 @@ function renderDerivedEV(el){
 /* ============ DERIVADAS ============ */
 const NORM={
  dc:[4,8],ic:[2.5,4],vs:[60,100],ivs:[33,47],rvs:[800,1200],irvs:[1970,2390],rvp:[20,160],wu:[.25,2],itsve:[50,62],itsvd:[5,10],cpo:[.6,1.5],papi:[.9,99],
+ fevd:[40,60],vdfvdi:[59,94],vsfvd:[50,100],
  pam:[65,105],papm:[9,20],gtp:[0,12],gdp:[0,7],rel:[0,.8],cao2:[17,20],do2i:[500,600],vo2i:[120,160],teo2:[22,30],pp:[30,60]
 };
 function calc(){
@@ -1021,7 +1045,8 @@ function calc(){
   const cao2=1.34*sc.hb*sc.sao2/100+.003*sc.pao2; r.cao2=cao2;
   if(co){const ci=co/sc.bsa, sv=co/sc.hr*1000;Object.assign(r,{dc:co,ic:ci,vs:sv,ivs:sv/sc.bsa,rvs:80*(pam-sc.cvp)/co,cpo:pam*co/451,
     do2i:ci*cao2*10});const cvo2=1.34*sc.hb*sc.svo2/100+.003*40;r.vo2i=ci*(cao2-cvo2)*10;r.teo2=(cao2-cvo2)/cao2*100;r.irvs=r.rvs*sc.bsa;
-    r.itsvd=r.ivs*(papm-sc.cvp)*.0136;}
+    r.itsvd=r.ivs*(papm-sc.cvp)*.0136;
+    if(mRV){r.fevd=Math.min(75,sv/mRV*100);r.vdfvdi=mRV/sc.bsa;r.vsfvd=Math.max(0,mRV-sv);}}
   if(pa){r.gtp=papm-pa;r.gdp=sc.pD-pa;r.rel=sc.cvp/pa}
   if(co&&pa){r.rvp=80*(papm-pa)/co;r.wu=(papm-pa)/co;r.itsve=r.ivs*(pam-pa)*.0136}
   r.papi=(sc.pS-sc.pD)/sc.cvp;
@@ -1038,7 +1063,8 @@ const ROWS=[
  ['Ventrículo esquerdo',[
   ['itsve','ITSVE','IVS·(PAM − POAP)·0,0136','g·m/m²',0],['cpo','CPO','PAM·DC/451','W',2]]],
  ['Ventrículo direito',[
-  ['papi','PAPi','(PAPs − PAPd)/PVC','',2],['rel','PVC/POAP','','',2],['itsvd','ITSVD','IVS·(PAPm − PVC)·0,0136','g·m/m²',1]]],
+  ['papi','PAPi','(PAPs − PAPd)/PVC','',2],['rel','PVC/POAP','','',2],['itsvd','ITSVD','IVS·(PAPm − PVC)·0,0136','g·m/m²',1],
+  ['fevd','FEVD','VS/VDF · cateter volumétrico','%',0],['vdfvdi','VDFVDi','VDF do VD/SC','mL/m²',0],['vsfvd','VSFVD','VDF − VS','mL',0]]],
  ['Oxigenação',[
   ['cao2','CaO₂','1,34·Hb·SaO₂ + 0,003·PaO₂','mL/dL',1],['do2i','DO₂I','IC·CaO₂·10','mL/min/m²',0],['vo2i','VO₂I','IC·(CaO₂ − CvO₂)·10','mL/min/m²',0],['teo2','TEO₂','(CaO₂ − CvO₂)/CaO₂','%',0]]]
 ];
@@ -1194,7 +1220,7 @@ function evoAfter(b,x){
 function evoArrest(r,why){
   evo.arrest={r,why,t:evo.t}; evo.rhythm=r; evoLog('PARADA CARDÍACA: '+why);
   const mf=Math.round((sc.cvp+sc.paop)/2); Object.assign(sc,{aS:mf+3,aD:mf+2,pS:mf+2,pD:mf+1,cvp:mf,paop:mf,co:.3,coSys:.3,svo2:20,svc:20,sao2:70,pulsus:0,hr:38});
-  if(mode==='treino'){mCO=sc.co;mPAOP=sc.paop;updateMeasured()}
+  if(mode==='treino'){mCO=sc.co;mPAOP=sc.paop;mRV=sc.rvEDV;updateMeasured()}
   if(mode==='prova') score.pcr=(score.pcr||0)+1;
   showArrest(); renderEvo();
 }
@@ -1289,7 +1315,8 @@ function makeLive(s){
     LVm={A,beta,Vd,V0,pext,RF0,lv:lvDrv,Ees0:pes/(edv0-svt-V0),Ea0:pes/svt,hr0:s.hr,edv0,P0,svt0:svt};
   }
   const e=EVP[s.id];
-  return Object.assign({},s,{wW:s.wW?{...s.wW}:undefined,coSys:s.co/q,qpqs:q,dpF:1,hpiD:0,gediF:1,elwiD:0,EesR:1,
+  const rvEDV0=(s.co/s.hr*1000)/(RVEF0[s.id]||.5);
+  return Object.assign({},s,{rvEDV:rvEDV0,rvEDV0,wW:s.wW?{...s.wW}:undefined,coSys:s.co/q,qpqs:q,dpF:1,hpiD:0,gediF:1,elwiD:0,EesR:1,
     lvEDV:LVm.edv0,lvSVt:LVm.svt0,lvEes:LVm.Ees0,lvEa:LVm.Ea0,lvPes:LVm.Ea0*LVm.svt0,lvPext:LVm.pext,
     svvNow:e.svv,ppvNow:e.ppv,pulsus:s.pulsus||Math.max(3,e.ppv/100*(s.aS-s.aD)*1.1)});
 }
@@ -1453,7 +1480,11 @@ function tickModel(dt){
   sc.hpiD=hf(MAP)-hf(map0);
   sc.gediF=clamp(1+(M.drv==='rv'?(cvpPre-b.cvp):(paopPre-b.paop))/40,.6,1.5);
   sc.elwiD=elwiD;
-  if(mode==='treino'){mCO=sc.co;mPAOP=sc.paop}
+  { const svR=Qp/HR*1000, E0=sc.rvEDV0;
+    if(b.id==='tamp') sc.rvEDV=clamp(svR/RVEF0.tamp,E0*.5,E0*2.5);   // restrição pericárdica: o VD enche quando o pericárdio é drenado
+    else { const pm=(cvp+b.cvp)/2, C=.05*E0*Math.exp(-Math.max(0,pm-6)/10); sc.rvEDV=clamp(E0+C*(cvp-b.cvp),E0*.5,E0*1.8); }
+    sc.rvEDV=Math.max(sc.rvEDV,svR/.75); }
+  if(mode==='treino'){mCO=sc.co;mPAOP=sc.paop;mRV=sc.rvEDV}
   if((CH.PAP.max===60&&sc.pS>58)||(CH.PAP.max===100&&sc.pS<50&&!(sc.wW&&sc.wW.v>15))) applyScales();
   evoAfter(b,{MAP,aD,paop,cvp,HR,svo2:M.qpqs?svc:svo2,lac:lacNow,sao2});
   renderResp(); renderAlerts(); renderEvo();
@@ -1538,6 +1569,9 @@ function renderResp(){
 const LVP={vsve:{edv:70},neurog:{edv:110},normal:{edv:140},hipo:{edv:40},sephiper:{edv:115},vasopl:{edv:120},sephipo:{edv:130},cardio:{edv:150},
  iamvd:{edv:90,pext:3},tamp:{edv:50,pext:15},tep:{edv:50,pext:4},hap:{edv:80,pext:2},cpc:{edv:200},iminsuf:{edv:150},civ:{edv:160}};
 const PV_V0=5;
+/* VD (cateter de AP volumétrico, termistor de resposta rápida + ECG): FEVD basal por cenário.
+   VDF do VD = VS do VD/FEVD; depois varia com a PVC pela complacência do VD (menor quanto mais distendido). */
+const RVEF0={normal:.52,hipo:.50,sephiper:.45,vasopl:.45,sephipo:.28,cardio:.25,iamvd:.20,tamp:.45,tep:.14,hap:.25,cpc:.28,iminsuf:.30,civ:.40,vsve:.55,neurog:.55};
 let pvBase=null;
 const edpvr=(v,pext)=>LVm.A*(Math.exp(LVm.beta*(v-LVm.Vd))-1)+pext;
 function lvState(x){
@@ -1620,16 +1654,17 @@ function equilibrate(){
 }
 function loadScenario(s,keepMeasures){
   B=s; sc=makeLive(s); evoReset(); resetInterventions(); equilibrate(); evo.pre=false; showArrest(); renderEvo(); $('stBsa').textContent=fmt(sc.bsa,2); curT=60/sc.hr; applyScales();
-  if(mode==='treino'){mCO=sc.co;mPAOP=sc.paop}else{mCO=null;mPAOP=null}
+  if(mode==='treino'){mCO=sc.co;mPAOP=sc.paop;mRV=sc.rvEDV}else{mCO=null;mPAOP=null;mRV=null}
   if(wedge){wedge=false;blend=0;$('bWedge').classList.remove('on');$('bWedge').lastChild.textContent='Insuflar balão'}
   thermo=null;$('bCO').disabled=false;
-  cvpIn=sc.cvp; $('evCVP').value=sc.cvp; vvSnap=null; if(mode==='treino') snapVV(); if(tpTimer){clearInterval(tpTimer);tpTimer=null} $('tpOv').hidden=true; hpiDismissed=false; hpiSec=false; evJitter(); evNext=20; buildHist(); drawTrend(); renderTiles();
+  cvpIn=sc.cvp; $('evCVP').value=sc.cvp; vvSnap=null; sgCO=null; if(mode==='treino') snapVV(); if(tpTimer){clearInterval(tpTimer);tpTimer=null} $('tpOv').hidden=true; hpiDismissed=false; hpiSec=false; evJitter(); evNext=20; buildHist(); drawTrend(); renderTiles();
   $('vign').textContent=sc.vign; $('labs').innerHTML=labsHTML();
   updateNums(); updateMeasured(); drawThermo(1); renderCase();
 }
 function keysHTML(s){
   let k=s.keys, extra='';
-  if(monitor==='ev'){ if(sensor==='vv'&&VVK[s.id]) k=[...(EVK[s.id]||[]).slice(0,1),...VVK[s.id]]; else if(EVK[s.id]) k=EVK[s.id]; else extra='<li class="muted">Contorno de pulso não mede pressões pulmonares nem POAP: este diagnóstico exige cateter de AP ou eco. Achados no cateter de AP:</li>'; }
+  if(monitor==='ev'&&sensor==='sg'){ k=s.keys; }
+  else if(monitor==='ev'){ if(sensor==='vv'&&VVK[s.id]) k=[...(EVK[s.id]||[]).slice(0,1),...VVK[s.id]]; else if(EVK[s.id]) k=EVK[s.id]; else extra='<li class="muted">Contorno de pulso não mede pressões pulmonares nem POAP: este diagnóstico exige cateter de AP ou eco. Achados no cateter de AP:</li>'; }
   return `<div class="keys"><ul>${extra}${k.map(x=>`<li>${x}</li>`).join('')}</ul></div>`}
 function renderCase(){
   const body=$('caseBody');
@@ -1670,7 +1705,7 @@ function answer(q,i){
 }
 let lastId=null;
 function newCase(){
-  const all=monitor==='ev'?S.filter(s=>EVPOOL.includes(s.id)):S;
+  const all=monitor==='ev'&&sensor!=='sg'?S.filter(s=>EVPOOL.includes(s.id)):S;
   const pool=all.filter(s=>s.id!==lastId); const s=pool[Math.floor(Math.random()*pool.length)]; lastId=s.id;
   const ids=all.map(x=>x.id);
   let d=s.conf.filter(x=>ids.includes(x)).slice(0,3); while(d.length<3){const r=ids[Math.floor(Math.random()*ids.length)];if(r!==s.id&&!d.includes(r))d.push(r)}
@@ -1688,8 +1723,11 @@ $('scSel').onchange=e=>loadScenario(byId[e.target.value]);
 
 /* ============ INÍCIO ============ */
 /* ============ SIGNIFICADO CLÍNICO DE CADA PARÂMETRO (clique) ============ */
-const INFO_ALIAS={dc:'co',ic:'ci',vs:'sv',ivs:'svi',rvs:'svr',irvs:'svri',pam:'map',pr:'hr'};
+const INFO_ALIAS={dc:'co',ic:'ci',vs:'sv',ivs:'svi',rvs:'svr',irvs:'svri',pam:'map',pr:'hr',rvef:'fevd',edvi:'vdfvdi',edv:'vdfvdi',esv:'vsfvd'};
 const INFO={
+ fevd:{t:'Fração de ejeção do VD (FEVD)',ref:'40–60% (termodiluição, cateter de AP volumétrico)',up:'VD hiperdinâmico: pré-carga baixa (hipovolemia, tamponamento restritivo) ou inotrópico.',dn:'Disfunção sistólica do VD ou pós-carga alta: IAM de VD, TEP, HP, sepse com disfunção miocárdica. Dobutamina, milrinona e redução da RVP a elevam; vasoconstrição pulmonar e volume excessivo a reduzem.',note:'Medida pelo cateter volumétrico (termistor de resposta rápida sincronizado ao ECG): exige ritmo regular e é pouco confiável com FC alta, arritmia ou insuficiência tricúspide importante. Valores de termodiluição são menores que os da RM. Não é medida pelo FloTrac/Acumen nem pela TPTD, cuja GEF é global.'},
+ vdfvdi:{t:'Volume diastólico final do VD indexado (VDFVDi)',ref:'59–94 mL/m²',up:'VD dilatado: sobrecarga de volume ou de pressão (TEP, HP, IAM de VD). Com VDFVDi alto, mais volume tende a não aumentar o DC e piora a interdependência.',dn:'Pré-carga volumétrica baixa (hipovolemia, venodilatação) ou restrição ao enchimento (tamponamento, apesar da PVC alta).',note:'Estimativa volumétrica de pré-carga do VD, menos afetada que a PVC pela pressão intratorácica e pela complacência.'},
+ vsfvd:{t:'Volume sistólico final do VD (VSFVD)',ref:'50–100 mL',up:'VD que esvazia pouco: disfunção contrátil ou pós-carga alta.',dn:'VD que esvazia bem ou pequeno (hipovolemia, estado hiperdinâmico).'},
  hr:{t:'Frequência cardíaca',ref:'60–100 bpm',up:'Taquicardia: dor, febre, hipovolemia, sepse, inotrópico β1, arritmia. Encurta a diástole: pode reduzir o enchimento e o VS, e aumenta o consumo de O₂ miocárdico.',dn:'Bradicardia: bloqueio AV (IAM inferior), hipóxia grave, vasopressina, betabloqueador. Com VS fixo, o DC cai.'},
  art:{t:'Pressão arterial invasiva',ref:'PAS 90–140 · PAD 60–90 · PAM 70–105 mmHg',up:'PAS alta com PP larga: aorta rígida, VS alto. PAD alta: vasoconstrição.',dn:'PAD baixa com PP larga: tônus vascular baixo (vasoplegia). PP estreita (< 25% da PAS): VS baixo (hipovolemia, falência de VE, tamponamento).',note:'Curva amortecida subestima a PAS e superestima a PAD; a PAM é a medida mais robusta.'},
  map:{t:'Pressão arterial média',ref:'65–105 mmHg · alvo no choque ≥ 65 mmHg (SSC 2021)',up:'Pós-carga maior; em choque com PAM alta por vasopressor, cheque se o fluxo (DC, lactato, perfusão) acompanha.',dn:'Pressão de perfusão orgânica insuficiente; abaixo da faixa de autorregulação (~65) rim e cérebro passam a depender da pressão.'},
