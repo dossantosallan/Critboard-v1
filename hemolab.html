@@ -105,7 +105,7 @@ details{border-top:1px solid var(--line);padding-top:10px}
 summary{cursor:pointer;font-family:var(--num);font-size:16px;letter-spacing:.05em;text-transform:uppercase;font-weight:600}
 .note{font-size:12.5px;color:var(--muted)}
 
-/* ===== EV1000-like ===== */
+/* ===== HemoSphere / EV1000-like ===== */
 .evmon{background:#0c0d0e;border-radius:22px;padding:14px 14px 10px;border:1px solid #2a2c2f;box-shadow:0 24px 50px -24px #000, inset 0 1px 0 #2c2f33;display:flex;flex-direction:column;gap:10px}
 .evscreen{--ev-f:"Helvetica Neue",Helvetica,Arial,sans-serif;font-family:var(--ev-f);background:radial-gradient(120% 90% at 50% 40%,#3a3d42 0%,#2a2c30 55%,#1f2124 100%);border-radius:4px;overflow:hidden;position:relative;display:grid;grid-template-columns:118px minmax(0,1fr) 150px;grid-template-areas:"ico main glob" "bar bar bar";border:2px solid #050506}
 .evicons{grid-area:ico;display:grid;grid-template-columns:1fr 1fr;align-content:start;gap:8px;padding:10px 8px}
@@ -278,12 +278,12 @@ tr[data-info] td:first-child::after{content:" ⓘ";color:var(--muted);font-size:
     <div>
 <a href="index.html#simuladores" style="display:inline-block;margin-bottom:6px;font:600 12px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8a9cab;text-decoration:none">← CritBoard · Simuladores</a>
       <h1>Hemo<span>Lab</span></h1>
-      <p>Simulador de monitorização hemodinâmica · cateter de AP, EV1000 e TPTD · preparação TEMI/AMIB · toque em qualquer parâmetro para ver o significado clínico</p>
+      <p>Simulador de monitorização hemodinâmica · cateter de AP, HemoSphere e TPTD · preparação TEMI/AMIB · toque em qualquer parâmetro para ver o significado clínico</p>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
     <div class="seg" role="group" aria-label="Monitor">
       <button id="vPAC" aria-pressed="true">Swan-Ganz</button>
-      <button id="vEV" aria-pressed="false">EV1000</button>
+      <button id="vEV" aria-pressed="false">HemoSphere</button>
     </div>
     <div class="seg" role="group" aria-label="Modo">
       <button id="mTreino" aria-pressed="true">Treino</button>
@@ -389,12 +389,12 @@ tr[data-info] td:first-child::after{content:" ⓘ";color:var(--muted);font-size:
       <div class="seg" role="group" aria-label="Sensor">
         <button id="sFT" aria-pressed="true">FloTrac</button>
         <button id="sAQ" aria-pressed="false">Acumen IQ</button>
-        <button id="sVV" aria-pressed="false">TPTD</button>
+        <button id="sVV" aria-pressed="false" title="Termodiluição transpulmonar (VolumeView, plataforma EV1000)">TPTD · EV1000</button>
         <button id="sSG" aria-pressed="false">Swan-Ganz</button>
       </div>
       <button class="btn primary" id="bTP" hidden>Injetar bolus frio ×3</button>
       <label for="evCVP" id="evCVPl">PVC (entrada manual para RVS)</label><input id="evCVP" type="number" min="0" max="40" step="1">
-      <span class="note">Índices dinâmicos assumem VM controlada, VC ≥ 8 mL/kg, ritmo sinusal e tórax fechado. Sensor Swan-Ganz: cateter de AP volumétrico (CCOmbo V) com DC contínuo, SvO₂, FEVD e VDF — no equipamento real, exibidos pelo Vigilance II ou HemoSphere. FloTrac/Acumen e TPTD não medem o VD. Layout inspirado no EV1000; simulação educacional sem vínculo com o fabricante.</span>
+      <span class="note">Índices dinâmicos assumem VM controlada, VC ≥ 8 mL/kg, ritmo sinusal e tórax fechado. HemoSphere: FloTrac, Acumen IQ (HPI) e módulo Swan-Ganz (cateter volumétrico CCOmbo V: DC contínuo, SvO₂, FEVD e VDF). A TPTD da Edwards (VolumeView) roda na plataforma EV1000, não no HemoSphere; por isso, nesse sensor, a tela passa a representar o EV1000. FloTrac/Acumen e TPTD não medem o VD. Layout inspirado nos monitores Edwards; simulação educacional sem vínculo com o fabricante.</span>
     </div>
   </section>
 
@@ -796,7 +796,7 @@ function drawThermo(k){
 function stepThermo(dt){thermo.p+=dt/3.2;drawThermo(Math.min(1,thermo.p));if(thermo.p>=1){mCO=thermo.co;mRV=sc.rvEDV;thermo=null;$('bCO').disabled=false;updateMeasured()}}
 $('bCO').onclick=()=>{ if(thermo)return; thermo={p:0,co:Math.round(sc.co*(1+rnd(-.03,.03))*10)/10}; $('bCO').disabled=true; $('nCO').textContent='...'; };
 
-/* ============ EV1000 · FLOTRAC / ACUMEN IQ ============ */
+/* ============ HEMOSPHERE · FLOTRAC / ACUMEN IQ / SWAN-GANZ (+ EV1000 · VOLUMEVIEW) ============ */
 let sgCO=null, monitor='pac', sensor='ft', evView='phys', zeroUntil=0, evNext=20, evJ={co:1,svv:0,ppv:0,dp:1,hpi:0}, cvpIn=null, hpiDismissed=false, hpiSec=false, hist=null;
 const EVP={
  normal:{svv:8,ppv:9,dpdt:960,hpi:12}, hipo:{svv:19,ppv:21,dpdt:640,hpi:96}, sephiper:{svv:13,ppv:11,dpdt:780,hpi:100},
@@ -947,7 +947,7 @@ function drawTrend(){
     const p=hist[hist.length-1];ctx.fillStyle=col;ctx.beginPath();ctx.arc(xi(90),fy(p[key]),3.5*dpr,0,7);ctx.fill()};
   line('map',ym,'#ff4b55'); line('co',yc,'#e8eef3');
 }
-function setSensor(s){sensor=s;$('evSensL').textContent={ft:'FloTrac',aq:'Acumen IQ',vv:'VolumeView',sg:'Swan-Ganz CCOmbo V'}[s];$('aqOnly').style.display=s==='aq'?'':'none';$('vvOnly').style.display=s==='vv'?'':'none';$('sgOnly').style.display=s==='sg'?'':'none';
+function setSensor(s){sensor=s;$('evSensL').textContent={ft:'FloTrac',aq:'Acumen IQ',vv:'EV1000 · VolumeView',sg:'Swan-Ganz CCOmbo V'}[s];$('aqOnly').style.display=s==='aq'?'':'none';$('vvOnly').style.display=s==='vv'?'':'none';$('sgOnly').style.display=s==='sg'?'':'none';
   document.querySelectorAll('#physSvg .nosg').forEach(e=>e.style.display=s==='sg'?'none':'');$('scvL').textContent=s==='sg'?'SvO':'ScvO';
   $('evCVP').disabled=s==='sg';$('evCVPl').textContent=s==='sg'?'PVC medida pelo cateter (lúmen proximal)':'PVC (entrada manual para RVS)';
   $('bTP').hidden=s!=='vv';$('sFT').setAttribute('aria-pressed',s==='ft');$('sAQ').setAttribute('aria-pressed',s==='aq');$('sVV').setAttribute('aria-pressed',s==='vv');$('sSG').setAttribute('aria-pressed',s==='sg');if(s!=='vv')$('tpOv').hidden=true;hpiDismissed=false;hpiSec=false;renderTiles();renderDerived()}
