@@ -210,6 +210,8 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
 .la-tag.on { color:var(--ok); border-color:rgba(80,200,120,.35); }
 .la-tag.warn { color:var(--danger); border-color:rgba(255,80,80,.4); }
 .la-pre { margin:0; padding:12px 14px; font-family:var(--mono); font-size:11.5px; line-height:1.7; white-space:pre-wrap; color:var(--t1); }
+.la-x { padding:2px 8px; opacity:.6; }
+.la-x:hover { opacity:1; color:var(--danger); }
 .la-leito-in { width:54px; font-family:var(--mono); font-size:11px; background:var(--bg,transparent); color:var(--t1); border:1px solid var(--border2); border-radius:6px; padding:2px 6px; }
 .la-det { margin-top:22px; }
 .la-det > summary { cursor:pointer; font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--t2); padding:8px 0; }
@@ -1171,13 +1173,14 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
         <div class="cc" id="ccLab">0 caracteres</div>
       </div>
     </div>
-    <div class="hint"><strong>Como funciona:</strong> conforme você cola, o CritBoard identifica cada paciente nos dois quadros, junta aferições e laboratórios do mesmo paciente e monta o texto no modelo <strong>Leito – Nome · Aferições · Laboratórios (data – exames)</strong>. Pacientes sem leito identificado aparecem como <strong>Leito XX</strong>.</div>
+    <div class="hint"><strong>Como funciona:</strong> conforme você cola, o CritBoard identifica cada paciente nos dois quadros, junta aferições e laboratórios do mesmo paciente e monta o texto no modelo <strong>Leito – Nome · Aferições · Laboratórios (data – exames)</strong>. Pacientes sem leito identificado aparecem como <strong>Leito XX</strong>.<br><strong>Histórico:</strong> exames e aferições ficam salvos <u>só neste navegador</u> e se somam aos do dia seguinte. Exames com mais de 7 dias e pacientes não colados há 3 dias são apagados automaticamente. Use ✕ para remover um paciente (alta/óbito) e evite usar em computador compartilhado sem apagar ao final.</div>
     <div class="la-bar" id="laBar" style="display:none">
       <span id="laCount"></span>
       <span style="flex:1"></span>
       <button class="btn-sm" onclick="laCopyAll()">📋 Copiar todos</button>
       <button class="btn-sm" onclick="laExport()">⬇️ Exportar .txt</button>
-      <button class="btn-sm" onclick="laClear()">🔄 Limpar</button>
+      <button class="btn-sm" onclick="laClear()" title="Limpa os quadros; o histórico salvo continua">🔄 Limpar quadros</button>
+      <button class="btn-sm" onclick="laWipe()" title="Apaga o histórico salvo neste navegador">🗑️ Apagar histórico</button>
       <span class="flash" id="flashLaAll">✓ Copiado!</span>
     </div>
     <div id="laCards"></div>
@@ -2038,6 +2041,7 @@ function laSame(a, b) {
   var sa = ta.slice(1, -1), sb = tb.slice(1, -1), sm = sa.length <= sb.length ? sa : sb, lg = sm === sa ? sb : sa;
   return sm.every(function (t) { return lg.indexOf(t) !== -1; });
 }
+function laBetter(a, b) { var ac = /[^\x00-\x7f]/.test(a), bc = /[^\x00-\x7f]/.test(b); return a.length > b.length || (a.length === b.length && ac && !bc); }
 function laFind(list, nk) { for (var i = 0; i < list.length; i++) if (laSame(list[i].key, nk)) return list[i]; return null; }
 function laLabChunks(text) {
   var re = /Paciente[\.\s]*:/gi, pos = [], m;
@@ -2050,8 +2054,9 @@ function laBuild() {
   var pts = [];
   var get = function (name) {
     var nk = laNorm(name), p = laFind(pts, nk);
+    for (var sk in laSkip) if (laSame(sk, nk)) return { labs: {} };
     if (!p) { p = { key: nk, name: name.trim(), leito: '', vit: null, labs: {} }; pts.push(p); }
-    else if (name.trim().length > p.name.length) { p.name = name.trim(); p.key = nk; }
+    else if (laBetter(name.trim(), p.name)) { p.name = name.trim(); p.key = nk; }
     return p;
   };
   var vt = document.getElementById('rtaVit').value;
@@ -2075,12 +2080,86 @@ function laBuild() {
     if (!isNaN(na) && na !== nb) return na - nb;
     return a.name.localeCompare(b.name);
   });
-  laData = pts; laRender();
+  laData = laMergeHist(pts); laRender();
 }
+
+// Histórico local (localStorage): exames/aferições persistem entre dias neste navegador
+var LA_KEY = 'critboard_la_hist', LA_DAYS_LAB = 7, LA_DAYS_GONE = 3, LA_DAY = 864e5;
+function laLoad() { try { var o = JSON.parse(localStorage.getItem(LA_KEY) || 'null'); return o && o.v === 1 ? o : { v: 1, pts: [], ov: {} }; } catch (e) { return { v: 1, pts: [], ov: {} }; } }
+function laSave(o) { try { localStorage.setItem(LA_KEY, JSON.stringify(o)); } catch (e) {} }
+function laExamByKey(k) { for (var i = 0; i < EXAMS.length; i++) if (EXAMS[i].key === k) return EXAMS[i]; return null; }
+function laDateMs(d) { var m = (d || '').match(/(\d{2})\/(\d{2})\/(\d{4})/); return m ? new Date(+m[3], +m[2] - 1, +m[1]).getTime() : null; }
+function laMergeHist(cur) {
+  var now = Date.now(), H = laLoad(), out = [];
+  for (var k in H.ov) if (!(k in laLeitoOv)) laLeitoOv[k] = H.ov[k];
+  var used = {};
+  cur.forEach(function (c) {
+    c.seen = now; c.hist = false;
+    for (var i = 0; i < H.pts.length; i++) {
+      if (used[i] || !laSame(H.pts[i].key, c.key)) continue;
+      used[i] = true; var h = H.pts[i];
+      if (!c.leito && h.leito) c.leito = h.leito;
+      if (laBetter(h.name, c.name)) { c.name = h.name; c.key = h.key; }
+      if (!c.vit && h.vit) { c.vit = h.vit; c.vitOld = h.vitAt; }
+      laAddLabs(c, h.labs); break;
+    }
+    out.push(c);
+  });
+  H.pts.forEach(function (h, i) {
+    if (used[i]) return;
+    var p = { key: h.key, name: h.name, leito: h.leito, vit: h.vit, vitOld: h.vitAt, labs: {}, seen: h.seen, hist: true };
+    laAddLabs(p, h.labs); out.push(p);
+  });
+  // expiração
+  out = out.filter(function (p) {
+    Object.keys(p.labs).forEach(function (d) { var t = laDateMs(d); if (t !== null && now - t > LA_DAYS_LAB * LA_DAY) delete p.labs[d]; });
+    return now - p.seen <= LA_DAYS_GONE * LA_DAY;
+  });
+  var ov = {};
+  out.forEach(function (p) { for (var k in laLeitoOv) if (laSame(k, p.key)) ov[k] = laLeitoOv[k]; });
+  laLeitoOv = ov;
+  laSave({ v: 1, saved: now, ov: ov, pts: out.map(function (p) {
+    var labs = {};
+    Object.keys(p.labs).forEach(function (d) { labs[d] = p.labs[d].map(function (f) { return [f.exam.key, f.value]; }); });
+    return { key: p.key, name: p.name, leito: p.leito, seen: p.seen, vit: p.vit, vitAt: p.vit ? (p.vitOld || now) : null, labs: labs };
+  }) });
+  out.sort(function (a, b) {
+    var na = parseInt(laLeito(a), 10), nb = parseInt(laLeito(b), 10);
+    if (isNaN(na) !== isNaN(nb)) return isNaN(na) ? 1 : -1;
+    if (!isNaN(na) && na !== nb) return na - nb;
+    return a.name.localeCompare(b.name);
+  });
+  return out;
+}
+function laAddLabs(p, labs) {
+  Object.keys(labs || {}).forEach(function (d) {
+    var slot = p.labs[d] || (p.labs[d] = []);
+    labs[d].forEach(function (r) {
+      var ex = laExamByKey(r[0]); if (!ex) return;
+      if (!slot.some(function (x) { return x.exam.key === r[0]; })) slot.push({ exam: ex, value: r[1] });
+    });
+  });
+}
+function laForget(i) {
+  var p = laData[i], H = laLoad();
+  H.pts = H.pts.filter(function (h) { return !laSame(h.key, p.key); });
+  laSave(H);
+  // remove também das colagens atuais, se houver
+  laData.splice(i, 1);
+  laSkip[p.key] = true;
+  laBuild();
+}
+function laWipe() {
+  if (!confirm('Apagar todo o histórico de exames e aferições salvo neste navegador?')) return;
+  try { localStorage.removeItem(LA_KEY); } catch (e) {}
+  laLeitoOv = {}; laSkip = {}; resetLab(); resetVit();
+}
+var laSkip = {};
 function laLeito(p) { for (var k in laLeitoOv) if (laSame(k, p.key)) return laLeitoOv[k]; return p.leito || ''; }
 function laPad(l) { return /^\d$/.test(l) ? '0' + l : l; }
 function laText(p) {
-  var l = laLeito(p), t = 'Leito ' + (l ? laPad(l) : 'XX') + ' - ' + p.name + '\nAferições:\n' + (p.vit ? buildVitLine(p.vit) : '—') + '\n\nLaboratórios:\n';
+  var l = laLeito(p), vd = p.vit && p.vitOld && new Date(p.vitOld).toDateString() !== new Date().toDateString() ? (p.vit.date ? p.vit.date.slice(0, 5) : new Date(p.vitOld).toLocaleDateString('pt-BR').slice(0, 5)) : '';
+  var t = 'Leito ' + (l ? laPad(l) : 'XX') + ' - ' + p.name + '\nAferições' + (vd ? ' (' + vd + ', não atualizadas)' : '') + ':\n' + (p.vit ? buildVitLine(p.vit) : '—') + '\n\nLaboratórios:\n';
   var ds = Object.keys(p.labs).sort(function (a, b) { return laDateKey(a).localeCompare(laDateKey(b)); });
   t += ds.length ? ds.map(function (d) { return (d === 'Sem data' ? d : d.slice(0, 5)) + ' - ' + buildLine(p.labs[d]); }).join('\n') : '—';
   return t;
@@ -2092,6 +2171,8 @@ function laRender() {
   bar.style.display = 'flex';
   var nv = laData.filter(function (p) { return p.vit; }).length, nl = laData.filter(function (p) { return Object.keys(p.labs).length; }).length;
   document.getElementById('laCount').textContent = laData.length + ' paciente' + (laData.length > 1 ? 's' : '') + ' · ' + nv + ' com aferições · ' + nl + ' com laboratórios';
+  var nh = laData.filter(function (p) { return p.hist; }).length;
+  if (nh) document.getElementById('laCount').textContent += ' · ' + nh + ' do histórico';
   box.innerHTML = laData.map(function (p, i) {
     var l = laLeito(p), crit = 0, ds = Object.keys(p.labs).sort(function (a, b) { return laDateKey(a).localeCompare(laDateKey(b)); });
     if (ds.length) p.labs[ds[ds.length - 1]].forEach(function (f) { if (classify(f.exam, f.value) === 'critical') crit++; });
@@ -2101,7 +2182,8 @@ function laRender() {
       + '<span class="la-tag' + (p.vit ? ' on' : '') + '">' + (p.vit ? '✓' : '·') + ' aferições</span>'
       + '<span class="la-tag' + (ds.length ? ' on' : '') + '">' + (ds.length ? '✓ ' + ds.length + ' data' + (ds.length > 1 ? 's' : '') : '· laboratórios') + '</span>'
       + (crit ? '<span class="la-tag warn">⚠ ' + crit + ' crítico' + (crit > 1 ? 's' : '') + '</span>' : '')
-      + '<button class="btn-copy" onclick="laCopy(' + i + ')">Copiar</button><span class="flash" id="flashLa_' + i + '">✓</span></div>'
+      + (p.hist ? '<span class="la-tag" title="Não está nas colagens de hoje — vindo do histórico salvo">↺ histórico</span>' : '')
+      + '<button class="btn-copy" onclick="laCopy(' + i + ')">Copiar</button><button class="btn-copy la-x" title="Remover do histórico (alta/óbito)" onclick="laForget(' + i + ')">✕</button><span class="flash" id="flashLa_' + i + '">✓</span></div>'
       + '<pre class="la-pre" id="laPre_' + i + '">' + laEsc(laText(p)) + '</pre></div>';
   }).join('');
 }
@@ -2115,7 +2197,7 @@ function laExport() {
   a.href = URL.createObjectURL(blob); a.download = nm; document.body.appendChild(a); a.click();
   setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
 }
-function laClear() { laLeitoOv = {}; resetLab(); resetVit(); }
+function laClear() { laSkip = {}; resetLab(); resetVit(); }
 function copyLineLab(idx){copyToClipboard(document.getElementById('lineLab_'+idx).textContent,function(){flashEl('flashLab_'+idx);});}
 function copyPatLab(idx){var pd=labPatients[idx];var line=document.getElementById('lineLab_'+idx).textContent;var crits=pd.results.filter(function(f){return classify(f.exam,f.value)==='critical';});var t='=== '+pd.meta.name+' ===\n'+(pd.meta.date?'Data: '+pd.meta.date+'\n':'')+'\nResumo:\n'+line;if(crits.length)t+='\n\nAlertas:\n'+crits.map(function(f){return'  * '+f.exam.abbr+': '+formatNum(f.exam,f.value)+' '+f.exam.unit;}).join('\n');copyToClipboard(t,function(){flashEl('flashPat_'+idx);});}
 function copyAllLab(){var t=labPatients.map(function(p,i){return'=== '+p.meta.name+' ===\n'+document.getElementById('lineLab_'+i).textContent;}).join('\n\n');copyToClipboard(t,function(){flashEl('flashAllLab');});}
@@ -5365,6 +5447,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   calcGCS();
   calcBPS(); calcCPOT(); calcCAM(); calcWean();
+  laBuild();
   calcSAPS3();
   initCalcCollapse();
   initPEEPTable();
