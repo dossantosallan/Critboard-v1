@@ -215,6 +215,37 @@ summary{cursor:pointer;font-family:var(--num);font-size:16px;letter-spacing:.05e
 td.up{color:#ffb86b} td.down{color:#7cc4ff} td small{font-size:11px;opacity:.8}
 .respd summary{font-size:15px}
 [hidden]{display:none!important}
+
+/* ===== BIA ===== */
+.ibscreen{background:#050708;border:1px solid #1f2a31;border-radius:10px;overflow:hidden}
+.ibstat{font-family:var(--num);font-size:14px;letter-spacing:.08em;color:#8a9cab;background:#0d1419;padding:6px 12px;border-bottom:1px solid #1f2a31}
+.ibstat.run{color:#39e27a}
+.ibbody{display:grid;grid-template-columns:minmax(0,1fr) 230px}
+.ibwaves{display:flex;flex-direction:column}
+.ibrow{position:relative;height:70px;border-bottom:1px solid #111a20}
+.ibrow.tall{height:150px}
+.ibrow canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.ibrow .lab{position:absolute;left:8px;top:4px;font:600 12px var(--num);letter-spacing:.06em}
+.ibrow .scl{position:absolute;left:8px;bottom:4px;font:12px var(--num);color:#56666f}
+.ibnums{display:flex;flex-direction:column;gap:6px;padding:10px;border-left:1px solid #1f2a31}
+.ibn{display:flex;flex-direction:column}
+.ibn span{font:600 12px var(--num);letter-spacing:.06em;text-transform:uppercase;color:#8a9cab}
+.ibn b{font-family:var(--num);font-size:28px;font-weight:600;color:#e8eef3;line-height:1.1}
+.ibn b i{font-style:normal}
+.ibn.big b{font-size:40px}
+.ibleg{font-size:11.5px;color:#6b7c87;margin-top:auto}
+.ibctl,.ibtiming{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.ibgrp{display:flex;flex-direction:column;gap:4px}
+.ibgrp .seg button{padding:6px 12px;font-size:14px}
+.ibslide{display:flex;flex-direction:column;gap:4px;min-width:220px;flex:1}
+.ibslide input{width:100%;accent-color:var(--accent)}
+.ibslide small{color:var(--muted)}
+.ibtiming.dim .ibslide{opacity:.45}
+.ibfb{display:flex;flex-direction:column;gap:6px;font-size:13.5px;line-height:1.45}
+.ibfb .ok{color:#8ef0b3} .ibfb .bad{color:#ffb3b8} .ibfb .warn{color:#ffd27a} .ibfb .muted{color:var(--muted)}
+.ibq{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.ibq .btn{font-size:13px;padding:6px 10px}
+@media (max-width:720px){.ibbody{grid-template-columns:1fr}.ibnums{border-left:0;border-top:1px solid #1f2a31;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.ibn.big b{font-size:32px}}
 .ivalerts{display:flex;flex-wrap:wrap;gap:6px}
 .evobox{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
 .evh{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -450,6 +481,42 @@ tr[data-info] td:first-child::after{content:" ⓘ";color:var(--muted);font-size:
     </div>
   </section>
 
+  <section class="panel ibpanel" id="iabpPanel" aria-label="Console do balão intra-aórtico" hidden>
+    <h2>Console do balão intra-aórtico <span class="tag">contrapulsação · ciclo com hélio</span></h2>
+    <div class="ibscreen">
+      <div class="ibstat" id="ibStat">STANDBY</div>
+      <div class="ibbody">
+        <div class="ibwaves">
+          <div class="ibrow"><canvas id="gIB_E"></canvas><canvas id="cIB_E"></canvas><span class="lab" style="color:#39e27a">ECG · II</span></div>
+          <div class="ibrow tall"><canvas id="gIB_A"></canvas><canvas id="cIB_A"></canvas><span class="lab" style="color:#ff4b55">PRESSÃO ARTERIAL · ponta do balão</span><span class="scl">0–160</span></div>
+          <div class="ibrow"><canvas id="gIB_B"></canvas><canvas id="cIB_B"></canvas><span class="lab" style="color:#ffd84a">PRESSÃO DO BALÃO</span></div>
+        </div>
+        <div class="ibnums">
+          <div class="ibn"><span>FC</span><b id="ibHR" style="color:#39e27a">--</b></div>
+          <div class="ibn big"><span data-info="ibaug">Aumento diastólico</span><b id="ibAug" style="color:#ffd84a">--</b></div>
+          <div class="ibn"><span data-info="ibsys">Sistólica NA / A</span><b><i id="ibUS">--</i> / <i id="ibAS">--</i></b></div>
+          <div class="ibn"><span data-info="ibedp">Diast. final NA / A</span><b><i id="ibUE">--</i> / <i id="ibAE">--</i></b></div>
+          <div class="ibn"><span>PAM</span><b id="ibMAP">--</b></div>
+          <div class="ibleg">NA = batimento não assistido · A = assistido. Avalie o timing em 1:2.</div>
+        </div>
+      </div>
+    </div>
+    <div class="ibctl">
+      <div class="ibgrp"><span class="note">Operação</span><div class="seg"><button id="ibAssist" aria-pressed="false">Assistir</button><button id="ibStandby" aria-pressed="true">Standby</button></div></div>
+      <div class="ibgrp"><span class="note">Razão</span><div class="seg"><button id="ibR1" aria-pressed="true">1:1</button><button id="ibR2" aria-pressed="false">1:2</button><button id="ibR3" aria-pressed="false">1:3</button></div></div>
+      <div class="ibgrp"><span class="note">Gatilho</span><div class="seg"><button id="ibTrE" aria-pressed="true">ECG</button><button id="ibTrP" aria-pressed="false">Pressão</button></div></div>
+      <div class="ibgrp"><span class="note">Modo de timing</span><div class="seg"><button id="ibAuto" aria-pressed="true">Automático</button><button id="ibSemi" aria-pressed="false">Semiautomático</button></div></div>
+      <div class="ibgrp ibslide"><span class="note">Volume do balão <b id="ibVolV">100%</b></span><input type="range" id="ibVol" min="50" max="100" step="5" value="100"></div>
+    </div>
+    <div class="ibtiming" id="ibTiming">
+      <div class="ibslide"><span class="note">Inflação <b id="ibInfV">0 ms</b> <small>← precoce · tardia →</small></span><input type="range" id="ibInf" min="-160" max="160" step="10" value="0"></div>
+      <div class="ibslide"><span class="note">Desinsuflação <b id="ibDefV">0 ms</b> <small>← precoce · tardia →</small></span><input type="range" id="ibDef" min="-200" max="120" step="10" value="0"></div>
+      <div class="drow"><button class="btn" id="ibAutoT">Timing ideal</button><button class="btn primary" id="ibPrac">Prática de timing</button></div>
+    </div>
+    <div class="ibfb" id="ibFb" aria-live="polite"></div>
+    <p class="note">Efeitos esperados com bom timing: redução de pós-carga (sístole e diastólica final assistidas menores), aumento da pressão diastólica e da perfusão coronária, DC +0,5–1 L/min e queda da POAP. IABP-SHOCK II (2012): sem redução de mortalidade no choque cardiogênico pós-IAM; ESC 2023 contraindica o uso de rotina nesse cenário (classe III) e aceita considerá-lo como ponte nas complicações mecânicas, como IM aguda e CIV (IIa). Contraindicações: IAo mais que leve e dissecção de aorta. Complicações: isquemia do membro, plaquetopenia, sangramento. Desmame: 1:2 → 1:3 com reavaliação de DC/SvO₂ após ≥ 30 min.</p>
+  </section>
+
   <section class="panel" id="pvPanel" aria-label="Alça pressão-volume do VE">
     <h2>Alça pressão-volume do VE <span class="tag">cinza = apresentação · colorida = agora</span></h2>
     <div class="pvwrap">
@@ -473,6 +540,7 @@ tr[data-info] td:first-child::after{content:" ⓘ";color:var(--muted);font-size:
     <div class="evobox" id="evoBox" aria-live="polite"></div>
     <div class="ivalerts" id="ivAlerts" aria-live="polite"></div>
     <div class="drugs" id="drugs"></div>
+    <div class="drugs"><div class="drug" id="iabpCard"></div></div>
     <details class="respd" open><summary>Resposta hemodinâmica · basal × atual</summary><div class="tw" style="margin-top:8px"><table id="resp"></table></div>
       <p class="note" style="margin-top:6px">Modelo didático. VE: a POAP define o VDF pela EDPVR de cada cenário (a fluido-responsividade é a inclinação da EDPVR no ponto atual e cai a cada bolus), e o VS sai do acoplamento ventrículo-arterial, VS = (VDF − V0)·Ees/(Ees + Ea): inotrópico aumenta a Ees, vasopressor aumenta a Ea. Cenários limitados pelo VD ou pericárdio usam curva de Frank-Starling na PVC com interdependência. Inclui redistribuição do cristaloide, reposição plasmática, hemodiluição, barorreflexo e Fick com VO₂ constante. Direção e ordem de grandeza das respostas, não farmacocinética real.</p></details>
   </section>
@@ -660,7 +728,10 @@ const CH={
   PAP:{col:'#ffd84a',min:0,max:60,grid:[20,40]},
   CVP:{col:'#45a8ff',min:0,max:30,grid:[10,20]},
   PL:{col:'#33e0e6',min:-.1,max:1.12,grid:[]},
-  EV:{col:'#ff4b55',min:0,max:160,grid:[40,80,120],src:'ART'}
+  EV:{col:'#ff4b55',min:0,max:160,grid:[40,80,120],src:'ART'},
+  IB_E:{col:'#39e27a',min:-.6,max:1.45,grid:[],src:'ECG'},
+  IB_A:{col:'#ff4b55',min:0,max:160,grid:[40,80,120],src:'ART'},
+  IB_B:{col:'#ffd84a',min:-40,max:100,grid:[0],src:'BAL'}
 };
 let dpr=1;
 function setupCanvases(){
@@ -693,6 +764,153 @@ let t=0, lastR=0, prevR=-.8, curT=.8, prevT=.8, beat=0, pos=0, lastFrame=null;
 const FS=250;
 function beatU(s){ if(s>=lastR) return [s-lastR,curT]; return [s-prevR,prevT]; }
 function inspAt(s){const ph=(s%3.75)/3.75;return ph<.4?Math.sin(Math.PI*ph/.4):0}
+/* ============ BALÃO INTRA-AÓRTICO (BIA) ============
+   Contrapulsação: inflação na incisura dicrótica (aumento diastólico → perfusão coronária) e desinsuflação imediatamente
+   antes da sístole (queda da pressão diastólica final → redução de pós-carga). Tempos em ms: negativo = precoce, positivo = tardio. */
+let iabp={placed:false,assist:false,ratio:1,vol:100,infl:0,defl:0,trig:'ecg',mode:'auto',practice:null,answered:false};
+let ibState={vb:0,dv:0,suc:0,cyc:null,st:{}};
+function iabpReset(){iabp={placed:false,assist:false,ratio:1,vol:100,infl:0,defl:0,trig:'ecg',mode:'auto',practice:null,answered:false};ibState={vb:0,dv:0,suc:0,cyc:null,st:{}};}
+// efeito hemodinâmico médio: E = fração de ciclos assistidos × volume × qualidade do gatilho
+function iabpEff(){
+  const z={E:0,aug:0,red:0,pen:0};
+  if(!iabp.placed||!iabp.assist||evo.arrest) return z;
+  let rh=1;
+  if(evo.rhythm==='af') rh=iabp.trig==='press'?.75:.65;       // FA: desinsuflação na onda R; enchimento irregular
+  if(evo.rhythm==='vt') rh=.15;
+  const hr=sc.hr||80, hrF=hr>130?clamp(1-(hr-130)/70,.35,1):1; // diástole curta: menos tempo de aumento
+  const ti=iabp.infl, td=iabp.defl;
+  const aug=clamp(1-Math.max(0,ti)/180,0,1);
+  const red=clamp(1-Math.max(0,-td)/170,0,1)*clamp(1-Math.max(0,td)/70,0,1);
+  const pen=clamp(Math.max(0,-ti-25)/110+Math.max(0,td-10)/60,0,1.5);
+  return {E:iabp.vol/100/iabp.ratio*rh*hrF,aug,red,pen};
+}
+// volume do balão (0–1) num ciclo arterial de período T, com assistência a
+function ibVol(x,T,a){
+  if(!a) return 0;
+  const ti=sysT(T)+.03+iabp.infl/1000, td=T-.075+iabp.defl/1000;
+  if(x<ti) return 0;
+  let v=1-Math.exp(-(x-ti)/.035);
+  if(x>td) v*=Math.exp(-(x-td)/.028);
+  return v;
+}
+function ibAssisted(i){ return iabp.placed&&iabp.assist&&!evo.arrest&&evo.rhythm!=='vt'&&((i%iabp.ratio)+iabp.ratio)%iabp.ratio===0; }
+// soma o efeito do balão à pressão aórtica nativa; mantém o estado da "sucção" da desinsuflação
+function ibArt(s,ua,Ta,native){
+  const dt=1/FS, cur=s-.14>=lastR, idx=cur?beat:beat-1, Tp=cur?prevT:prevT;
+  let vb=ibVol(ua,Ta,ibAssisted(idx))+ibVol(ua+Tp,Tp,ibAssisted(idx-1));
+  vb=Math.min(1,vb);
+  const d=vb-ibState.vb; ibState.dv=d/dt; ibState.vb=vb;
+  const V=iabp.vol/100, pp=Math.max(12,sc.aS-sc.aD);
+  if(d<0) ibState.suc+=-d*V*22;
+  ibState.suc*=Math.exp(-dt/.09);
+  const Ga=V*(.55*pp+12);
+  const p=native+Ga*vb-ibState.suc;
+  // estatística por ciclo para o console
+  const c=ibState.cyc;
+  if(!c||c.idx!==idx){
+    if(c){ const st=ibState.st;
+      if(c.prevA) st.aSys=c.sys; else st.uSys=c.sys;
+      if(c.a){ st.aEDP=c.last; st.aug=c.aug; } else st.uEDP=c.last; }
+    ibState.cyc={idx,a:ibAssisted(idx),prevA:ibAssisted(idx-1),sys:0,aug:0,last:p};
+  }
+  const cc=ibState.cyc;
+  if(ua<sysT(Ta)+.02) cc.sys=Math.max(cc.sys,p); else cc.aug=Math.max(cc.aug,p);
+  cc.last=p;
+  return p;
+}
+function ibBalloonP(art){
+  if(!iabp.placed) return 0;
+  const v=ibState.vb, r=ibState.dv;
+  return -3+v*(22+.2*(art-60))+Math.max(0,r)*2.6-Math.max(0,-r)*1.6;
+}
+/* ---- análise de timing (para o feedback) ---- */
+function ibTimingIssues(){
+  const L=[];
+  if(iabp.infl<-35) L.push({k:'ei',t:'Inflação precoce',d:'Infla antes do fechamento da valva aórtica: sem incisura dicrótica, aumento funde-se à sístole. Fechamento prematuro da valva, aumento do VDF/PDF do VE, da pós-carga e do consumo de O₂.'});
+  if(iabp.infl>35) L.push({k:'li',t:'Inflação tardia',d:'Incisura dicrótica visível antes do aumento; pico diastólico baixo. Perfusão coronária abaixo do possível.'});
+  if(iabp.defl<-40) L.push({k:'ed',t:'Desinsuflação precoce',d:'Queda abrupta após o aumento, vale em "U" e pressão sobe de novo antes da sístole; diastólica final assistida ≈ não assistida e sístole assistida ≥ não assistida. Sem redução de pós-carga; risco de fluxo coronário retrógrado.'});
+  if(iabp.defl>15) L.push({k:'ld',t:'Desinsuflação tardia',d:'Aumento alargado invadindo a sístole; diastólica final assistida ≥ não assistida e ascensão sistólica lenta. O VE ejeta contra o balão: pós-carga e consumo de O₂ aumentam.'});
+  return L;
+}
+const IB_ERR={ei:{infl:-100,defl:0},li:{infl:110,defl:0},ed:{infl:0,defl:-150},ld:{infl:0,defl:70}};
+const IB_NAMES={ok:'Timing adequado',ei:'Inflação precoce',li:'Inflação tardia',ed:'Desinsuflação precoce',ld:'Desinsuflação tardia'};
+function renderIABP(){
+  const pnl=$('iabpPanel'), card=$('iabpCard'); if(!pnl) return;
+  pnl.hidden=!iabp.placed;
+  card.innerHTML=iabp.placed
+    ?`<div class="dh"><b>Balão intra-aórtico</b><span class="dv">${iabp.assist?'1:'+iabp.ratio:'standby'}</span></div><div class="cls">40 mL · femoral · ponta distal à subclávia E</div><div class="drow"><button class="btn" id="ibGo">Ver console</button><button class="btn" id="ibOut">Remover</button></div>`
+    :`<div class="dh"><b>Balão intra-aórtico</b><span class="dv">—</span></div><div class="cls">Contrapulsação · 40 mL para altura 162–182 cm</div><div class="drow"><button class="btn" id="ibIn">Implantar BIA</button></div><div class="ref">Contraindicado com IAo mais que leve e dissecção de aorta.</div>`;
+  card.classList.toggle('on',iabp.placed);
+  if($('ibIn')) $('ibIn').onclick=()=>{iabp.placed=true;iabp.assist=false;renderIABP();setupCanvases();$('iabpPanel').scrollIntoView({behavior:'smooth',block:'start'})};
+  if($('ibOut')) $('ibOut').onclick=()=>{iabpReset();renderIABP();};
+  if($('ibGo')) $('ibGo').onclick=()=>$('iabpPanel').scrollIntoView({behavior:'smooth',block:'start'});
+  if(!iabp.placed) return;
+  const set=(id,on)=>{const e=$(id); if(e) e.setAttribute('aria-pressed',on)};
+  set('ibAssist',iabp.assist); set('ibStandby',!iabp.assist);
+  [1,2,3].forEach(r=>set('ibR'+r,iabp.ratio===r));
+  set('ibAuto',iabp.mode==='auto'); set('ibSemi',iabp.mode==='semi');
+  set('ibTrE',iabp.trig==='ecg'); set('ibTrP',iabp.trig==='press');
+  $('ibVol').value=iabp.vol; $('ibVolV').textContent=iabp.vol+'%';
+  const hide=iabp.practice&&!iabp.answered;
+  $('ibInf').value=hide?0:iabp.infl; $('ibDef').value=hide?0:iabp.defl;
+  $('ibInfV').textContent=hide?'?':(iabp.infl>0?'+':'')+iabp.infl+' ms';
+  $('ibDefV').textContent=hide?'?':(iabp.defl>0?'+':'')+iabp.defl+' ms';
+  $('ibInf').disabled=$('ibDef').disabled=iabp.mode==='auto'||hide;
+  $('ibTiming').classList.toggle('dim',iabp.mode==='auto');
+  ibFeedback();
+}
+function ibFeedback(){
+  const el=$('ibFb'); if(!el) return;
+  if(iabp.practice&&!iabp.answered){
+    el.innerHTML=`<b>Prática de timing</b> · analise a curva em 1:2 e identifique o erro:<div class="ibq">${Object.entries(IB_NAMES).map(([k,v])=>`<button class="btn" data-ib="${k}">${v}</button>`).join('')}</div>`;
+    el.querySelectorAll('[data-ib]').forEach(b=>b.onclick=()=>{iabp.answered=b.dataset.ib;renderIABP()});
+    return;
+  }
+  let h='';
+  if(iabp.practice&&iabp.answered){ const ok=iabp.answered===iabp.practice;
+    h+=`<div class="${ok?'ok':'bad'}"><b>${ok?'Correto':'Incorreto'}:</b> o erro era ${IB_NAMES[iabp.practice].toLowerCase()}. Corrija nos controles de timing (modo semiautomático) ou volte ao automático.</div>`; }
+  const I=iabpEff(), L=ibTimingIssues();
+  if(!iabp.assist) h+='<div>Em standby: sem assistência. Selecione <b>Assistir</b>.</div>';
+  else if(evo.arrest) h+='<div class="bad">PCR: sem gatilho de ECG nem de pressão. Na RCP, usar modo interno/assíncrono ou pressão se houver compressões eficazes.</div>';
+  else if(mode==='treino'||(iabp.practice&&iabp.answered)){
+    h+= L.length?L.map(x=>`<div class="bad"><b>${x.t}.</b> ${x.d}</div>`).join(''):'<div class="ok"><b>Timing adequado:</b> inflação na incisura dicrótica (V nítido), aumento diastólico ≥ sistólica, diastólica final assistida 10–20 mmHg abaixo da não assistida e sístole assistida ~5 mmHg abaixo da não assistida.</div>';
+  }
+  if(iabp.assist&&evo.rhythm==='af') h+='<div class="warn">FA: gatilho de ECG com desinsuflação na onda R (modo FA); considere gatilho por pressão. Eficácia reduzida.</div>';
+  if(iabp.assist&&sc.hr>130) h+='<div class="warn">FC &gt; 130: diástole curta limita o aumento; considere 1:2.</div>';
+  if(iabp.assist&&MODEL[B.id].lvoto) h+='<div class="bad">Obstrução dinâmica da VSVE: a redução de pós-carga do BIA aumenta o gradiente. Não indicado.</div>';
+  if(iabp.assist&&I.E>0) h+=`<div class="muted">Efeito médio estimado: ${fmt(I.E*100,0)}% da assistência plena (razão, volume, ritmo e FC).</div>`;
+  el.innerHTML=h||'';
+}
+function ibNums(){
+  if(!iabp.placed||$('iabpPanel').hidden) return;
+  const st=ibState.st, r=iabp.ratio, a=iabp.assist&&!evo.arrest;
+  const f=v=>v==null?'--':Math.round(v);
+  $('ibHR').textContent=evo.arrest?'--':Math.round(sc.hr);
+  $('ibAug').textContent=a?f(st.aug):'--';
+  $('ibUS').textContent=a&&r===1?'--':f(st.uSys);
+  $('ibAS').textContent=a?f(st.aSys):'--';
+  $('ibUE').textContent=a&&r===1?'--':f(st.uEDP);
+  $('ibAE').textContent=a?f(st.aEDP):'--';
+  $('ibMAP').textContent=Math.round(mean(sc.aS,sc.aD));
+  $('ibStat').textContent=(a?'ASSISTINDO 1:'+r:'STANDBY')+' · GATILHO '+(iabp.trig==='ecg'?(evo.rhythm==='af'?'ECG (FA)':'ECG'):'PRESSÃO')+' · '+(iabp.mode==='auto'?'AUTOMÁTICO':'SEMIAUTOMÁTICO')+' · VOLUME '+iabp.vol+'% · 40 mL · HÉLIO';
+  $('ibStat').classList.toggle('run',a);
+}
+function iabpInit(){
+  const on=(id,fn)=>{$(id).onclick=()=>{fn();renderIABP()}};
+  on('ibAssist',()=>{iabp.assist=true}); on('ibStandby',()=>{iabp.assist=false});
+  [1,2,3].forEach(r=>on('ibR'+r,()=>{iabp.ratio=r}));
+  on('ibAuto',()=>{iabp.mode='auto';iabp.infl=0;iabp.defl=0;iabp.practice=null});
+  on('ibSemi',()=>{iabp.mode='semi'});
+  on('ibTrE',()=>{iabp.trig='ecg'}); on('ibTrP',()=>{iabp.trig='press'});
+  on('ibAutoT',()=>{iabp.infl=0;iabp.defl=0});
+  on('ibPrac',()=>{const ks=Object.keys(IB_ERR), k=ks[Math.floor(Math.random()*ks.length)]; const e=IB_ERR[k];
+    iabp.mode='semi';iabp.assist=true;iabp.ratio=2;iabp.infl=e.infl+Math.round(rnd(-10,10));iabp.defl=e.defl+Math.round(rnd(-10,10));iabp.practice=k;iabp.answered=false;
+    if(Math.random()<.18){iabp.infl=0;iabp.defl=0;iabp.practice='ok'}});
+  $('ibVol').oninput=e=>{iabp.vol=+e.target.value;$('ibVolV').textContent=iabp.vol+'%'};
+  $('ibInf').oninput=e=>{iabp.infl=+e.target.value;renderIABP()};
+  $('ibDef').oninput=e=>{iabp.defl=+e.target.value;renderIABP()};
+}
+
 let curA=1, prevA=1;
 function sample(s){
   if(evo.arrest){ lastR=s; return arrestSample(s); }
@@ -706,7 +924,10 @@ function sample(s){
   if(af) e+=.035*Math.sin(2*Math.PI*6.3*s)+.025*Math.sin(2*Math.PI*8.9*s+1);
   let [ua,Ta]=beatU(s-.14); const a=artShape(ua,Ta,.07)*(s-.14>=lastR?curA:prevA);
   const pp=sc.pulsus||4;
-  const art=s<zeroUntil?0:sc.aD+(sc.aS-sc.aD)*a-pp*ins*(.35+.65*a);
+  let art=sc.aD+(sc.aS-sc.aD)*a-pp*ins*(.35+.65*a);
+  if(iabp.placed) art=ibArt(s,ua,Ta,art);
+  const bal=ibBalloonP(art);
+  if(s<zeroUntil) art=0;
   let [up,Tp]=beatU(s-.06); const pa=artShape(up,Tp,.05);
   let pap=sc.pD+(sc.pS-sc.pD)*pa+(sc.paV?sc.paV*pg(up,sysT(Tp)+.12,.05,Tp):0);
   let [uw,Tw]=beatU(s-.1); const wed=sc.paop+atr(uw,Tw,sc.wW||DEF_W)-.8;
@@ -715,7 +936,7 @@ function sample(s){
   const papOut=pap*(1-blend)+wed*blend-3*ins;
   let [uc,Tc]=beatU(s-.02); const cvp=sc.cvp+atr(uc,Tc,sc.cvpW||DEF_CVP)-.6+(sc.kuss?2.2*ins:-3*ins);
   let [ul,Tl]=beatU(s-.26); const pl=artShape(ul,Tl,.025)*(1-(sc.pulsus>10?.25*ins:.04*ins));
-  return {ECG:e,ART:art,PAP:papOut,CVP:cvp,PL:pl};
+  return {ECG:e,ART:art,PAP:papOut,CVP:cvp,PL:pl,BAL:bal};
 }
 function frame(ts){
   if(lastFrame===null) lastFrame=ts;
@@ -744,6 +965,7 @@ const mean=(s,d)=>(s+2*d)/3;
 function updateNums(){
   if(B&&$('drugs').children.length){if(evo.arrest) evoArrestTick(); else tickModel(1); sgCO=sgCO==null?sc.co:sgCO+(sc.co-sgCO)*.25;drawPV();$('labs').innerHTML=labsHTML();updateMeasured();if(monitor==='ev')renderTiles();}
   const j=()=>Math.round(rnd(-1,1));
+  ibNums(); if(iabp.placed&&iabp.assist&&mode==='treino'&&!iabp.practice) ibFeedback();
   const arr=evo.arrest?evo.rhythm:null;
   $('nHR').textContent=arr==='vf'||arr==='asys'?'--':arr==='pea'?38:Math.round(sc.hr)+j();
   const s=Math.round(sc.aS)+j(), d=Math.round(sc.aD)+j();
@@ -1291,7 +1513,7 @@ function arrestSample(s){
     e=a*(.38*Math.sin(2*Math.PI*5.1*s)+.24*Math.sin(2*Math.PI*3.3*s+1.3)+.14*Math.sin(2*Math.PI*7.7*s+.4))*(.65+.35*Math.sin(2*Math.PI*.37*s)); }
   else if(r==='pea'){ const T=60/38, u=s%T; e=.55*g(u,.1,.035)-.22*g(u,.19,.04)+.16*g(u,.5,.09); }
   else e=.015*Math.sin(2*Math.PI*.25*s)+rnd(-.008,.008);
-  return {ECG:e,ART:sc.aD+1.5*ins+rnd(-.3,.3),PAP:sc.pD+2*ins,CVP:sc.cvp-2*ins+rnd(-.2,.2),PL:.02*Math.sin(2*Math.PI*.2*s)};
+  return {ECG:e,ART:sc.aD+1.5*ins+rnd(-.3,.3),PAP:sc.pD+2*ins,CVP:sc.cvp-2*ins+rnd(-.2,.2),PL:.02*Math.sin(2*Math.PI*.2*s),BAL:iabp.placed?-3:0};
 }
 
 function makeLive(s){
@@ -1392,6 +1614,8 @@ function tickModel(dt){
   let q=M.qpqs?M.qpqs*clamp(Math.sqrt(svrR),.6,1.6):1;
   let RF=M.mr?clamp(LVm.RF0*Math.pow(svrR,.4),.15,.75):0;
   if(dis.reg){ if(M.qpqs) q=Math.max(1,q*(1+(dis.reg>0?.4:.75)*dis.reg)); if(M.mr) RF=clamp(RF*(1+(dis.reg>0?.5:1.1)*dis.reg),.05,.85); }
+  const IB=iabpEff(), ibU=IB.E*IB.red, ibP=IB.E*IB.pen;   // BIA: descarga do VE (Ea menor) com bom timing; penalidade com erro de timing
+  if(IB.E){ if(M.qpqs) q=Math.max(1,q*(1-.2*ibU+.12*ibP)); if(M.mr) RF=clamp(RF*(1-.22*ibU+.15*ibP),.05,.85); }
   const rf0=evo.rhythm==='af'?.85:evo.rhythm==='vt'?.4:1;
   // hipovolemia além do ponto em que a pressão de enchimento já está no mínimo: perda de volume estressado
   const under=Math.min(0,(M.drv==='rv'?b.cvp+dC:b.paop+dP)-2), rf=rf0*clamp(1+under/12,.2,1);   // FA: perda da contração atrial; TV: enchimento muito reduzido
@@ -1400,14 +1624,14 @@ function tickModel(dt){
   for(let it=0;it<4;it++){
     if(lv){
       // Ea efetiva: metade da variação de RVS×FC chega ao VE (autorregulação homeométrica/Anrep e complacência aórtica)
-      Ea=LVm.Ea0*(1+.55*(svrR*(HR/LVm.hr0)-1));
+      Ea=LVm.Ea0*(1+.55*(svrR*(HR/LVm.hr0)-1))*(1-.16*ibU+.15*ibP);
       SVt=Math.max(5,(EDV-LVm.V0)*Ees/(Ees+Ea));
       SV=M.mr?SVt*(1-RF):(M.qpqs?SVt/q:SVt);
-      if(M.lvoto){ ob=clamp(M.lvoto*Math.pow(EesR,1.2)*Math.pow(svrR,-1)*Math.pow(LVm.edv0/EDV,1.2)*Math.pow(HR/LVm.hr0,.5),0,.8); SV*=(1-ob)/(1-M.lvoto); }
+      if(M.lvoto){ ob=clamp(M.lvoto*(1+.6*ibU)*Math.pow(EesR,1.2)*Math.pow(svrR,-1)*Math.pow(LVm.edv0/EDV,1.2)*Math.pow(HR/LVm.hr0,.5),0,.8); SV*=(1-ob)/(1-M.lvoto); }
       SV=Math.max(SV0*.25,SV)*rf;
     } else {
       const hrSV=Math.pow(b.hr/HR,M.hrx||.25), perf=M.perf&&map0<70?Math.pow(MAP/map0,.3):1;
-      SV=Math.max(SV0*.25,SV0*cfRV*preF*Math.pow(pvrR,-M.rvp)*hrSV*perf)*rf;
+      SV=Math.max(SV0*.25,SV0*cfRV*preF*Math.pow(pvrR,-M.rvp)*hrSV*perf)*rf*(1+.06*ibU-.08*ibP);
       SVt=SV;
     }
     Qs=HR*SV/1000;
@@ -1416,6 +1640,7 @@ function tickModel(dt){
     if(evo.rhythm==='af') HR=Math.min(175,HR*1.3); else if(evo.rhythm==='vt') HR=185;
   }
   const Qp=Qs*q;
+  if(IB.E){ paop=Math.max(3,paop-Math.max(0,paop-8)*.2*ibU+3*ibP); }
   if(M.lvoto){ paop+=16*(ob-M.lvoto); sc.ob=ob; }   // IM por SAM e pressão sistólica do VE maior elevam a pressão do AE
   // pressão de pulso: Windkessel de 2 elementos. PP ∝ (VS/Cart) × F(Tej/τ), τ = R·Cart.
   //  – Cart cai com a pressão de distensão (e com tônus vasomotor alto); – com τ curto (vasoplegia) mais sangue
@@ -1486,7 +1711,7 @@ function tickModel(dt){
     sc.rvEDV=Math.max(sc.rvEDV,svR/.75); }
   if(mode==='treino'){mCO=sc.co;mPAOP=sc.paop;mRV=sc.rvEDV}
   if((CH.PAP.max===60&&sc.pS>58)||(CH.PAP.max===100&&sc.pS<50&&!(sc.wW&&sc.wW.v>15))) applyScales();
-  evoAfter(b,{MAP,aD,paop,cvp,HR,svo2:M.qpqs?svc:svo2,lac:lacNow,sao2});
+  evoAfter(b,{MAP,aD:aD+(pp*.55+12)*.55*IB.E*IB.aug,paop,cvp,HR,svo2:M.qpqs?svc:svo2,lac:lacNow,sao2});
   renderResp(); renderAlerts(); renderEvo();
 }
 function snapVV(){ // termodiluição transpulmonar mede os volumes só no momento do bolus
@@ -1653,7 +1878,7 @@ function equilibrate(){
   pvInit();
 }
 function loadScenario(s,keepMeasures){
-  B=s; sc=makeLive(s); evoReset(); resetInterventions(); equilibrate(); evo.pre=false; showArrest(); renderEvo(); $('stBsa').textContent=fmt(sc.bsa,2); curT=60/sc.hr; applyScales();
+  B=s; sc=makeLive(s); evoReset(); iabpReset(); resetInterventions(); equilibrate(); evo.pre=false; showArrest(); renderEvo(); renderIABP(); $('stBsa').textContent=fmt(sc.bsa,2); curT=60/sc.hr; applyScales();
   if(mode==='treino'){mCO=sc.co;mPAOP=sc.paop;mRV=sc.rvEDV}else{mCO=null;mPAOP=null;mRV=null}
   if(wedge){wedge=false;blend=0;$('bWedge').classList.remove('on');$('bWedge').lastChild.textContent='Insuflar balão'}
   thermo=null;$('bCO').disabled=false;
@@ -1725,6 +1950,9 @@ $('scSel').onchange=e=>loadScenario(byId[e.target.value]);
 /* ============ SIGNIFICADO CLÍNICO DE CADA PARÂMETRO (clique) ============ */
 const INFO_ALIAS={dc:'co',ic:'ci',vs:'sv',ivs:'svi',rvs:'svr',irvs:'svri',pam:'map',pr:'hr',rvef:'fevd',edvi:'vdfvdi',edv:'vdfvdi',esv:'vsfvd'};
 const INFO={
+ ibaug:{t:'Aumento diastólico (BIA)',ref:'Pico diastólico aumentado ≥ pressão sistólica não assistida',up:'Boa contrapulsação: inflação na incisura dicrótica com volume adequado; aumenta a pressão de perfusão coronária.',dn:'Inflação tardia, volume de balão reduzido, balão mal posicionado ou pequeno, hipovolemia, taquicardia (diástole curta) ou vazamento/dobra do cateter.'},
+ ibsys:{t:'Sistólica não assistida × assistida',ref:'Assistida ~5 mmHg abaixo da não assistida',up:'Sístole assistida ≥ não assistida: sem redução de pós-carga (desinsuflação precoce ou tardia).',dn:'Queda esperada: o VE ejeta contra uma aorta "esvaziada" pela desinsuflação.'},
+ ibedp:{t:'Diastólica final não assistida × assistida',ref:'Assistida 10–20 mmHg abaixo da não assistida',up:'Diastólica final assistida ≥ não assistida: desinsuflação tardia (balão ainda inflado no início da sístole) ou volume baixo.',dn:'Queda adequada = redução da pós-carga. Queda precoce com vale em "U" que volta a subir antes da sístole sugere desinsuflação precoce.'},
  fevd:{t:'Fração de ejeção do VD (FEVD)',ref:'40–60% (termodiluição, cateter de AP volumétrico)',up:'VD hiperdinâmico: pré-carga baixa (hipovolemia, tamponamento restritivo) ou inotrópico.',dn:'Disfunção sistólica do VD ou pós-carga alta: IAM de VD, TEP, HP, sepse com disfunção miocárdica. Dobutamina, milrinona e redução da RVP a elevam; vasoconstrição pulmonar e volume excessivo a reduzem.',note:'Medida pelo cateter volumétrico (termistor de resposta rápida sincronizado ao ECG): exige ritmo regular e é pouco confiável com FC alta, arritmia ou insuficiência tricúspide importante. Valores de termodiluição são menores que os da RM. Não é medida pelo FloTrac/Acumen nem pela TPTD, cuja GEF é global.'},
  vdfvdi:{t:'Volume diastólico final do VD indexado (VDFVDi)',ref:'59–94 mL/m²',up:'VD dilatado: sobrecarga de volume ou de pressão (TEP, HP, IAM de VD). Com VDFVDi alto, mais volume tende a não aumentar o DC e piora a interdependência.',dn:'Pré-carga volumétrica baixa (hipovolemia, venodilatação) ou restrição ao enchimento (tamponamento, apesar da PVC alta).',note:'Estimativa volumétrica de pré-carga do VD, menos afetada que a PVC pela pressão intratorácica e pela complacência.'},
  vsfvd:{t:'Volume sistólico final do VD (VSFVD)',ref:'50–100 mL',up:'VD que esvazia pouco: disfunção contrátil ou pós-carga alta.',dn:'VD que esvazia bem ou pequeno (hipovolemia, estado hiperdinâmico).'},
@@ -1801,6 +2029,7 @@ function tagInfo(){
 }
 function start(){
   tagInfo(); buildDrugUI(); setupCanvases(); loadScenario(S[0]);
+  iabpInit(); renderIABP();
   setSensor('ft'); setInterval(updateNums,1000);
   requestAnimationFrame(frame);
 }
