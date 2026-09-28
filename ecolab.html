@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>EcoLab</title>
+<meta name="description" content="EcoLab: simulador de POCUS e ecocardiografia à beira do leito com imagens e Doppler gerados por modelo fisiológico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{color-scheme:dark;
+ --bg:#070b0f;--panel:#0d1318;--panel2:#121a21;--line:#1c2832;--line2:#28363f;--text:#dbe5ec;--muted:#8a9cab;--faint:#56666f;
+ --ok:#39e27a;--warn:#ffb020;--bad:#ff5c66;--acc:#ffc93c;--cy:#7fdcff;
+ --num:"Barlow Condensed","Arial Narrow",sans-serif;--sans:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.45}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.wrap{max-width:1480px;margin:0 auto;padding:12px 16px 40px;display:flex;flex-direction:column;gap:12px}
+.back{font:600 12px/1.2 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-decoration:none}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;border-bottom:1px solid var(--line);padding-bottom:10px}
+.brand h1{font-family:var(--num);font-weight:700;font-size:30px;margin:0;line-height:1;letter-spacing:.02em}
+.brand h1 b{color:var(--acc)}
+.brand span{color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+#presets{display:flex;flex-wrap:wrap;gap:6px}
+.cbtn{background:var(--panel);border:1px solid var(--line2);border-radius:7px;padding:6px 10px;font-size:13px}
+.cbtn[aria-pressed=true]{border-color:var(--acc);background:#17150c;color:var(--acc)}
+.pdesc{color:var(--muted);font-size:12.5px;width:100%}
+.grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:12px;align-items:start}
+.col{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card h2{font-family:var(--num);font-size:18px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin:0;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.card h2 small{font-family:var(--sans);font-size:12px;color:var(--muted);letter-spacing:.02em;text-transform:none;font-weight:400}
+.note{font-size:12.5px;color:var(--muted)}
+.screen{background:#000;border:1px solid #1a242b;border-radius:10px;overflow:hidden}
+.shead{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 10px;background:#0b1116;border-bottom:1px solid #16212a;font-size:12.5px;flex-wrap:wrap}
+.shead b{font-family:var(--num);font-size:17px;letter-spacing:.04em;font-weight:600}
+.qwrap{display:flex;align-items:center;gap:6px;color:var(--muted);font-family:var(--mono);font-size:11px}
+.qtrack{width:90px;height:6px;background:#1c2832;border-radius:3px;overflow:hidden}.qtrack i{display:block;height:100%;width:0}
+canvas{display:block;width:100%;height:auto}
+#img{aspect-ratio:4/3}
+.vitals{display:flex;gap:14px;padding:4px 10px;border-top:1px solid #16212a;background:#050809;flex-wrap:wrap}
+.vt{display:flex;align-items:baseline;gap:4px;font-size:12px;color:var(--muted)}.vt b{font-family:var(--num);font-size:20px;color:var(--text);font-weight:600}.vt small{font-size:11px}
+.ctrls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;flex-wrap:wrap;background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:3px;gap:3px}
+.seg button{font-family:var(--num);font-size:14.5px;font-weight:600;letter-spacing:.04em;background:transparent;border:0;border-radius:6px;padding:4px 10px;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--acc);color:#1a1300}
+.btn{font-family:var(--num);font-size:15px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;background:#1b252d;border:1px solid #33424e;border-radius:7px;padding:6px 12px}
+.btn:hover{border-color:#4a5d6b}.btn.pri{background:var(--acc);color:#1a1300;border-color:var(--acc)}
+.btn[aria-pressed=true]{border-color:var(--cy);color:var(--cy)}
+.knob{display:flex;flex-direction:column;gap:2px;font-size:11.5px;color:var(--muted);min-width:110px;flex:1}
+.knob input{width:100%;accent-color:var(--acc)}
+.mmsg{font-size:12.5px;color:var(--muted);min-height:18px}.mmsg.ok{color:var(--ok)}.mmsg.bad{color:var(--bad)}
+.probeGrid{display:grid;grid-template-columns:200px minmax(0,1fr);gap:12px}
+#body{width:100%;max-width:220px;touch-action:none;cursor:crosshair;background:#0a1014;border:1px solid var(--line);border-radius:10px}
+.pv{display:flex;flex-direction:column;gap:8px;min-width:0}
+.pv .row{display:flex;align-items:center;gap:6px}
+.pv .row .knob{min-width:0}
+.nb{background:#1b252d;border:1px solid #33424e;border-radius:6px;padding:2px 7px;font-family:var(--mono);font-size:12px}
+#presetViews{display:flex;flex-wrap:wrap;gap:5px}
+#presetViews button{background:var(--panel2);border:1px solid var(--line2);border-radius:6px;padding:4px 8px;font-size:12px;color:var(--muted)}
+#presetViews button[aria-pressed=true]{border-color:var(--ok);color:var(--ok)}
+.dica{font-size:12.5px;color:var(--cy)}
+.sl{display:flex;flex-direction:column;font-size:12.5px;gap:2px}
+.sl span{display:flex;justify-content:space-between;color:var(--muted)}.sl span b{color:var(--text);font-family:var(--mono);font-weight:500;font-size:12px}
+.sl input{accent-color:var(--acc)}
+#sliders{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px 14px}
+.measGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:1px;background:#16212a;border:1px solid #16212a;border-radius:8px;overflow:hidden}
+.mt{background:#070c10;padding:5px 8px;display:flex;flex-direction:column}.mt span{font:600 11px var(--num);letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+.mt b{font-family:var(--num);font-size:22px;font-weight:600;line-height:1.1}.mt small{font-size:10.5px;color:var(--faint)}
+.sy{display:flex;flex-direction:column;border-left:3px solid var(--line2);padding:4px 8px;background:#0a1014;border-radius:0 6px 6px 0}
+.sy b{font-size:12.5px}.sy span{font-size:12.5px;color:var(--muted)}
+.sy.o{border-color:var(--ok)}.sy.w{border-color:var(--warn)}.sy.b{border-color:var(--bad)}
+#synth{display:flex;flex-direction:column;gap:6px}
+details summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.foot{font-size:11.5px;color:var(--faint)}
+@media (max-width:980px){.grid{grid-template-columns:1fr}}
+@media (max-width:520px){.probeGrid{grid-template-columns:1fr}#body{max-width:200px;margin:0 auto}}
+</style>
+<div class="wrap">
+  <a class="back" href="index.html#simuladores">← CritBoard · Simuladores</a>
+  <header class="top">
+    <div class="brand"><h1>Eco<b>Lab</b></h1><span>POCUS · ecocardiografia à beira do leito</span></div>
+    <div id="presets"></div>
+    <div class="pdesc" id="pdesc"></div>
+  </header>
+  <div class="grid">
+    <div class="col">
+      <div class="screen">
+        <div class="shead"><b id="vname">—</b><span class="qwrap">qualidade <span class="qtrack"><i id="qbar"></i></span><span id="qv"></span></span></div>
+        <canvas id="img" width="720" height="540"></canvas>
+        <canvas id="strip" width="720" height="210"></canvas>
+        <div class="vitals" id="vitals"></div>
+      </div>
+      <div class="card">
+        <div class="ctrls"><div class="seg" id="modes"></div></div>
+        <div class="ctrls">
+          <label class="knob">Ganho<input type="range" id="gain" min=".5" max="1.6" step=".05" value="1"></label>
+          <label class="knob">Profundidade (cm)<input type="range" id="depth" min="8" max="24" step="1" value="18"></label>
+          <label class="knob">Compensação distal<input type="range" id="tgc" min="0" max="1.6" step=".05" value="1"></label>
+        </div>
+        <div class="ctrls">
+          <button class="btn" id="color" aria-pressed="false">Doppler colorido</button>
+          <button class="btn" id="freeze" aria-pressed="false">Congelar</button>
+          <button class="btn pri" id="measure">Medir</button>
+        </div>
+        <div class="mmsg" id="measMsg"></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h2>Sonda <small>clique ou arraste no tórax</small></h2>
+        <div class="probeGrid">
+          <svg id="body" viewBox="0 0 200 300" aria-label="Tórax e abdome do paciente para posicionar a sonda">
+            <g fill="none" stroke="#2c3a44" stroke-width="1.4">
+              <circle cx="100" cy="22" r="15" fill="#10181e"/>
+              <path d="M88 36 L86 48 Q60 50 42 60 Q30 66 28 84 L26 150 M112 36 L114 48 Q140 50 158 60 Q170 66 172 84 L174 150" />
+              <path d="M44 70 Q46 120 56 150 Q62 175 60 200 Q58 230 66 262 L134 262 Q142 230 140 200 Q138 175 144 150 Q154 120 156 70" fill="#10181e"/>
+              <path d="M100 58 L100 142" stroke="#3a4a55" stroke-width="3"/>
+              <path d="M100 142 L100 150" stroke="#3a4a55" stroke-width="1.5"/>
+              <g stroke="#1f2b33" stroke-width="1">
+                <path d="M100 72 Q76 70 52 82"/><path d="M100 72 Q124 70 148 82"/>
+                <path d="M100 86 Q74 84 50 98"/><path d="M100 86 Q126 84 150 98"/>
+                <path d="M100 100 Q72 98 50 114"/><path d="M100 100 Q128 98 150 114"/>
+                <path d="M100 114 Q70 112 52 130"/><path d="M100 114 Q130 112 148 130"/>
+                <path d="M100 128 Q72 130 56 146"/><path d="M100 128 Q128 130 144 146"/>
+                <path d="M100 142 Q76 150 60 162"/><path d="M100 142 Q124 150 140 162"/>
+              </g>
+              <circle cx="80" cy="104" r="1.6" fill="#2c3a44"/><circle cx="120" cy="104" r="1.6" fill="#2c3a44"/>
+              <circle cx="100" cy="196" r="2" fill="#2c3a44"/>
+            </g>
+            <text x="16" y="292" fill="#56666f" font-size="9" font-family="IBM Plex Mono">D</text><text x="178" y="292" fill="#56666f" font-size="9" font-family="IBM Plex Mono">E</text>
+            <g id="probe"><rect x="-4" y="-12" width="8" height="24" rx="3" fill="#dbe5ec" stroke="#070b0f" stroke-width="1"/><circle cx="0" cy="-14.5" r="2.6" fill="#ffc93c"/><path id="probeTilt" d="M0 0 L0 -2" stroke="#7fdcff" stroke-width="2"/></g>
+          </svg>
+          <div class="pv">
+            <div class="row"><label class="knob">Rotação do marcador <b id="rotV" style="font-family:var(--mono);color:var(--text)"></b><input type="range" id="rot" min="0" max="359" step="1"></label><button class="nb" data-nudge="r:-5">−5</button><button class="nb" data-nudge="r:5">+5</button></div>
+            <div class="row"><label class="knob">Inclinação do feixe <b id="tiltV" style="font-family:var(--mono);color:var(--text)"></b><input type="range" id="tilt" min="-30" max="30" step="1"></label><button class="nb" data-nudge="t:-3">−3</button><button class="nb" data-nudge="t:3">+3</button></div>
+            <div class="dica" id="vdica"></div>
+            <div class="note">Janelas predefinidas</div>
+            <div id="presetViews"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Medidas <small><button class="nb" id="clearMeas">limpar</button></small></h2>
+        <div class="measGrid" id="measGrid"></div>
+        <h2>Síntese</h2>
+        <div id="synth"></div>
+      </div>
+      <div class="card">
+        <h2>Paciente <small>ajuste a fisiologia</small></h2>
+        <div class="ctrls">
+          <div class="seg" id="vent"><button data-v="sp" aria-pressed="true">Espontânea</button><button data-v="vm" aria-pressed="false">Ventilação mecânica</button></div>
+          <label class="knob" id="peepRow" hidden>PEEP <b id="peepV" style="font-family:var(--mono);color:var(--text)">5 cmH₂O</b><input type="range" id="peep" min="0" max="20" step="1" value="5"></label>
+        </div>
+        <div class="ctrls">
+          <button class="btn" id="plr" aria-pressed="false">Elevação passiva das pernas</button>
+          <button class="btn" id="bolus">Bolus 250 mL</button>
+          <button class="btn" id="sniff">Sniff</button>
+        </div>
+        <div id="sliders"></div>
+        <label class="note"><input type="checkbox" id="showModel"> Mostrar valores reais do modelo (para conferir sua interpretação)</label>
+        <div class="vitals" id="model" style="background:none;border:0;padding:0"></div>
+      </div>
+      <details class="card">
+        <summary>Sobre o simulador e referências</summary>
+        <div class="note">Imagens estilizadas geradas em tempo real por um modelo de circulação com 7 compartimentos e interação coração–pulmão (mesmo motor do CasoLab). Volumes, pressões, VTI, IT, TAPSE e VCI vêm diretamente do modelo; fluxo mitral e Doppler tecidual são derivados semiquantitativamente da pressão de AE e do relaxamento do VE; os padrões venosos do VExUS derivam da PAD média e do grau de IT. Ferramenta de ensino — não substitui treinamento supervisionado.</div>
+        <div class="foot">Critérios: ASE 2025 (coração direito: TAPSE normal &gt; 1,70 cm, VD basal &lt; 4,1 cm, PAD pela VCI 2,1 cm/50%, PSAP = 4V² + PAD, IT ≥ 2,8 m/s); ASE/EACVI 2016 (função diastólica: e' septal &lt; 7, lateral &lt; 10, E/e' médio &gt; 14, IT &gt; 2,8, algoritmo de E/A); VExUS (Beaubien-Souligny 2020: VCI ≥ 2 cm; pulsatilidade portal 30/50%); elevação passiva das pernas: aumento de DC/VTI ≥ 10% (Monnet 2016).</div>
+      </details>
+    </div>
+  </div>
+</div>
+<script>
+/* ===================== MOTOR FISIOLÓGICO INTEGRADO =====================
+   Circulação: 7 compartimentos (aorta/artérias sistêmicas, veias sistêmicas, AD, VD, artéria pulmonar,
+   veias pulmonares + AE, VE) com ventrículos de elastância variável no tempo (ESPVR/EDPVR), valvas unidirecionais
+   e pericárdio comum. AD, VD, AP, VP/AE e VE ficam dentro do tórax: a pressão absoluta = transmural + pleural (+ pericárdica).
+   Pulmão: equação do movimento com elastância do pulmão (fração aberta variável, hiperdistensão) e da parede torácica;
+   a pressão pleural = Ppl0 + Ecw·V − Pmus. A pressão alveolar comprime os vasos pulmonares (zona 2) e a
+   resistência vascular pulmonar tem forma de U com o volume pulmonar.
+   Unidades: mL, mmHg, s (circulação); L, cmH2O, L/s (pulmão). */
+const CM=.7356;                       // cmH2O → mmHg
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const fE=(d,ec)=>d/(d+ec);
+const sev=p=>{p=Math.max(1,p);return 1/(23400/(p*p*p+150*p)+1)};
+const o2c=(p,hb)=>1.34*hb*sev(p)+.003*p;
+function pFromC(c,hb){let lo=1,hi=700;for(let i=0;i<40;i++){const m=(lo+hi)/2;if(o2c(m,hb)<c)lo=m;else hi=m}return (lo+hi)/2}
+
+function makeSim(C){
+  // ---------- parâmetros do caso ----------
+  const P=Object.assign({
+    hr:80, rsys:1.0, cao:1.4, cvc:110, rvr:.025, cra:4, rtc:.004, cpa:4.2, rpv:.003, rpul:.075, cpv:14, rmt:.004, rav:.006,
+    eesL:2.6, eesR:.6, lvA:.35, lvK:.025, lvV0:10, rvA:.3, rvK:.022, rvV0:20, periA:.5, periK:.04, periV0:300, eff:0,
+    vtot:1400, mapSet:88, baroG:2.4,
+    // pulmão
+    EL0:10, Ecw:10, Ri:8, Re:9, omin:.98, Popen:5, pw:3, Vcap0:3.0, sfix:.03, srec:0, lvq:.05, vd0:.05, pe:1,
+    VO2:250, VCO2:200, Hb:13, pbw:70, hco3:24, lac0:1, leak:0, temp:37
+  },C.p);
+  const S={ // estado
+    t:0, tb:0, T:60/P.hr, beat:0,
+    V:{ao:126,vc:760,ra:16,rv:130,pa:60,pv:110,lv:120},
+    // pulmão
+    L:{V:0,ph:'exp',tb:0,Vstart:0,Vei:0,Vee:0,ppk:0,insHold:0,expHold:0,o:C.o0??P.omin,over:0,Pmus:0},
+    vent:Object.assign({mode:'VCV',VT:.5,RR:16,Ti:1.0,Pinsp:15,PEEP:5,FiO2:.4},C.vent||{}),
+    spont:Object.assign({RR:16,VT:.45,Ti:1.1},C.spont||{}),
+    // drogas (dose alvo e efeito com atraso)
+    dose:{nor:0,vaso:0,dobu:0,sed:0,nmb:0,ind:0}, de:{nor:0,vaso:0,dobu:0,sed:0,nmb:0,ind:0},
+    indType:null, baro:0, vtone:0, fluidPend:0, fluidIn:0, evlw:0,
+    // gases
+    gas:{paco2:40,pao2:90,sao2:97,svo2:70,ph:7.4,hco3:24,lac:P.lac0,etco2:36,va:5,shunt:.05},
+    // medidas por batimento / ciclo
+    m:{sv:70,svr:70,aS:120,aD:70,map:88,pS:25,pD:10,cvp:5,paop:8,co:5.4,lvedv:120,rvedv:130,lvesv:50,rvesv:60,pperi:0,ppv:8,svv:8,raMin:0,raMax:0},
+    acc:null, beats:[], breath:{ppk:0,pplat:0,peepT:0,vte:0,ve:0,autoPEEP:0,flowEE:0},
+    mods:{rsys:1,eesL:1,eesR:1,hr:1,rpul:1,ri:1,re:1,vo2:1,venous:0,sympBlunt:1},
+    meas:{},  // medidas de pausa (platô, PEEP total)
+    phys:0,   // tempo fisiológico (s)
+    ppl:0, palv:0, paw:0, flow:0, pmusSign:0
+  };
+  return {P,S};
+}
+function actR(tb,T,r){const Ts=.13+.22*T,h=Ts/2; if(tb<h) return Math.sin(Math.PI*tb/Ts); const x=(tb-h)/(h/r); return x>=1?0:Math.cos(Math.PI/2*x)}
+function act(tb,T){const Ts=.13+.22*T; if(tb>=Ts) return 0; const x=tb/Ts; return Math.sin(Math.PI*x)}
+function actA(tb,T){const c=T-.09; const d=(tb-c)/.05; return Math.exp(-d*d)} // contração atrial ~90 ms antes do QRS
+
+/* ---------- pulmão ---------- */
+function lungCap(P,S){return P.Vcap0*S.L.o}
+function Pel(P,S,V){ // pressão elástica do sistema respiratório (cmH2O) para volume V (L acima do volume de relaxamento)
+  const o=S.L.o, EL=P.EL0/Math.max(.15,o), cap=lungCap(P,S);
+  const ex=Math.max(0,V-cap*.7);
+  return P.Ecw*V+EL*V+EL*5*ex*ex/cap;
+}
+function PL(P,S,V){return Pel(P,S,V)-P.Ecw*V}
+function lungStep(P,S,dt){
+  const L=S.L, v=S.vent;
+  let flow=0, paw=0, pmus=0;
+  const Ri=P.Ri*S.mods.ri, Re=P.Re*S.mods.re*(1+ (P.flim||0)*Math.max(0,.6-L.V)); // limitação ao fluxo expiratório em volumes baixos
+  if(v.mode==='disc'){ // desconectado do ventilador: via aérea aberta à atmosfera
+    L.tb+=dt; const d=Pel(P,S,L.V); flow=d>0?-d/Re:0; paw=0; L.ph='exp';
+    if(L.tb>=4){L.tb=0; breathEnd(P,S);}
+  } else if(v.mode==='spont'){
+    const sp=S.spont, Tt=60/sp.RR; L.tb+=dt; if(L.tb>=Tt){L.tb-=Tt; breathEnd(P,S);}
+    const Am=sp.VT*(P.Ecw+P.EL0/L.o)*1.35+2;
+    pmus= L.tb<sp.Ti? Am*Math.sin(Math.PI*L.tb/sp.Ti) : 0;
+    const drive=pmus-Pel(P,S,L.V)+ (v.cpap||0);
+    flow= drive>0? drive/Ri : drive/Re;
+    L.ph= L.tb<sp.Ti?'ins':'exp';
+    paw=v.cpap||0;
+  } else {
+    const Tt=60/v.RR, Ti=Math.min(v.Ti,Tt*.8);
+    if(L.expHold>0&&L.ph==='exp'&&L.tb>=Tt-.02){ L.expHold-=dt; flow=0; paw=Pel(P,S,L.V);
+      if(L.expHold<=0){ S.meas.peepT=paw; S.meas.autoPEEP=Math.max(0,paw-v.PEEP); S.meas.tE=S.phys; } }
+    else {
+      L.tb+=dt; if(L.tb>=Tt){L.tb-=Tt; breathEnd(P,S); L.Vstart=L.V;}
+      const inHold=L.insHold>0&&L.tb>=Ti&&L.tb<Ti+.6;
+      if(L.tb<Ti){ L.ph='ins';
+        if(v.mode==='VCV'){ const f=v.VT/Ti; flow=(L.V-L.Vstart<v.VT)?f:0; paw=Pel(P,S,L.V)+Ri*flow+v.PEEP*0; }
+        else { const tgt=v.PEEP+v.Pinsp; flow=Math.max(0,(tgt-Pel(P,S,L.V))/Ri); paw=tgt-(flow<.02?0:0); if(L.tb<.05) paw=v.PEEP+(tgt-v.PEEP)*L.tb/.05; }
+      } else if(inHold){ L.ph='hold'; flow=0; paw=Pel(P,S,L.V); if(L.tb+dt>=Ti+.6){L.insHold=0; S.meas.pplat=paw; S.meas.vt=L.V-L.Vstart; S.meas.tI=S.phys;} }
+      else { L.ph='exp';
+        const d=Pel(P,S,L.V)-v.PEEP; flow= d>0? -d/Re : 0; paw=v.PEEP+ (d>0? Math.min(d,.6)*.3:0);
+      }
+    }
+  }
+  L.V=Math.max(-.2,L.V+flow*dt);
+  L.flow=flow; L.paw=paw; L.Pmus=pmus;
+  if(L.ph==='ins'||L.ph==='hold') L.Vei=Math.max(L.Vei,L.V);
+  L.ppk=Math.max(L.ppk,paw);
+  S.ppl=(-4+P.Ecw*L.V-pmus)*CM;           // pressão pleural (mmHg)
+  S.palv=(v.mode==='spont'?(v.cpap||0):Pel(P,S,L.V))*CM; // pressão alveolar estática (mmHg)
+  S.paw=paw; S.flow=flow;
+}
+function breathEnd(P,S){
+  const L=S.L, v=S.vent, b=S.breath;
+  const vte=Math.max(0,L.Vei-L.V);
+  { // ventilação alveolar média por ciclo (filtra ciclos de transição após mudança de ajuste)
+    const rr0=v.mode==='spont'?S.spont.RR:v.mode==='disc'?0:v.RR, vdAn=.0022*P.pbw+(v.mode==='spont'?0:.03);
+    const trans=v.mode==='VCV'&&vte<.6*v.VT;
+    const vaB=Math.max(0,rr0*(vte-vdAn));
+    if(!trans) S.gas.vaB=S.gas.vaB==null?vaB:S.gas.vaB*.6+vaB*.4; }
+  b.ppk=L.ppk; b.pplat=Pel(P,S,L.Vei); b.vte=vte; b.flowEE=L.flow;
+  b.peepT=Pel(P,S,L.V); b.autoPEEP=Math.max(0,b.peepT-(v.mode==='spont'?0:v.PEEP));
+  b.rr=v.mode==='spont'?S.spont.RR:v.RR; b.ve=vte*b.rr; b.Vee=L.V; b.VeiAbs=L.Vei;
+  b.cstat=vte*1000/Math.max(1,b.pplat-b.peepT); b.dp=b.pplat-b.peepT;
+  const cap=lungCap(P,S); L.over=clamp((L.Vei-cap*.72)/(cap*.35),0,1.5);
+  L.Vee=L.V; L.Vei=L.V; L.ppk=0;
+  // variação respiratória (VPP / VVS) no último ciclo
+  const bs=S.beats; if(bs.length>=3){ const pp=bs.map(x=>x.aS-x.aD), sv=bs.map(x=>x.sv);
+    const mx=Math.max(...pp), mn=Math.min(...pp), mxs=Math.max(...sv), mns=Math.min(...sv);
+    S.m.ppv=200*(mx-mn)/(mx+mn); S.m.svv=200*(mxs-mns)/(mxs+mns);
+    const ras=bs.map(x=>x.ra); S.m.raMin=Math.min(...ras); S.m.raMax=Math.max(...ras); }
+  S.beats=[];
+}
+
+/* ---------- circulação ---------- */
+function cvStep(P,S,dt){
+  const V=S.V, mo=S.mods;
+  S.tb+=dt; S.t+=dt;
+  if(S.tb>=S.T){ beatEnd(P,S); S.tb-=S.T; const hr=clamp(P.hr*mo.hr,30,190); S.T=60/(hr*(S.af?(.65+.7*Math.random()):1)); S.beat++; }
+  const e=S.arrest?0:act(S.tb,S.T), eLv=S.arrest?0:actR(S.tb,S.T,P.relax||1), ea=S.af||S.arrest?0:actA(S.tb,S.T);
+  const Ppl=S.ppl, eL=P.eesL*mo.eesL, eR=P.eesR*mo.eesR;
+  const dL=V.lv-P.lvV0, dR=V.rv-P.rvV0;
+  const pedL=P.lvA*(Math.exp(P.lvK*dL)-1), pedR=P.rvA*(Math.exp(P.rvK*dR)-1);
+  const Plt=eLv*eL*dL+(1-eLv)*pedL, Prt=e*eR*dR+(1-e)*pedR;
+  const Pperi=Math.max(0,P.periA*(Math.exp(P.periK*(V.lv+V.rv+.4*V.ra+P.eff-P.periV0))-1));
+  const Plv=Plt+Pperi+Ppl, Prv=Prt+Pperi+Ppl;
+  const Pra=V.ra/P.cra*(1+1.2*ea)+Pperi+Ppl, Ppa=V.pa/P.cpa+Ppl, Ppv=V.pv/P.cpv*(1+(P.akick??.6)*ea)+.5*Pperi+Ppl;
+  const Pao=V.ao/P.cao, Pvc=V.vc/P.cvc+.45*(Ppl+4*CM);   // parte da pressão pleural chega ao abdome (descida do diafragma) e eleva a pressão média de enchimento
+  const rsys=P.rsys*mo.rsys, rpul=P.rpul*mo.rpul*rpulInst(P,S);
+  const Qsys=(Pao-Pvc)/rsys;
+  const Qvr=(Pvc-Math.max(Pra,-3))/P.rvr;
+  const Qtc=Math.max(0,Pra-Prv)/P.rtc;
+  const Qpo=Math.max(0,Prv-Ppa)/P.rpv;
+  const down=Math.max(Ppv,S.palv*.55+Ppl*.0);   // zona 2: pressão alveolar como pressão de saída
+  const Qpul=Math.max(0,Ppa-down)/rpul;
+  S.qmt=(S.qmt||0)+((Ppv-Plv)-P.rmt*(S.qmt||0))/(P.lmt||.00015)*dt; if(S.qmt<0)S.qmt=0; const Qmt=S.qmt;
+  const Qav=Math.max(0,Plv-Pao)/P.rav;
+  const Qtr=(P.trg||0)*3*Math.max(0,Prv-Pra);
+  V.ao+=(Qav-Qsys)*dt; V.vc+=(Qsys-Qvr)*dt; V.ra+=(Qvr-Qtc+Qtr)*dt; V.rv+=(Qtc-Qpo-Qtr)*dt; V.pa+=(Qpo-Qpul)*dt; V.pv+=(Qpul-Qmt)*dt; V.lv+=(Qmt-Qav)*dt;
+  // acumuladores do batimento
+  let a=S.acc; if(!a) a=S.acc={sv:0,svr:0,aS:0,aD:1e9,pS:0,pD:1e9,ra:0,pv:0,n:0,lvmax:0,lvmin:1e9,rvmax:0,rvmin:1e9,peri:0,pao:0};
+  a.sv+=Qav*dt; a.svr+=Qpo*dt; a.aS=Math.max(a.aS,Pao); a.aD=Math.min(a.aD,Pao); a.pS=Math.max(a.pS,Ppa); a.pD=Math.min(a.pD,Ppa);
+  a.ra+=Pra; a.pv+=Ppv; a.pao+=Pao; a.n++; a.lvmax=Math.max(a.lvmax,V.lv); a.lvmin=Math.min(a.lvmin,V.lv); a.rvmax=Math.max(a.rvmax,V.rv); a.rvmin=Math.min(a.rvmin,V.rv); a.peri+=Pperi;
+  S.w={art:Pao,cvp:Pra,pap:Ppa,paop:Ppv,lv:Plv,e,ea,eLv,prv:Prv,plt:Plt,prt:Prt,pperi:Pperi};
+  S.q={mt:Qmt,av:Qav,tc:Qtc,po:Qpo,tr:Qtr};
+}
+function rpulInst(P,S){ // RVP instantânea: volume pulmonar (U) — colapso/hipóxia alveolar e compressão por hiperdistensão
+  const L=S.L, cap=lungCap(P,S), f=L.V/cap;
+  return (1+.9*(1-L.o))*(1+2.2*Math.max(0,f-.55)**2*4);
+}
+function beatEnd(P,S){
+  const a=S.acc; if(!a||!a.n) return; S.acc=null;
+  const b={sv:a.sv,svr:a.svr,aS:a.aS,aD:a.aD,pS:a.pS,pD:a.pD,ra:a.ra/a.n,pv:a.pv/a.n,map:a.pao/a.n};
+  S.beats.push(b); S.lastBeat=b;
+  const m=S.m, k=.25;
+  m.sv+=(b.sv-m.sv)*k; m.svr+=(b.svr-m.svr)*k; m.aS+=(b.aS-m.aS)*k; m.aD+=(b.aD-m.aD)*k; m.map+=(b.map-m.map)*k;
+  m.pS+=(b.pS-m.pS)*k; m.pD+=(b.pD-m.pD)*k; m.cvp+=(b.ra-m.cvp)*k; m.paop+=(b.pv-m.paop)*k;
+  m.hr=60/S.T; m.co=m.sv*m.hr/1000;
+  m.lvedv+=(a.lvmax-m.lvedv)*k; m.lvesv+=(a.lvmin-m.lvesv)*k; m.rvedv+=(a.rvmax-m.rvedv)*k; m.rvesv+=(a.rvmin-m.rvesv)*k; m.pperi+=(a.peri/a.n-m.pperi)*k;
+}
+
+/* ---------- processos lentos (tempo fisiológico acelerado) ---------- */
+const TAU={nor:120,vaso:300,dobu:180,sed:90,nmb:60,ind:400};
+function slowStep(P,S,dtR,dtP,C){
+  // drogas
+  for(const k in S.dose){ const tgt=S.dose[k]; S.de[k]+=(tgt-S.de[k])*(1-Math.exp(-dtP/TAU[k])); }
+  const d=S.de, fn=fE(d.nor,.25), fv=Math.min(1,d.vaso/.04), fd=fE(d.dobu,6);
+  const ind=d.ind, it=S.indType||'eto';
+  const IND={eto:{r:-.08,v:-.05,c:-.03,h:0,s:.35},ket:{r:.05,v:0,c:-.08,h:.1,s:.2},prop:{r:-.35,v:-.25,c:-.15,h:-.05,s:.7},mid:{r:-.2,v:-.18,c:-.06,h:0,s:.55}}[it];
+  // perda do tônus simpático endógeno com sedação/indução (proporcional ao estresse prévio)
+  const symp=clamp(1-.6*fE(d.sed,.5)-(ind*(IND.s)),0,1);
+  // barorreflexo (tempo real)
+  const err=(P.mapSet-S.m.map)/P.mapSet;
+  const bt=clamp(P.baroG*err*S.mods.sympBlunt*symp,-.35,.9);
+  S.baro+=(bt-S.baro)*(1-Math.exp(-dtR/3));
+  const b=S.baro;
+  // doença dependente de tempo e do caso
+  if(C.tick) C.tick(P,S,dtP);
+  const dz=S.dz||{};
+  S.mods.rsys=Math.max(.25,(1+1.15*fn*(P.neS||1)+ .9*fv*(P.vaS||.6)-.18*fd+.38*b+ind*IND.r-.1*fE(d.sed,.5))*(dz.rsys||1));
+  S.mods.eesL=Math.max(.2,(1+.18*fn+.65*fd+.15*b+ind*IND.c)*(dz.eesL||1));
+  S.mods.eesR=Math.max(.2,(1+.22*fn+.6*fd+.12*b+ind*IND.c)*(dz.eesR||1));
+  S.mods.hr=clamp((1+.06*fn+.32*fE(d.dobu,12)+.45*b+ind*IND.h-.08*fE(d.sed,.5))*(dz.hr||1)*(S.hrMul||1),.4,2.2);
+  // tônus venoso: mobiliza volume não estressado (NE e barorreflexo) → volume estressado
+  const vt=280*fn*(P.neS||1)+260*b+ind*IND.v*900-60*fE(d.sed,.5);
+  const dv=(vt-S.vtone)*(1-Math.exp(-dtR/6)); S.vtone+=dv; S.V.vc+=dv;
+  // volume: infusão ao longo de ~10 min, extravasamento para o interstício com permeabilidade alta
+  if(S.fluidPend>0){ const q=Math.min(S.fluidPend,S.fluidPend*dtP/400+dtP*.3); S.fluidPend-=q; S.V.vc+=q*(1-P.leak*.5); S.evlw+=q*P.leak*.5; S.fluidIn+=q; }
+  if(P.leak>0){ const out=P.leak*.02*dtP*Math.max(0,S.V.vc/P.cvc-4); S.V.vc-=out; S.evlw+=out; }
+  S.evlw=Math.max(0,S.evlw-dtP*.02);
+  // RVP: embolia, hipóxia alveolar (VPH), acidose; resistência de vias aéreas
+  const hpv=1+.7*clamp((70-S.gas.pao2)/35,0,1)*(P.hpvS??1)+.012*Math.max(0,S.gas.paco2-45);
+  S.mods.rpul=(dz.pe||P.pe)*hpv*(dz.prone?.85:1)*(1+.35*fE(d.dobu,6)*-.2);
+  // recrutamento (fração aberta) em função da pressão média na expiração/inspiração
+  const L=S.L, br=S.breath;
+  const Ptot=(br.peepT||0)+.25*Math.max(0,(br.pplat||0)-(br.peepT||0))+(dz.prone?3:0);
+  const oT=P.omin+(1-P.omin)/(1+Math.exp(-(Ptot-P.Popen)/P.pw));
+  L.o+=(oT-L.o)*(1-Math.exp(-dtP/(oT>L.o?600:200)));
+  gasStep(P,S,dtP);
+}
+function gasStep(P,S,dtP){
+  const g=S.gas, L=S.L, br=S.breath, v=S.vent, dz=S.dz||{};
+  const vt=Math.max(0,br.vte||0), rr=br.rr||16;
+  const vdAn=.0022*P.pbw+(v.mode==='spont'?0:.03);
+  const vdAlv=clamp(P.vd0+.28*L.over+(dz.vdPE||0)+.15*Math.max(0,(4-S.m.co)/4),0,.85);
+  const va=Math.max(0,(g.vaB??rr*(vt-vdAn))*(1-vdAlv));
+  g.va=va; g.vdvt=vt>0?1-va/(rr*vt):1;
+  const vco2=P.VCO2*(1+.1*Math.max(0,P.temp-37))*(1-.1*fE(S.de.nmb,.5))*S.mods.vo2;
+  const pco2T=va>.3?Math.min(140,.863*vco2/va):140;
+  g.paco2+=(pco2T-g.paco2)*(1-Math.exp(-dtP/(pco2T>g.paco2?360:180)));
+  // O2
+  const FiO2=v.FiO2, PAO2=Math.max(0,FiO2*713-g.paco2/.8), hb=P.Hb;
+  const vo2=P.VO2*(1+.1*Math.max(0,P.temp-37))*(1-.1*fE(S.de.nmb,.5))*S.mods.vo2*(v.mode==='spont'?1.12:1);
+  const co=Math.max(.5,S.m.co);
+  const shunt=clamp(P.sfix+P.srec*(1-L.o)+.00012*S.evlw+(dz.shunt||0),0,.75)*(dz.prone?.85:1), low=P.lvq+(dz.lvq||0);
+  const D=vo2/(10*co), Cc=o2c(PAO2,hb); let Ca=Cc-D*.3;
+  for(let i=0;i<8;i++){ const Cv=Math.max(3,Ca-D), Pv=pFromC(Cv,hb), Plow=Pv+(PAO2-Pv)*.35;
+    Ca=((1-shunt-low)*Cc+low*o2c(Plow,hb)-shunt*D)/(1-shunt); Ca=Math.max(Ca,D*.2); }
+  const pao2T=pFromC(Math.max(1,Ca),hb);
+  g.pao2+=(pao2T-g.pao2)*(1-Math.exp(-dtP/40));
+  if(S.apnea) g.pao2=Math.max(25,g.pao2-dtP*(shunt>.2?4:1.5)), g.paco2+=dtP*.05;
+  g.sao2=sev(g.pao2)*100; g.shunt=shunt; g.PAO2=PAO2;
+  const Ca2=o2c(g.pao2,hb), Cv2=Math.max(2,Ca2-vo2/(10*co)); g.svo2=clamp((Cv2-.003*40)/(1.34*hb)*100,15,90);
+  // lactato: oferta de O2 e perfusão
+  const do2=co*Ca2*10, do2c=vo2*2.2;
+  const lt=clamp((P.lac0||1)*(do2<do2c?Math.pow(do2c/do2,2):1)*(S.m.map<60?Math.pow(60/Math.max(30,S.m.map),1.6):1)*(dz.lacF||1),.6,18);
+  g.lac+=(lt-g.lac)*(1-Math.exp(-dtP/(lt>g.lac?900:1800)));
+  g.hco3=P.hco3-.85*Math.max(0,g.lac-1)+(g.paco2>45?.1*(g.paco2-45):0);
+  g.ph=6.1+Math.log10(g.hco3/(.0307*g.paco2));
+  g.etco2=v.mode==='spont'&&!S.capno?0:g.paco2*(1-vdAlv)-1;
+}
+
+/* ---------- integração ---------- */
+function simAdvance(P,S,C,dtReal,speed){
+  const h=.0005; let n=Math.round(dtReal/h);
+  for(let i=0;i<n;i++){ lungStep(P,S,h); cvStep(P,S,h); }
+  S.slowAcc=(S.slowAcc||0)+dtReal;
+  while(S.slowAcc>=.25){ S.slowAcc-=.25; const dtP=.25*speed; S.phys+=dtP; slowStep(P,S,.25,dtP,C); }
+}
+
+function loadCase(C){
+  const st=C.start;
+  const sim=makeSim({p:st.p,vent:st.vent,spont:st.spont,o0:st.o0,tick:C.tick});
+  const {P,S}=sim;
+  S.V.vc+=st.vol||0;
+  S.flags={}; S.hist={acp:false,over:false,minMap:999,minSat:100}; S.dz={}; S.dmg=0;
+  Object.assign(S.dose,st.dose||{}); Object.assign(S.de,st.dose||{});
+  if(st.ind){ S.indType=st.ind; S.dose.ind=0; S.de.ind=st.indLevel??1; }
+  if(st.gas) Object.assign(S.gas,st.gas);
+  if(st.vent&&st.vent.mode!=='spont'){ S.L.V=Math.max(0,(st.vent.PEEP)/(P.Ecw+P.EL0/S.L.o)); }
+  // estabilização (sem avançar o tempo fisiológico dos processos lentos da doença)
+  for(let i=0;i<120;i++){ simAdvance(P,S,{},.25,1); }
+  S.phys=0; S.slowAcc=0;
+  return sim;
+}
+
+/* ===================== ECOLAB — núcleo fisiológico → ecocardiografia =====================
+   Usa o motor do CasoLab (circulação 7 compartimentos + pulmão). Todo sinal ecográfico é derivado
+   dos volumes, pressões e fluxos instantâneos do modelo. */
+const ECO={
+  A_LVOT:Math.PI*1.05*1.05, // cm² (VSVE 2,1 cm)
+  A_MV:5.2,                 // cm² — área efetiva de fluxo mitral (calibrada p/ E ≈ 75 cm/s no normal)
+  E0L:14, E0S:10,           // e' lateral / septal com relaxamento normal (cm/s)
+  FS:500                    // Hz de amostragem do buffer
+};
+const PRESETS={
+  normal:{nome:'Normal',desc:'Adulto sem disfunção cardíaca, ventilação espontânea.',p:{},vol:-450},
+  hipo:{nome:'Hipovolemia',desc:'Perda volêmica importante: VE pequeno e hiperdinâmico, VCI pequena e colapsável.',p:{},vol:-1000},
+  sepse:{nome:'Choque distributivo',desc:'Vasoplegia: PA baixa com débito alto e VE hiperdinâmico.',p:{rsys:.35},vol:-300},
+  cardio:{nome:'Choque cardiogênico',desc:'VE dilatado com FE muito reduzida, baixo débito e pressões de enchimento elevadas.',p:{eesL:.32,lvK:.016,lvV0:60,relax:.9,periV0:450,mapSet:85,rsys:1.3},vol:0},
+  tep:{nome:'TEP maciço',desc:'Cor pulmonale agudo: sobrecarga de pressão do VD com baixo débito.',p:{pe:10,eesR:.4},vol:300},
+  tampo:{nome:'Tamponamento',desc:'Derrame pericárdico volumoso com restrição ao enchimento.',p:{eff:250},vol:250},
+  cong:{nome:'Congestão venosa',desc:'Disfunção de VD com insuficiência tricúspide importante e sobrecarga de volume.',p:{trg:3,eesR:.38,pe:1.8},vol:900},
+  diast:{nome:'Disfunção diastólica',desc:'FE preservada, VE rígido com relaxamento lento e pressões de enchimento elevadas.',p:{lvA:.5,lvK:.035,relax:.45,mapSet:95},vol:100}
+};
+function ecoCreate(key,opt){
+  opt=opt||{};
+  const pr=PRESETS[key];
+  const sim=makeSim({p:Object.assign({relax:1,trg:0,rmt:.016,lmt:.0004,akick:1.5},pr.p),vent:opt.vm?{mode:'VCV',VT:.5,RR:16,Ti:1,PEEP:opt.peep??5,FiO2:.4}:{mode:'spont'},spont:{RR:14,VT:.5,Ti:1.4}});
+  const {P,S}=sim;
+  S.V.vc+=pr.vol||0;
+  S.flags={};S.hist={};S.dz={};S.dmg=0;
+  if(opt.vm){S.L.V=Math.max(0,P.PEEP||0);}
+  const E={bmap:{},praS:0,praL:0,sim,P,S,key,buf:mkBuf(ECO.FS*10),beats:[],cur:null,t:0,plr:0,plrVol:0,plrTarget:0,sniff:-1,lastBeat:-1,sub:0};
+  // estabilização
+  for(let i=0;i<160;i++) ecoAdvance(E,.25,true);
+  E.beats=[];
+  return E;
+}
+function mkBuf(n){const b={n,i:0,len:0,k:['t','mt','av','tr','prv','pra','plt','prt','vlv','vrv','ea','e','tb','T','ppl','pperi','rat','ph','praS','bn']};b.k.forEach(k=>b[k]=new Float32Array(n));return b}
+function bufPush(b,o){const i=b.i;for(const k of b.k)b[k][i]=o[k];b.i=(i+1)%b.n;b.len=Math.min(b.len+1,b.n)}
+function bufGet(b,k,back){ // back=0 → mais recente
+  return b[k][(b.i-1-back+b.n*4)%b.n]}
+
+function ecoAdvance(E,dt,stab){
+  const {P,S}=E, h=.0005, n=Math.round(dt/h), every=Math.round(1/(ECO.FS*h));
+  for(let i=0;i<n;i++){
+    lungStep(P,S,h);
+    if(E.sniff>=0){ // "sniff": queda breve e intensa da pressão pleural
+      E.sniff+=h; const x=E.sniff/.45; if(x>1) E.sniff=-1; else S.ppl-=11*Math.sin(Math.PI*x);
+    }
+    cvStep(P,S,h);
+    beatTrack(E);
+    E.praS+=(S.w.cvp-E.praS)*h/.3; E.praL+=(S.w.cvp-E.praL)*h/4; E.pivc=E.praL+.55*(E.praS-E.praL);
+    E.t+=h; E.sub++;
+    if(E.sub%every===0) bufPush(E.buf,{t:E.t,mt:S.q.mt,av:S.q.av,tr:S.q.tr,prv:S.w.prv,pra:S.w.cvp,plt:S.w.plt,prt:S.w.prt,vlv:S.V.lv,vrv:S.V.rv,ea:S.w.ea,e:S.w.e,tb:S.tb,T:S.T,ppl:S.ppl,pperi:S.w.pperi,rat:S.V.ra/P.cra,praS:E.pivc,bn:S.beat,ph:S.L.ph==='ins'?1:0});
+  }
+  S.slowAcc=(S.slowAcc||0)+dt;
+  while(S.slowAcc>=.25){ S.slowAcc-=.25; S.phys+=.25; slowStep(P,S,.25,.25,{});
+    // elevação passiva de pernas: autotransfusão ~300 mL em ~30 s, reversível
+    const tgt=E.plr?300:0, d=(tgt-E.plrVol)*(1-Math.exp(-.25/10)); E.plrVol+=d; S.V.vc+=d;
+  }
+}
+// métricas por batimento (a partir do motor, integração no passo fino)
+function beatTrack(E){
+  const S=E.S,q=S.q,w=S.w,h=.0005;
+  if(S.beat!==E.lastBeat){ if(E.cur&&E.cur.n>50) finishBeat(E); E.lastBeat=S.beat;
+    E.cur={num:S.beat,n:0,vti:0,avMax:0,eMax:0,aMax:0,trMax:0,lvMax:0,lvMin:1e9,rvMax:0,rvMin:1e9,dvE:0,dvS:0,raSum:0,lap:0,ppl:0,t0:E.t,T:S.T,ins:0,sep:{sMax:-9,dMax:-9},pperiMax:0,raColl:0,rvColl:0,raTmin:99,prtMin:99,dvlv:0,vlvPrev:S.V.lv}; }
+  const c=E.cur; c.n++;
+  c.vti+=q.av/ECO.A_LVOT*h; c.avMax=Math.max(c.avMax,q.av); if(q.av>5){ if(c.ej0==null) c.ej0=S.tb; c.ej1=S.tb; }
+  const early=S.tb<S.T-.2;
+  if(w.ea>.3) c.aMax=Math.max(c.aMax,q.mt); else if(early) c.eMax=Math.max(c.eMax,q.mt);
+  if(w.prv>w.cvp) c.trMax=Math.max(c.trMax,w.prv-w.cvp);
+  c.lvMax=Math.max(c.lvMax,S.V.lv); c.lvMin=Math.min(c.lvMin,S.V.lv); c.rvMax=Math.max(c.rvMax,S.V.rv); c.rvMin=Math.min(c.rvMin,S.V.rv);
+  const dv=(S.V.lv-c.vlvPrev)/h; c.vlvPrev=S.V.lv;
+  if(w.ea<.3&&early&&dv>0) c.dvE=Math.max(c.dvE,dv);
+  if(dv<0) c.dvS=Math.max(c.dvS,-dv);
+  c.raSum+=w.cvp; c.lap+=S.V.pv/E.P.cpv; c.ppl+=S.ppl; c.ins+=S.L.ph==='ins'?1:0;
+  c.sep.sMax=Math.max(c.sep.sMax,w.e>.6?sepIdx(w.prt,w.plt,1):0); c.sep.dMax=Math.max(c.sep.dMax,w.e<.02?sepIdx(w.prt,w.plt,0):0);
+  c.pperiMax=Math.max(c.pperiMax,w.pperi);
+  c.raTmin=Math.min(c.raTmin,S.V.ra/E.P.cra); c.prtMin=Math.min(c.prtMin,w.prt);
+}
+function finishBeat(E){
+  const c=E.cur,P=E.P,S=E.S;
+  const b={num:c.num,t:c.t0,T:c.T,hr:60/c.T,vti:c.vti,vmax:c.avMax/ECO.A_LVOT/100,
+    E:c.eMax/ECO.A_MV,A:c.aMax/ECO.A_MV,tr:Math.sqrt(Math.max(0,c.trMax)/4),
+    edv:c.lvMax,esv:c.lvMin,rvedv:c.rvMax,rvesv:c.rvMin,
+    ra:c.raSum/c.n,ppl:c.ppl/c.n,ins:c.ins/c.n>.4,
+    sepS:c.sep.sMax,sepD:c.sep.dMax,pperi:c.pperiMax,
+    raColl:P.eff>30?clamp((c.pperiMax-6)/6,0,1):0, rvColl:P.eff>30?clamp((c.pperiMax-12)/6,0,1):0, lap:c.lap/c.n};
+  // tempo de ejeção pela FC (relação clássica) e envelope sintetizado; o VTI vem do modelo
+  b.et=clamp(.41-.0017*b.hr,.16,.34); b.ej0=c.ej0??.05; b.vmax=b.vti/(b.et*.637)/100;
+  b.sv=b.vti*ECO.A_LVOT; b.ef=(b.edv-b.esv)/b.edv; b.rvef=(b.rvedv-b.rvesv)/b.rvedv;
+  const rel=P.relax||1;
+  const ePk=c.dvE, eT=ECO.E0L*Math.pow(rel,1.3)*(0.85+.15*Math.min(1.2,b.ef/.6));
+  b.kT=ePk>0?eT/ePk:0; b.eLat=eT; b.eSep=ECO.E0S*Math.pow(rel,1.3)*(0.85+.15*Math.min(1.2,b.ef/.6));
+  b.sLat=c.dvS*b.kT*.75;
+  b.tapse=clamp(4+34*b.rvef,4,30);           // mm
+  mitral(E,b);
+  E.beats.push(b); if(E.beats.length>40) E.beats.shift(); E.bmap[b.num]=b; if(b.num>60) delete E.bmap[b.num-60];
+}
+/* Fluxo mitral: modelo semiquantitativo. O motor de compartimentos não reproduz a sucção/relaxamento ativo
+   do VE com fidelidade suficiente para E/A; E e A são derivados da pressão transmural de AE (média do
+   batimento) e do relaxamento do VE, reproduzindo os padrões normal, alteração do relaxamento,
+   pseudonormal e restritivo. A variação respiratória vem do VTI do próprio modelo. */
+function mitral(E,b){
+  const r=E.P.relax||1, L=Math.max(0,b.lap), k=4+9.7*r*r;
+  const vs=E.beats.slice(-8), vm=vs.length?vs.reduce((s,x)=>s+x.vti,0)/vs.length:b.vti, f=vm>0?clamp(b.vti/vm,.6,1.4):1;
+  b.E=(20+k*L/(1+L/12))*(.35+.65*f);
+  b.A=Math.max(22,55+22*(1-r)-1.6*Math.max(0,L-12))*(b.hr>115?1.15:1);
+  b.dt=clamp(140+140*(1-r)-3.2*Math.max(0,L-10)*(r>.8?1.6:1),100,320)/1000; // tempo de desaceleração (s)
+}
+/* ---------- geometria e sinais derivados ---------- */
+function rvD(V){ return clamp(3.3*Math.pow(Math.max(20,V)/130,.9),1.2,7) } // diâmetro basal do VD (cm)
+function teichD(V){ // diâmetro (cm) pelo inverso de Teichholz
+  let D=4.5; for(let i=0;i<20;i++){const f=7/(2.4+D)*D*D*D-V, df=7*D*D*(3*(2.4+D)-D)/((2.4+D)*(2.4+D)); D-=f/df; if(D<1.2)D=1.2;} return D}
+const IVC_T=[[-8,.25],[-5,.5],[-3.4,1],[1,1.8],[3,2],[7.5,2.15],[12,2.3],[18,2.5],[25,2.7]];
+function ivcD(p){ const T=IVC_T; if(p<=T[0][0]) return T[0][1]; for(let i=1;i<T.length;i++) if(p<=T[i][0]){const a=T[i-1],b=T[i];return a[1]+(b[1]-a[1])*(p-a[0])/(b[0]-a[0])} return T[T.length-1][1] } // cm — PAD suavizada, oscilação respiratória atenuada (segmento abdominal)
+function sepIdx(prt,plt,e){ const sy=plt>15?clamp((prt/plt-.32)/.5,0,1.2):0, di=clamp((prt-plt+1)/7,0,1.2); return Math.max(di*(1-clamp(e*1.5,0,1)),sy*clamp(e*1.5,0,1)) }
+function geo(E){ // geometria instantânea (cm)
+  const S=E.S,P=E.P,w=S.w;
+  const b=E.beats[E.beats.length-1]||{edv:120,esv:50,rvedv:130,rvesv:60};
+  const Dlv=teichD(S.V.lv), DlvD=teichD(b.edv);
+  const Llv=clamp(6*S.V.lv/(Math.PI*Dlv*Dlv),4,11);
+  const th=.95*(1+.55*(1-Dlv/DlvD))*(P.lvK>.04?1.35:1);
+  const Drv=rvD(S.V.rv);
+  const raT=S.V.ra/P.cra, laT=S.V.pv/P.cpv;
+  const Dra=clamp(3.4+.11*(raT-4)+.25*(P.trg||0),2.2,6.5), Dla=clamp(3.3+.09*(laT-8)+(P.lvK>.04?.5:0),2.4,6);
+  const eff=P.eff>0?.075*Math.sqrt(P.eff*3):0;
+  const sep=sepIdx(w.prt,w.plt,w.e);
+  const pp=w.pperi, raColl=P.eff>30?clamp((pp-6)/6,0,1):0, rvColl=P.eff>30?clamp((pp-12)/6,0,1)*(1-clamp(w.e*2,0,1)):0;
+  return {Dlv,Llv,th,Drv,Dra,Dla,eff,sep,raColl,rvColl,mvOpen:clamp(S.q.mt/250,0,1),avOpen:clamp(S.q.av/300,0,1),tvOpen:clamp(S.q.tc/250,0,1),ivc:ivcD(E.pivc)};
+}
+// gravidade de congestão venosa (0–1) a partir da PAD média e da IT do modelo
+function congSev(E){ const b=E.beats.slice(-6); if(!b.length) return 0; const ra=b.reduce((s,x)=>s+x.ra,0)/b.length;
+  return clamp((ra-7)/11+.12*(E.P.trg||0),0,1.2) }
+function gauss(x,c,w){const d=(x-c)/w;return Math.exp(-d*d)}
+// velocidade instantânea da veia hepática (cm/s; negativa = em direção ao coração, abaixo da linha de base)
+function hvVel(ph,s){ const Sa=1-1.8*s, D=.72+.12*s, A=.28+.55*s, V=.12+.25*s;
+  return 38*(-Sa*gauss(ph,.22,.09)-D*gauss(ph,.58,.08)+A*gauss(ph,.93,.045)+A*gauss(ph,-.07,.045)+V*gauss(ph,.4,.05)) }
+function pvpf(s){ return clamp(.1+.95*s*s+.2*s,.04,1.35) }
+function pvVel(ph,s){ const f=pvpf(s); return 22*(1-f*.5*(1+Math.cos(2*Math.PI*(ph-.3)))) }
+function irVel(ph,s){ // retorna [arterial(+), venoso(−)]
+  const art=38*(.35+.65*gauss(ph,.18,.08))+8*gauss(ph,.3,.1);
+  let ven;
+  if(s<.32) ven=-(11-4*s*gauss(ph,.25,.1));
+  else if(s<.62) ven=-14*(gauss(ph,.2,.07)*(1-(s-.32)*2)+gauss(ph,.62,.1))-1*(1-(s-.32)*3.3);
+  else ven=-16*gauss(ph,.62,.1);
+  return [art,Math.min(0,ven)] }
+
+/* ===================== ECOLAB — formação da imagem =====================
+   Imagem estilizada em escala de cinza: anatomia desenhada em cm (transformação do canvas),
+   multiplicada por textura de speckle, atenuação com a profundidade e ganho. */
+const G=v=>`rgb(${v|0},${v|0},${v|0})`;
+const TIS=40, WALL=118, BRIGHT=205, PERI=225, LIVER=78;
+let SPK=null;
+function speckle(){
+  if(SPK) return SPK;
+  const c=document.createElement('canvas'); c.width=c.height=384; const x=c.getContext('2d'), im=x.createImageData(384,384);
+  // speckle alongado lateralmente (célula de resolução maior no eixo lateral)
+  const raw=new Float32Array(384*384); for(let i=0;i<raw.length;i++) raw[i]=Math.random();
+  for(let y=0;y<384;y++) for(let X=0;X<384;X++){
+    let s=0; for(let k=-3;k<=3;k++) s+=raw[y*384+((X+k+384)%384)]*(1-Math.abs(k)/4);
+    s=s/4; const v=Math.pow(Math.min(1,s*1.25),1.6);
+    const i=(y*384+X)*4, g=70+185*v; im.data[i]=im.data[i+1]=im.data[i+2]=g; im.data[i+3]=255; }
+  x.putImageData(im,0,0); SPK=c; return c;
+}
+// ---------- helpers de desenho em cm ----------
+function ell(ctx,cx,cy,rx,ry,rot){ctx.beginPath();ctx.ellipse(cx,cy,Math.max(.01,rx),Math.max(.01,ry),rot||0,0,Math.PI*2)}
+function poly(ctx,pts){ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath()}
+function fill(ctx,c){ctx.fillStyle=typeof c==='number'?G(c):c;ctx.fill()}
+function seg(ctx,a,b,w,c){ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.lineWidth=w;ctx.strokeStyle=G(c);ctx.lineCap='round';ctx.stroke()}
+
+/* ---------- coração no plano apical (ápice em 0,0; eixo longo para baixo; VE à direita) ---------- */
+function heartA4C(ctx,g,o){
+  o=o||{};
+  const L=g.Llv, Dl=g.Dlv, th=g.th, Dr=g.Drv*(1-.45*g.rvColl), sep=g.sep;
+  const bow=y=>-(.38-.62*sep)*Math.sin(Math.PI*clamp(y/L,0,1))*.9;
+  const sR=y=>bow(y)+th/2, sL=y=>bow(y)-th/2;
+  const w=y=>Dl*Math.sqrt(clamp(y/L,0,1));
+  const yr0=L*clamp(.34-.28*(g.Drv/Dl-.6),.04,.36);
+  const wr=y=>y<=yr0?0:Dr*Math.pow((y-yr0)/(L-yr0),.62);
+  const N=26, ys=[...Array(N+1)].map((_,i)=>L*i/N);
+  // limites externos
+  const lvOut=[[sR(0),-th*.9],...ys.map(y=>[sR(y)+w(y)+th,y])];
+  const rvOut=ys.filter(y=>y>=yr0-.01).map(y=>[sL(y)-wr(y)-.42,y]);
+  const raR=g.Dra*.5, raC=[sL(L)-wr(L)*.5,L-.1+g.Dra*.52], laR=g.Dla*.52, laC=[sR(L)+Dl*.52,L-.05+g.Dla*.5];
+  const outline=()=>{ ctx.beginPath(); const pts=[...lvOut,[laC[0]+laR+.2,laC[1]],[laC[0],laC[1]+g.Dla*.6+.25],[raC[0],raC[1]+g.Dra*.6+.25],[raC[0]-raR-.2,raC[1]],...rvOut.slice().reverse(),[sL(yr0)-.3,yr0-.5]];
+    pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.closePath(); ctx.lineJoin='round'; };
+  const e=g.eff;
+  outline(); ctx.lineWidth=2*(e+.22); ctx.strokeStyle=G(PERI); ctx.stroke();
+  if(e>.05){ outline(); ctx.lineWidth=2*e; ctx.strokeStyle=G(6); ctx.stroke(); }
+  // miocárdio (VE+septo, VD, átrios)
+  poly(ctx,[...lvOut,[sR(L)+Dl*.05,L+.25],[sL(L)-wr(L)*.1,L+.25],...rvOut.slice().reverse(),[sL(yr0)-.3,yr0-.5],[sL(0),-th*.9]]); fill(ctx,WALL);
+  ell(ctx,laC[0],laC[1],laR+.2,g.Dla*.6+.2); fill(ctx,WALL*.8);
+  raShape(ctx,raC,raR+.2,g.Dra*.6+.2,g.raColl); fill(ctx,WALL*.8);
+  // cavidades
+  poly(ctx,[...ys.map(y=>[sR(y),y]),...ys.slice().reverse().map(y=>[sR(y)+w(y),y])]); fill(ctx,4);
+  poly(ctx,[...ys.filter(y=>y>=yr0).map(y=>[sL(y),y]),...ys.filter(y=>y>=yr0).reverse().map(y=>[sL(y)-wr(y),y])]); fill(ctx,4);
+  ell(ctx,laC[0],laC[1],laR,g.Dla*.6); fill(ctx,4);
+  raShape(ctx,raC,raR,g.Dra*.6,g.raColl); fill(ctx,4);
+  // trabeculação apical do VD e banda moderadora
+  seg(ctx,[sL(L*.62),L*.62],[sL(L*.62)-wr(L*.62)*.9,L*.66],.14,WALL);
+  // papilar (VE lateral)
+  ell(ctx,sR(L*.55)+w(L*.55)-.35,L*.55,.3,.75,.2); fill(ctx,WALL*.9);
+  // valvas
+  const mo=g.mvOpen, to=g.tvOpen;
+  const ma=[sR(L)+.1,L], mp=[sR(L)+Dl-.05,L], ml=Dl*.46;
+  const angA=-Math.PI/2*(.18+.8*mo), angP=-Math.PI/2*(.18+.8*mo);
+  seg(ctx,ma,[ma[0]+ml*Math.cos(angA),ma[1]+ml*Math.sin(angA)*(.3+.7*mo)],.13,BRIGHT);
+  seg(ctx,mp,[mp[0]-ml*.8*Math.cos(angP),mp[1]+ml*.8*Math.sin(angP)*(.3+.7*mo)],.13,BRIGHT);
+  const tb=L-.35, ta=[sL(tb),tb], tp=[sL(tb)-wr(tb)+.05,tb], tl=Math.max(.8,wr(tb)*.46);
+  seg(ctx,ta,[ta[0]-tl*Math.cos(angA)*.9,ta[1]+tl*Math.sin(-Math.PI/2*(.18+.8*to))*(.3+.7*to)],.12,BRIGHT);
+  seg(ctx,tp,[tp[0]+tl*Math.cos(angA)*.9,tp[1]+tl*Math.sin(-Math.PI/2*(.18+.8*to))*(.3+.7*to)],.12,BRIGHT);
+  // septo interatrial
+  seg(ctx,[sR(L)-.05,L+.25],[(raC[0]+laC[0])/2+.1,L+Math.max(g.Dra,g.Dla)*1.05],.2,WALL*.9);
+  if(o.lvot){ // 5 câmaras: via de saída do VE e raiz da aorta entre os átrios
+    const ax=sR(L)+.35, ay=L-.15;
+    poly(ctx,[[ax-.25,ay],[ax+2.35,ay],[ax+2.1,ay+3.6],[ax-.05,ay+3.6]]); fill(ctx,WALL);
+    poly(ctx,[[ax,ay-.1],[ax+2.1,ay-.1],[ax+1.85,ay+3.6],[ax+.2,ay+3.6]]); fill(ctx,4);
+    const ao=g.avOpen, cy2=ay+1.05;
+    seg(ctx,[ax+.05,cy2],[ax+.05+.95*(1-ao*.85),cy2+.45*(1-ao)+ao*.55],.1,BRIGHT);
+    seg(ctx,[ax+2.05,cy2],[ax+2.05-.95*(1-ao*.85),cy2+.45*(1-ao)+ao*.55],.1,BRIGHT);
+  }
+  return {L,apex:[0,0],mvTip:[(ma[0]+mp[0])/2,L-.5],tvTip:[(ta[0]+tp[0])/2,tb-.2],latAnn:[mp[0]+.1,L],sepAnn:[ma[0]-.1,L],tvLat:[tp[0]-.1,tb],lvot:[sR(L)+1.4,L+.3],raC,raR};
+}
+function raShape(ctx,c,rx,ry,coll){ // AD com colapso da parede livre (lado esquerdo da tela)
+  ctx.beginPath(); for(let i=0;i<=40;i++){const a=i/40*Math.PI*2, x=Math.cos(a), y=Math.sin(a); let px=c[0]+rx*x, py=c[1]+ry*y;
+    if(x<0) px=c[0]+rx*x*(1-coll*.6*Math.pow(Math.max(0,-x),.8)*(1-Math.abs(y)*.4)); if(i) ctx.lineTo(px,py); else ctx.moveTo(px,py);} ctx.closePath();
+}
+/* ---------- paraesternal eixo longo ---------- */
+function drawPLAX(ctx,g){
+  ctx.translate(-1.1,0);
+  const Dl=g.Dlv, th=g.th, hR=g.Drv*.7*(1-.5*g.rvColl), e=g.eff, Dao=3.0;
+  const yRV=1.75+e*.6, yS0=yRV+hR, yS1=yS0+th, yP=yS1+Dl, yP1=yP+th*1.05, xB=1.3;
+  const lvc=[-2.6,(yS1+yP)/2], lvrx=4.4, lvry=Dl/2;
+  const rvc=[-.6,yRV+hR/2], rvrx=4.6, rvry=hR/2;
+  const laR=g.Dla/2, laC=[3.6,yS0+Dao+.15+laR*.9];
+  const clipR=x=>{ctx.save(); ctx.beginPath(); ctx.rect(-20,-5,20+x,40); ctx.clip();};
+  // pericárdio (anterior e posterior) e derrame
+  const hull=()=>{ ctx.beginPath(); ctx.ellipse(lvc[0]+.4,(yRV+yP1)/2,lvrx+1.1,(yP1-yRV)/2+.35,-.02,0,Math.PI*2); };
+  hull(); ctx.lineWidth=2*(e+.2); ctx.strokeStyle=G(PERI); ctx.stroke();
+  if(e>.05){ hull(); ctx.lineWidth=2*e; ctx.strokeStyle=G(6); ctx.stroke(); }
+  // aorta descendente (posterior ao pericárdio)
+  ell(ctx,xB+1.1,yP1+e+1.25,.95,.8); fill(ctx,WALL); ell(ctx,xB+1.1,yP1+e+1.25,.72,.58); fill(ctx,4);
+  // paredes
+  ell(ctx,rvc[0],rvc[1],rvrx+.2,rvry+.42); fill(ctx,WALL);
+  clipR(xB+.15); ell(ctx,lvc[0],lvc[1],lvrx+th,lvry+th); fill(ctx,WALL); ctx.restore();
+  poly(ctx,[[xB-.4,yS0-.18],[6.8,yS0-.55],[6.8,yS0+Dao-.15],[xB+.1,yS0+Dao+.2],[xB-.2,yP1]]); fill(ctx,WALL);
+  ell(ctx,laC[0],laC[1],laR+.22,laR*.9+.2); fill(ctx,WALL*.85);
+  // cavidades
+  clipR(3.8); ell(ctx,rvc[0],rvc[1],rvrx,rvry); fill(ctx,4); ctx.restore();
+  clipR(xB+.25); ell(ctx,lvc[0],lvc[1],lvrx,lvry); fill(ctx,4); ctx.restore();
+  poly(ctx,[[lvc[0],yS1],[xB+.2,yS1+.02],[xB+.2,yP-.05],[lvc[0],yP]]); fill(ctx,4);
+  poly(ctx,[[xB,yS0],[6.8,yS0-.4],[6.8,yS0+Dao-.3],[xB+.2,yS0+Dao]]); fill(ctx,4);
+  ell(ctx,laC[0],laC[1],laR,laR*.9); fill(ctx,4);
+  // valva aórtica
+  const ao=g.avOpen, xv=xB+.55;
+  seg(ctx,[xv,yS0+.05],[xv+.35+.7*ao,yS0+.05+(1-ao)*Dao*.46-.05*ao],.1,BRIGHT);
+  seg(ctx,[xv,yS0+Dao-.05],[xv+.35+.7*ao,yS0+Dao-.05-(1-ao)*Dao*.46+.05*ao],.1,BRIGHT);
+  // valva mitral: folheto anterior (continuidade mitroaórtica) e posterior
+  const mo=g.mvOpen, hA=[xB+.2,yS0+Dao], hP=[xB+.5,yP], C=[xB-1.0,(hA[1]+hP[1])/2+.1];
+  const oA=[hA[0]-Math.min(2.4,Dl*.5),yS1+.55], oP=[hP[0]-Math.min(1.5,Dl*.32),yP-.25], L2=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];
+  seg(ctx,hA,L2(C,oA,mo),.12,BRIGHT); seg(ctx,hP,L2([C[0]+.15,C[1]+.08],oP,mo),.12,BRIGHT);
+  return {yS0,yS1,yP,yP1,xB,laC};
+}
+/* ---------- paraesternal eixo curto (músculos papilares) ---------- */
+function drawPSAX(ctx,g){
+  const R=g.Dlv/2, th=g.th, sep=g.sep, e=g.eff, Dr=g.Drv*(1-.5*g.rvColl);
+  const cx=.6, cy=1.9+e+Dr*.75+th+R;
+  const ts=Math.atan2(-.8,-.6); // direção do VD (para cima/esquerda)
+  const dS=R*(1-.42*clamp(sep,0,1.2)); const r=a=>{const c=Math.cos(a-ts); return c>.05?Math.min(R,dS/c):R;};
+  const rv=a=>{const d=Math.cos(a-ts); return d>0?R+th+Dr*.8*Math.pow(d,1.25):R+th};
+  const P=(f,k)=>[...Array(73)].map((_,i)=>{const a=i/72*Math.PI*2, rr=f(a)+(k||0);return [cx+rr*Math.cos(a),cy+rr*Math.sin(a)]});
+  if(e>.05){ poly(ctx,P(rv,e+.2)); fill(ctx,PERI); poly(ctx,P(rv,e)); fill(ctx,6); }
+  else { poly(ctx,P(rv,.2)); ctx.lineWidth=.15; ctx.strokeStyle=G(PERI*.8); ctx.stroke(); }
+  poly(ctx,P(rv,.38)); fill(ctx,WALL);
+  poly(ctx,P(rv,0)); fill(ctx,4);
+  poly(ctx,P(a=>r(a)+th)); fill(ctx,WALL);
+  poly(ctx,P(r)); fill(ctx,4);
+  // papilares
+  [[.7,.55],[2.2,.55]].forEach(([a,s])=>{ ell(ctx,cx+R*.62*Math.cos(a),cy+R*.62*Math.sin(a),R*.2,R*.26,a); fill(ctx,WALL*.95); });
+  return {cx,cy,R};
+}
+/* ---------- janelas abdominais ---------- */
+function liver(ctx,y0,y1){ poly(ctx,[[-12,y0],[12,y0],[12,y1],[-12,y1]]); fill(ctx,LIVER); }
+function drawSC4(ctx,g){
+  liver(ctx,1.2,9);
+  ctx.save(); ctx.translate(4.2,8.2+g.eff); ctx.rotate(Math.PI/2*1.02); const m=heartA4C(ctx,g); ctx.restore();
+  return m;
+}
+function drawIVC(ctx,g,E){
+  liver(ctx,1.2,12.5);
+  const D=g.ivc, yc=8.6, c=clamp(congSev(E),0,1.2), hvW=.55+.45*c;
+  // diafragma
+  poly(ctx,[[1.9,1.2],[12,1.2],[12,16],[1.6,16]]); fill(ctx,TIS+6);
+  ctx.beginPath(); ctx.moveTo(1.6,2.5); ctx.quadraticCurveTo(2.2,8.6,1.4,14); ctx.lineWidth=.35; ctx.strokeStyle=G(BRIGHT); ctx.stroke();
+  // AD (à direita da tela)
+  ell(ctx,5.2,yc-.4,2.3,2.0); fill(ctx,WALL*.8); ell(ctx,5.2,yc-.4,2.0,1.75); fill(ctx,4);
+  // VCI
+  poly(ctx,[[-9,yc-D/2-.15],[3.6,yc-D/2-.25],[3.6,yc+D/2+.25],[-9,yc+D/2+.15]]); fill(ctx,BRIGHT*.7);
+  poly(ctx,[[-9,yc-D/2],[3.8,yc-D/2-.1],[3.8,yc+D/2+.1],[-9,yc+D/2]]); fill(ctx,4);
+  // veia hepática desembocando na VCI
+  ctx.beginPath(); ctx.moveTo(-5.5,3.2); ctx.quadraticCurveTo(-1.5,5.2,1.2,yc-D/2); ctx.lineWidth=hvW+.25; ctx.strokeStyle=G(BRIGHT*.65); ctx.stroke();
+  ctx.lineWidth=hvW; ctx.strokeStyle=G(4); ctx.stroke();
+  return {yc,D,mm:[-.2,yc],hv:[-2.2,4.7]};
+}
+function drawPV(ctx,g){
+  liver(ctx,1.2,13);
+  ctx.beginPath(); ctx.moveTo(-6,10.2); ctx.quadraticCurveTo(0,7.2,6,6.2); ctx.lineWidth=1.55; ctx.strokeStyle=G(BRIGHT); ctx.stroke(); ctx.lineWidth=1.15; ctx.strokeStyle=G(4); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-3,4); ctx.quadraticCurveTo(-1,4.8,1,4.6); ctx.lineWidth=.45; ctx.strokeStyle=G(6); ctx.stroke();
+  return {gate:[0,7.75]};
+}
+function drawKID(ctx,g){
+  liver(ctx,1.2,6.5);
+  ctx.save(); ctx.translate(.4,8.6); ctx.rotate(-.12);
+  ell(ctx,0,0,5.3,2.7); fill(ctx,BRIGHT*.55); ell(ctx,0,0,5,2.4); fill(ctx,62);
+  for(let i=-3;i<=3;i++){ ell(ctx,i*1.25,-1.25+Math.abs(i)*.08,.45,.6,i*.25); fill(ctx,30); ell(ctx,i*1.25,1.25-Math.abs(i)*.08,.45,.6,-i*.25); fill(ctx,30); }
+  ell(ctx,0,0,3.3,1.05); fill(ctx,BRIGHT*.85);
+  for(let i=-2;i<=2;i++){ seg(ctx,[i*1.2,-.6],[i*1.35,-1.55],.14,20); }
+  ctx.restore();
+  return {gate:[1.2*1.0+.4,8.6-1.1]};
+}
+function drawNoWindow(ctx){ liver(ctx,1.2,30); }
+
+/* ---------- composição da imagem ---------- */
+function renderImage(cv,st){
+  const ctx=cv.getContext('2d'), W=cv.width, H=cv.height, top=22, depth=st.depth, s=(H-top-18)/depth, half=st.abdo?.62:.7;
+  ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
+  // setor
+  const sector=()=>{ctx.beginPath(); ctx.moveTo(W/2-6,top); ctx.lineTo(W/2+6,top); ctx.arc(W/2,top,depth*s,Math.PI/2-half,Math.PI/2+half); ctx.closePath();};
+  ctx.save(); sector(); ctx.clip();
+  ctx.fillStyle=G(TIS); ctx.fillRect(0,0,W,H);
+  ctx.save(); ctx.translate(W/2,top); ctx.scale(s,s);
+  // parede torácica
+  poly(ctx,[[-12,0],[12,0],[12,1.2],[-12,1.2]]); fill(ctx,92); seg(ctx,[-12,.55],[12,.55],.08,150);
+  const q=st.q, v=st.view, jitter=(1-q);
+  ctx.translate(jitter*.9*st.sgnX,jitter*.5); ctx.rotate(jitter*.35*st.sgnR);
+  let m=null; st.off=[0,0];
+  if(q<.2) drawNoWindow(ctx);
+  else if(v==='a4c'){ st.off=[0,1.8+st.g.eff*.8]; ctx.translate(0,st.off[1]); m=heartA4C(ctx,st.g); }
+  else if(v==='a5c'){ st.off=[0,1.8+st.g.eff*.8]; ctx.translate(0,st.off[1]); m=heartA4C(ctx,st.g,{lvot:true}); }
+  else if(v==='plax') m=drawPLAX(ctx,st.g);
+  else if(v==='psax') m=drawPSAX(ctx,st.g);
+  else if(v==='sc4') m=drawSC4(ctx,st.g);
+  else if(v==='ivc') m=drawIVC(ctx,st.g,st.E);
+  else if(v==='pv') m=drawPV(ctx,st.g);
+  else if(v==='kid') m=drawKID(ctx,st.g);
+  // Doppler colorido de IT (A4C) — jato na AD durante a sístole
+  if(st.color&&(v==='a4c')&&m&&st.E.S.q.tr>2){ const k=Math.min(1,st.E.S.q.tr/260), a=m.raC;
+    ctx.save(); ctx.globalAlpha=.75; const gr=ctx.createRadialGradient(m.tvTip[0],m.tvTip[1]+.2,0,m.tvTip[0],m.tvTip[1]+.2,.5+2.6*k);
+    gr.addColorStop(0,'rgb(255,240,120)'); gr.addColorStop(.35,'rgb(60,200,255)'); gr.addColorStop(1,'rgba(20,60,255,0)'); ctx.fillStyle=gr;
+    ell(ctx,m.tvTip[0]-.2,m.tvTip[1]+.4+1.2*k,.35+1.1*k,.6+1.8*k,.25); ctx.fill(); ctx.restore(); }
+  if(st.color&&(v==='a4c'||v==='a5c')&&m&&st.E.S.q.mt>40){ const k=Math.min(1,st.E.S.q.mt/400);
+    ctx.save(); ctx.globalAlpha=.55*k; ctx.fillStyle='rgb(220,40,30)'; ell(ctx,m.mvTip[0],m.mvTip[1]-1.2,.8,2.2); ctx.fill(); ctx.restore(); }
+  ctx.restore();
+  // speckle, atenuação, ganho
+  ctx.globalCompositeOperation='multiply';
+  const sp=speckle(); const pat=ctx.createPattern(sp,'repeat'); ctx.save(); ctx.translate((st.frame*7)%13,(st.frame*3)%11); ctx.fillStyle=pat; ctx.fillRect(-20,-20,W+40,H+40); ctx.restore();
+  const att=ctx.createLinearGradient(0,top,0,H); att.addColorStop(0,'#fff'); att.addColorStop(1,G(120*(.6+.4*st.tgc))); ctx.fillStyle=att; ctx.fillRect(0,0,W,H);
+  if(st.gain<1){ ctx.fillStyle=G(255*st.gain); ctx.fillRect(0,0,W,H); }
+  ctx.globalCompositeOperation='screen';
+  if(st.gain>1){ ctx.fillStyle=G(255*(st.gain-1)*.55); ctx.fillRect(0,0,W,H); }
+  ctx.globalCompositeOperation='source-over';
+  // janela ruim: ruído e sombras de costela
+  if(q<.98){ ctx.globalAlpha=Math.min(.5,(1-q)*.7); ctx.drawImage(sp,0,0,W,H); ctx.globalAlpha=1;
+    const nS=q<.5?3:q<.8?2:1; for(let i=0;i<nS;i++){ const a=Math.PI/2+(st.ribs[i]||0)*half; ctx.save(); ctx.translate(W/2,top); ctx.rotate(a-Math.PI/2);
+      ctx.fillStyle=`rgba(0,0,0,${.55+.4*(1-q)})`; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-Math.tan(.09+.12*(1-q))*H,H); ctx.lineTo(Math.tan(.09+.12*(1-q))*H,H); ctx.closePath(); ctx.fill(); ctx.restore(); } }
+  ctx.restore();
+  // moldura, escala de profundidade, marcador
+  ctx.save(); sector(); ctx.strokeStyle='#3a4650'; ctx.lineWidth=1; ctx.stroke(); ctx.restore();
+  ctx.fillStyle='#9fb0bd'; ctx.font='11px "IBM Plex Mono",monospace'; ctx.textAlign='left';
+  for(let d=0;d<=depth;d+=2){ const y=top+d*s; ctx.fillRect(W/2+depth*s*Math.sin(half)+6,y,d%10?4:8,1); if(d%4===0) ctx.fillText(d+'',W/2+depth*s*Math.sin(half)+14,y+4); }
+  ctx.fillStyle='#ffc93c'; ctx.beginPath(); ctx.arc(W/2+(st.abdo?-1:1)*(depth*s*Math.sin(half)*.55+6),top+8,4,0,7); ctx.fill();
+  // linha de amostra / cursor
+  if(st.cursor&&m){ const p=st.cursor(m); if(p){ const px=W/2+(p[0]+st.off[0])*s, py=top+(p[1]+st.off[1])*s;
+    ctx.strokeStyle='rgba(120,220,255,.75)'; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.moveTo(W/2,top); ctx.lineTo(px+(px-W/2)*.15,py+(py-top)*.15); ctx.stroke(); ctx.setLineDash([]);
+    if(st.gate){ ctx.strokeStyle='#7fdcff'; ctx.lineWidth=2; const ang=Math.atan2(py-top,px-W/2)+Math.PI/2; ctx.save(); ctx.translate(px,py); ctx.rotate(ang);
+      ctx.beginPath(); ctx.moveTo(-7,-5); ctx.lineTo(7,-5); ctx.moveTo(-7,5); ctx.lineTo(7,5); ctx.stroke(); ctx.restore(); ctx.lineWidth=1; } } }
+  st.m=m; st.scale=s; st.top=top;
+  return m;
+}
+
+/* ===================== ECOLAB — aplicação ===================== */
+const VIEWS={
+  plax:{nome:'Paraesternal eixo longo',site:'ps',rot:300,tilt:0,depth:16,modes:['2d'],dica:'3º–4º EIC esquerdo, junto ao esterno; marcador para o ombro direito (~10 h).'},
+  psax:{nome:'Paraesternal eixo curto — papilares',site:'ps',rot:30,tilt:0,depth:14,modes:['2d'],dica:'Da janela paraesternal longa, gire 90° em sentido horário (marcador ~2 h).'},
+  a4c:{nome:'Apical 4 câmaras',site:'ap',rot:90,tilt:0,depth:18,modes:['2d','pwMV','tdiL','tdiS','cwTR','mmTAPSE'],dica:'Ictus (5º EIC, linha hemiclavicular/axilar anterior); marcador para a esquerda do paciente (3 h).'},
+  a5c:{nome:'Apical 5 câmaras',site:'ap',rot:90,tilt:20,depth:18,modes:['2d','pwLVOT'],dica:'Do apical 4 câmaras, angule o feixe anteriormente até abrir a via de saída do VE.'},
+  sc4:{nome:'Subcostal 4 câmaras',site:'sx',rot:90,tilt:0,depth:18,modes:['2d'],dica:'Subxifoide, sonda quase paralela ao abdome, marcador para a esquerda do paciente; use o fígado como janela.'},
+  ivc:{nome:'Subcostal — VCI e veia hepática',site:'sx',rot:0,tilt:0,depth:16,modes:['2d','mmIVC','pwHV'],dica:'Subxifoide, marcador cranial (12 h): VCI entrando no AD. Meça 1–2 cm da junção cavoatrial.'},
+  pv:{nome:'Veia porta',site:'ld',rot:0,tilt:0,depth:14,modes:['2d','pwPV'],dica:'Linha axilar média direita, espaços intercostais inferiores, marcador cranial.'},
+  kid:{nome:'Rim direito — Doppler intrarrenal',site:'fd',rot:0,tilt:0,depth:14,modes:['2d','pwIR'],dica:'Flanco direito, linha axilar posterior; Doppler pulsado em vaso interlobar.'}
+};
+const SITES={ps:[113,110],ap:[134,131],sx:[100,154],ld:[63,150],fd:[60,188]};
+const MODES={
+  '2d':{nome:'2D'},pwMV:{nome:'PW mitral',u:'cm/s',rng:[-40,140],base:.78},tdiL:{nome:"TDI lateral",u:'cm/s',rng:[-22,18],base:.45},tdiS:{nome:"TDI septal",u:'cm/s',rng:[-22,18],base:.45},
+  cwTR:{nome:'CW tricúspide',u:'m/s',rng:[-520,80],base:.13},mmTAPSE:{nome:'Modo M — TAPSE',mm:1},pwLVOT:{nome:'PW VSVE',u:'cm/s',rng:[-160,40],base:.2},
+  mmIVC:{nome:'Modo M — VCI',mm:1},pwHV:{nome:'PW veia hepática',u:'cm/s',rng:[-70,50],base:.42},pwPV:{nome:'PW porta',u:'cm/s',rng:[-15,40],base:.72},pwIR:{nome:'PW intrarrenal',u:'cm/s',rng:[-30,55],base:.62}
+};
+const $=id=>document.getElementById(id);
+const APP={E:null,key:'normal',view:'a4c',mode:'2d',pos:[134,131],rot:90,tilt:0,gain:1,tgc:1,depth:18,color:false,frozen:false,frame:0,
+  meas:{},vm:false,peep:5,base:null,adj:{vol:0},showModel:false,ribs:[Math.random()*2-1,Math.random()*2-1,Math.random()*2-1],sweepT:0,lastT:0,measAt:null};
+
+/* ---------- qualidade da janela ---------- */
+function angDiff(a,b){let d=((a-b)%360+540)%360-180;return d}
+function bestView(){
+  let best=null,bq=0;
+  for(const k in VIEWS){const v=VIEWS[k], s=SITES[v.site], d=Math.hypot(APP.pos[0]-s[0],APP.pos[1]-s[1]);
+    const q=Math.exp(-Math.pow(d/13,2))*Math.exp(-Math.pow(angDiff(APP.rot,v.rot)/24,2))*Math.exp(-Math.pow((APP.tilt-v.tilt)/11,2));
+    if(q>bq){bq=q;best=k}}
+  return {view:best,q:bq};
+}
+/* ---------- sinais para o traçado espectral / modo M ---------- */
+function beatFor(bn){const E=APP.E;return E.bmap[bn-1]||E.beats[E.beats.length-1]||null}
+function sig(mode,back){
+  const E=APP.E,b=E.buf,g=k=>bufGet(b,k,back);
+  const tb=g('tb'),T=g('T'),bt=beatFor(g('bn')),P=E.P,r=P.relax||1,Ts=.13+.22*T;
+  if(!bt) return {v:0};
+  if(mode==='pwMV'){const tMO=Ts+.06+.04*(1-r),tr=.07+.03*(1-r),x=tb-tMO;
+    const e=x<0?0:x<tr?Math.sin(Math.PI/2*x/tr):Math.max(0,1-(x-tr)/bt.dt), a=Math.exp(-Math.pow((tb-(T-.06))/.045,2));
+    return {v:Math.max(bt.E*e,bt.A*a),w:1}}
+  if(mode==='tdiL'||mode==='tdiS'){const k=mode==='tdiL'?1:.78, ep=mode==='tdiL'?bt.eLat:bt.eSep, x=tb-(Ts+.05+.03*(1-r));
+    const sA=(5.5+5*clamp(bt.ef/.6,0,1.3))*k, aA=(7+3*Math.sqrt(bt.A/55))*k*(r<.8?1.15:1);
+    return {v:sA*Math.exp(-Math.pow((tb-Ts*.42)/(Ts*.22),2))-ep*Math.exp(-Math.pow(x/.045,2))*(x>-.03?1:0)-aA*Math.exp(-Math.pow((tb-(T-.05))/.04,2)),w:.4}}
+  if(mode==='cwTR'){const d=g('prv')-g('pra'); const v=d>1&&g('e')>.05?-Math.sqrt((d-1)/4)*100:0; return {v,w:1,i:.4+.6*Math.min(1,(P.trg||0)/2)}}
+  if(mode==='pwLVOT'){ const x=(tb-bt.ej0)/bt.et, f=x<0||x>1?0:x<.35?Math.sin(Math.PI/2*x/.35):Math.cos(Math.PI/2*(x-.35)/.65); return {v:-bt.vmax*100*f,w:.35}; }
+  if(mode==='mmTAPSE'){const rv=g('vrv'); return {p:clamp((bt.rvedv-rv)/Math.max(5,bt.rvedv-bt.rvesv),0,1.2)*bt.tapse/10}}
+  if(mode==='mmIVC') return {p:ivcD(g('praS'))};
+  const sev=congSev(E), ph=tb/T;
+  if(mode==='pwHV') return {v:hvVel(ph,sev),w:.5};
+  if(mode==='pwPV') return {v:pvVel(ph,sev)*(1+.08*Math.sin(E.t*1.6)),w:.35};
+  if(mode==='pwIR'){const x=irVel(ph,sev); return {v:x[0],v2:x[1],w:.4}}
+  return {v:0};
+}
+function ecg(back){const E=APP.E,tb=bufGet(E.buf,'tb',back),T=bufGet(E.buf,'T',back),Ts=.13+.22*T;
+  return 1.0*Math.exp(-Math.pow((tb-.01)/.012,2))-.25*Math.exp(-Math.pow((tb-.04)/.012,2))+.15*Math.exp(-Math.pow((tb-(T-.12))/.03,2))+.28*Math.exp(-Math.pow((tb-Ts*.85)/.05,2))}
+/* ---------- traçado (varredura) ---------- */
+function drawStrip(){
+  const cv=$('strip'),ctx=cv.getContext('2d'),W=cv.width,H=cv.height,M=MODES[APP.mode],E=APP.E;
+  const Tw=3.2, pxs=W/Tw;
+  if(APP.mode==='2d'){ ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H); drawEcgOnly(ctx,W,H); return; }
+  const now=E.t; if(!APP.lastT||now-APP.lastT>1) APP.lastT=now-.02;
+  const x0=Math.floor(((APP.lastT%Tw)/Tw)*W), x1=Math.floor(((now%Tw)/Tw)*W);
+  const cols=[]; if(x1>=x0) for(let x=x0;x<x1;x++) cols.push(x); else { for(let x=x0;x<W;x++) cols.push(x); for(let x=0;x<x1;x++) cols.push(x); }
+  const hEcg=26, Hs=H-hEcg;
+  for(let j=0;j<cols.length;j++){
+    const x=cols[j], tcol=APP.lastT+(now-APP.lastT)*(j+1)/cols.length, back=Math.max(0,Math.round((now-tcol)*ECO.FS));
+    ctx.fillStyle='#000'; ctx.fillRect(x,0,6,H);
+    const s=sig(APP.mode,back);
+    if(M.mm){ drawMMcol(ctx,x,Hs,s,back); }
+    else {
+      const [lo,hi]=M.rng, yb=Hs*(hi/(hi-lo)), sc=Hs/(hi-lo);
+      const spec=(v,int)=>{ if(Math.abs(v)<.5) return; const y=yb-v*sc, n=Math.abs(y-yb), dir=y<yb?-1:1, w=s.w??.5;
+        for(let k=0;k<n;k+=1.5){ const f=k/n; const inten=(f>1-w?1:.35+.2*Math.random())*(int??1)*(.55+.45*Math.random()); ctx.fillStyle=`rgba(235,240,245,${inten*(.3+.7*f)})`; ctx.fillRect(x,yb+dir*k,1,1.6); }
+        ctx.fillStyle=`rgba(255,255,255,${.85*(int??1)})`; ctx.fillRect(x,y-1,1,2); };
+      spec(s.v,s.i); if(s.v2!=null) spec(s.v2,1);
+      ctx.fillStyle='#355'; ctx.fillRect(x,yb,1,1);
+    }
+    // ECG
+    const ey=Hs+hEcg*.7-ecg(back)*hEcg*.55; ctx.fillStyle='#39e27a'; ctx.fillRect(x,ey,1,1.6);
+  }
+  // cursor de varredura
+  ctx.fillStyle='#223'; ctx.fillRect(x1+1,0,2,H);
+  APP.lastT=now;
+  // escala
+  if(!M.mm){ const [lo,hi]=M.rng, yb=Hs*(hi/(hi-lo)), sc=Hs/(hi-lo); ctx.fillStyle='#0008'; ctx.fillRect(W-46,0,46,Hs); ctx.fillStyle='#8aa'; ctx.font='10px "IBM Plex Mono",monospace'; ctx.textAlign='right';
+    const unitM=APP.mode==='cwTR'; const step=unitM?100:(hi-lo)>150?40:(hi-lo)>60?20:10;
+    for(let v=Math.ceil(lo/step)*step;v<=hi;v+=step){ const y=yb-v*sc; ctx.fillRect(W-6,y,6,1); ctx.fillText(unitM?(v/100).toFixed(0):v,W-8,y+3); }
+    ctx.fillText(unitM?'m/s':'cm/s',W-4,Hs-4); }
+}
+function drawEcgOnly(ctx,W,H){ const E=APP.E; ctx.strokeStyle='#39e27a'; ctx.beginPath(); for(let x=0;x<W;x++){ const back=Math.round((W-x)/W*3.2*ECO.FS); if(back>=E.buf.len) continue; const y=H*.6-ecg(back)*H*.35; x?ctx.lineTo(x,y):ctx.moveTo(x,y);} ctx.stroke();
+  ctx.fillStyle='#56666f'; ctx.font='12px "IBM Plex Sans",sans-serif'; ctx.fillText('Selecione um modo (Doppler / modo M) disponível nesta janela',12,20); }
+function drawMMcol(ctx,x,H,s,back){
+  if(APP.mode==='mmTAPSE'){ const y0=H*.74-s.p*H/7; // anel tricúspide aproxima-se do ápice (sobe) na sístole
+    for(let y=0;y<H;y+=2){ let v=38+30*Math.random(); if(y<H*.1) v=90+40*Math.random(); if(Math.abs(y-y0)<7) v=200+50*Math.random(); else if(y>y0+7&&y<y0+40) v=120*Math.random(); else if(y<y0-7&&y>y0-50) v=12*Math.random();
+      ctx.fillStyle=G(v); ctx.fillRect(x,y,1,2); } }
+  else { const D=s.p, sc=H/9, yc=H*.55, a=yc-D/2*sc, b=yc+D/2*sc;
+    for(let y=0;y<H;y+=2){ let v=70+40*Math.random(); if(y<H*.08) v=100+40*Math.random(); if(y>a&&y<b) v=6*Math.random(); else if(Math.abs(y-a)<3||Math.abs(y-b)<3) v=190+50*Math.random(); ctx.fillStyle=G(v); ctx.fillRect(x,y,1,2); } }
+}
+/* ---------- medidas ---------- */
+function nz(v,k){ const q=APP.q; return v*(1+(Math.random()*2-1)*(k??.06)*(1.2-q)); }
+function lastBeats(n){ return APP.E.beats.slice(-n) }
+function avg(a,f){ return a.reduce((s,x)=>s+f(x),0)/a.length }
+function measure(){
+  const E=APP.E, bv=bestView(); APP.q=bv.q;
+  const out=$('measMsg');
+  if(bv.q<.55){ out.textContent='Imagem inadequada para medir (qualidade '+Math.round(bv.q*100)+'%). Ajuste posição, rotação e inclinação.'; out.className='mmsg bad'; return; }
+  const v=bv.view, m=APP.mode, B=lastBeats(4), B8=lastBeats(10), g=geo(E), M=APP.meas, t=Date.now(), plr=E.plr?1:0;
+  const put=(k,val,extra)=>{ M[k]=Object.assign({v:val,t,plr},extra||{}); };
+  let msg='';
+  if(m==='2d'){
+    if(v==='plax'){ put('ddve',nz(teichD(avg(B,b=>b.edv)))); put('dsve',nz(teichD(avg(B,b=>b.esv)))); put('siv',nz(.95*(E.P.lvK>.04?1.35:1))); put('ae',nz(g.Dla)); put('derrame',nz(g.eff,.1)); msg='DDVE, DSVE, septo, AE e derrame medidos.'; }
+    else if(v==='psax'){ put('eiD',nz(2/(2-.42*clamp(avg(B,b=>b.sepD),0,1.2)),.03)); put('eiS',nz(2/(2-.42*clamp(avg(B,b=>b.sepS),0,1.2)),.03)); put('fevePS',nz(avg(B,b=>(b.sv)/b.edv)*100,.08)); msg='Índice de excentricidade (diástole/sístole) medido.'; }
+    else if(v==='a4c'){ const edv=avg(B,b=>b.edv), rvd=rvD(avg(B,b=>b.rvedv)), lvd=teichD(edv);
+      put('feve',nz(avg(B,b=>b.sv/b.edv)*100,.07)); put('vd',nz(rvd)); put('vdve',nz(rvd/lvd,.05)); put('derrame',nz(g.eff,.1));
+      put('colAD',avg(B,b=>b.raColl)>.5?1:0); put('colVD',avg(B,b=>b.rvColl)>.5?1:0); msg='FEVE (Simpson estimado), VD basal, relação VD/VE e derrame medidos.'; }
+    else if(v==='sc4'){ put('derrame',nz(g.eff,.1)); put('colAD',avg(B,b=>b.raColl)>.5?1:0); put('colVD',avg(B,b=>b.rvColl)>.5?1:0); msg='Derrame e colapso de câmaras avaliados.'; }
+    else { msg='Nesta janela, escolha um modo Doppler/M para medir.'; }
+  } else if(m==='pwMV'){ const e=nz(avg(B,b=>b.E)), a=nz(avg(B,b=>b.A)); put('E',e); put('A',a); put('dt',nz(avg(B,b=>b.dt)*1000)); msg=`E ${e.toFixed(0)} cm/s · A ${a.toFixed(0)} cm/s`; }
+  else if(m==='tdiL'){ put('eL',nz(avg(B,b=>b.eLat))); msg=`e' lateral ${M.eL.v.toFixed(1)} cm/s`; }
+  else if(m==='tdiS'){ put('eS',nz(avg(B,b=>b.eSep))); msg=`e' septal ${M.eS.v.toFixed(1)} cm/s`; }
+  else if(m==='cwTR'){ put('tr',nz(Math.max(...B.map(b=>b.tr)),.04)); msg=`IT pico ${M.tr.v.toFixed(2)} m/s`; }
+  else if(m==='mmTAPSE'){ put('tapse',nz(avg(B,b=>b.tapse),.06)); msg=`TAPSE ${M.tapse.v.toFixed(0)} mm`; }
+  else if(m==='pwLVOT'){ const vt=nz(avg(B,b=>b.vti),.05), vs=B8.map(b=>b.vti), dv=(Math.max(...vs)-Math.min(...vs))/avg(B8,b=>b.vti)*100;
+    put('vti',vt,{hr:avg(B,b=>b.hr)}); put('vmax',nz(avg(B,b=>b.vmax),.05)); put('dvtiResp',dv);
+    if(plr) M.vtiPLR={v:vt,t}; else M.vtiBase={v:vt,t}; msg=`VTI ${vt.toFixed(1)} cm${plr?' (durante elevação das pernas)':''}`; }
+  else if(m==='mmIVC'){ let mx=0,mn=9; const n=Math.min(E.buf.len,ECO.FS*6); for(let i=0;i<n;i+=4){const d=ivcD(bufGet(E.buf,'praS',i)); mx=Math.max(mx,d); mn=Math.min(mn,d);}
+    const sn=APP.sniffAt&&(E.t-APP.sniffAt<6); put('ivcMax',nz(mx,.04),{sniff:sn,vm:APP.vm}); put('ivcMin',nz(mn,.06)); msg=`VCI ${M.ivcMax.v.toFixed(2)} / ${M.ivcMin.v.toFixed(2)} cm${sn?' (com sniff)':''}`; }
+  else if(m==='pwHV'||m==='pwPV'||m==='pwIR'){ const s=congSev(E);
+    if(m==='pwHV'){ const Sa=1-1.8*s, D=.72+.12*s; put('hv',Sa<=0?2:Sa<D?1:0,{S:38*Sa,D:38*D}); msg='Doppler da veia hepática: '+['S > D (normal)','S < D (alteração leve)','S reverso (alteração grave)'][M.hv.v]; }
+    if(m==='pwPV'){ const f=nz(pvpf(s)*100,.05); put('pvpf',f); msg=`Pulsatilidade portal ${f.toFixed(0)}%`; }
+    if(m==='pwIR'){ put('ir',s<.32?0:s<.62?1:2); msg='Doppler intrarrenal: '+['contínuo (normal)','bifásico descontínuo (leve)','monofásico descontínuo — só D (grave)'][M.ir.v]; } }
+  out.textContent=msg||'—'; out.className='mmsg ok';
+  renderMeas();
+}
+/* ---------- síntese (critérios verificados) ---------- */
+function synth(){
+  const M=APP.meas, o=[], f=(x,d)=>x.toFixed(d??1).replace('.',',');
+  // PAD pela VCI (ASE)
+  let pad=null;
+  if(M.ivcMax){ if(M.ivcMax.vm) o.push(['PAD pela VCI','Não aplicável em ventilação com pressão positiva: a VCI tende a distender na inspiração.','n']);
+    else { const D=M.ivcMax.v, c=(M.ivcMax.v-M.ivcMin.v)/M.ivcMax.v*100; pad=D<=2.1?(c>50?3:8):(c>50?8:15);
+      o.push(['PAD estimada',`${pad} mmHg — VCI ${f(D,2)} cm, colapso ${f(c,0)}%${M.ivcMax.sniff?' (com sniff)':' (sem sniff: repita com o botão Sniff)'}`,pad>=15?'b':pad>=8?'w':'o']); } }
+  // PSAP
+  if(M.tr){ const g4=4*M.tr.v*M.tr.v; o.push(['PSAP',pad!=null?`${f(g4+pad,0)} mmHg (4·V² ${f(g4,0)} + PAD ${pad})`:`4·V² = ${f(g4,0)} mmHg + PAD (meça a VCI)`,M.tr.v>=2.8?'w':'o']);
+    if(M.tr.v>=2.8) o.push(['IT ≥ 2,8 m/s','Sugere hipertensão pulmonar se houver pelo menos dois sinais adjuntos (ASE).','w']); }
+  // AE (ASE 2016)
+  if(M.E&&M.A){ const EA=M.E.v/M.A.v, ep=(M.eL&&M.eS)?(M.eL.v+M.eS.v)/2:(M.eL||M.eS)?.v, Ee=ep?M.E.v/ep:null;
+    let lap, why;
+    if(EA<=.8&&M.E.v<=50){ lap='normal'; why=`E/A ${f(EA,2)} e E ≤ 50 cm/s`; }
+    else if(EA>=2){ lap='elevada'; why=`E/A ${f(EA,2)} (≥ 2)`; }
+    else { const cr=[]; if(Ee!=null) cr.push(Ee>14); if(M.tr) cr.push(M.tr.v>2.8);
+      if(cr.length<2) { lap='indeterminada'; why='meça e\' (lateral e septal) e a velocidade da IT'; }
+      else { const n=cr.filter(Boolean).length; lap=n===2?'elevada':n===0?'normal':'indeterminada'; why=`E/e' médio ${Ee!=null?f(Ee,1):'—'}, IT ${f(M.tr.v,2)} m/s (AEVi não disponível)`; } }
+    o.push(['Pressão de AE',`${lap} — ${why}`,lap==='elevada'?'b':lap==='normal'?'o':'w']);
+    if(ep) o.push(["E/e' médio",`${f(Ee,1)}${Ee>14?' (> 14)':''} · e' septal ${M.eS?f(M.eS.v):'—'} / lateral ${M.eL?f(M.eL.v):'—'} cm/s`,Ee>14?'w':'o']); }
+  if(M.tapse) o.push(['TAPSE',`${f(M.tapse.v,0)} mm — ${M.tapse.v>17?'normal (> 17 mm)':'reduzido (≤ 17 mm)'}`,M.tapse.v>17?'o':'b']);
+  if(M.vd) o.push(['VD basal',`${f(M.vd.v,1)} cm — ${M.vd.v<4.1?'normal (< 4,1 cm)':'dilatado (≥ 4,1 cm)'}${M.vdve?' · VD/VE '+f(M.vdve.v,2):''}`,M.vd.v<4.1?'o':'w']);
+  if(M.eiD) o.push(['Excentricidade do VE',`diástole ${f(M.eiD.v,2)} / sístole ${f(M.eiS.v,2)} — ${M.eiS.v>1.1?'retificação sistólica (sobrecarga de pressão do VD)':M.eiD.v>1.1?'retificação diastólica (sobrecarga de volume do VD)':'septo sem retificação'}`,M.eiS.v>1.1||M.eiD.v>1.1?'w':'o']);
+  if(M.vti){ const sv=M.vti.v*ECO.A_LVOT, co=sv*M.vti.hr/1000; o.push(['Débito (VTI)',`VS ${f(sv,0)} mL · DC ${f(co,1)} L/min (VSVE 2,1 cm) · variação respiratória do VTI ${f(M.dvtiResp.v,0)}%`,'n']); }
+  if(M.vtiBase&&M.vtiPLR&&M.vtiPLR.t>M.vtiBase.t){ const d=(M.vtiPLR.v-M.vtiBase.v)/M.vtiBase.v*100;
+    o.push(['Elevação passiva das pernas',`ΔVTI ${d>=0?'+':''}${f(d,0)}% — ${d>=10?'fluidorresponsivo (≥ 10%)':'não responsivo (< 10%)'}`,d>=10?'o':'w']); }
+  if(M.derrame&&M.derrame.v>.2){ o.push(['Derrame pericárdico',`${f(M.derrame.v,1)} cm${M.colAD&&M.colAD.v?' · colapso do AD':''}${M.colVD&&M.colVD.v?' · colapso diastólico do VD':''}`,(M.colVD&&M.colVD.v)?'b':'w']); }
+  // VExUS
+  if(M.ivcMax){ const D=M.ivcMax.v;
+    if(D<2) o.push(['VExUS','Grau 0 — VCI < 2 cm','o']);
+    else if(M.hv&&M.pvpf&&M.ir){ const sev=[M.hv.v===2,M.pvpf.v>=50,M.ir.v===2].filter(Boolean).length, mild=[M.hv.v===1,M.pvpf.v>=30&&M.pvpf.v<50,M.ir.v===1].filter(Boolean).length;
+      const gr=sev>=2?3:sev===1?2:1; o.push(['VExUS',`Grau ${gr} — VCI ≥ 2 cm; alterações graves em ${sev} de 3 (hepática, porta, intrarrenal)${gr===1&&!mild?' · padrões normais':''}`,gr>=3?'b':gr===2?'w':'o']); }
+    else o.push(['VExUS','VCI ≥ 2 cm: complete Doppler hepático, portal e intrarrenal','w']); }
+  return o;
+}
+const LAB={ddve:['DDVE','cm',1],dsve:['DSVE','cm',1],siv:['Septo','cm',1],ae:['AE','cm',1],feve:['FEVE','%',0],fevePS:['FEVE (visual)','%',0],vd:['VD basal','cm',1],vdve:['VD/VE','',2],derrame:['Derrame','cm',1],eiD:['IE diást.','',2],eiS:['IE sist.','',2],
+  E:['E','cm/s',0],A:['A','cm/s',0],dt:['TD','ms',0],eL:["e' lat",'cm/s',1],eS:["e' sept",'cm/s',1],tr:['IT pico','m/s',2],tapse:['TAPSE','mm',0],vti:['VTI','cm',1],vmax:['Vmáx VSVE','m/s',2],
+  ivcMax:['VCI máx','cm',2],ivcMin:['VCI mín','cm',2],pvpf:['Pulsat. porta','%',0]};
+function renderMeas(){
+  const M=APP.meas; let h='';
+  for(const k in LAB){ if(!M[k]) continue; const [n,u,d]=LAB[k]; h+=`<div class="mt"><span>${n}</span><b>${M[k].v.toFixed(d).replace('.',',')}</b><small>${u}</small></div>`; }
+  if(M.hv) h+=`<div class="mt"><span>V. hepática</span><b style="font-size:14px">${['S>D','S<D','S reverso'][M.hv.v]}</b></div>`;
+  if(M.ir) h+=`<div class="mt"><span>Intrarrenal</span><b style="font-size:14px">${['contínuo','bifásico','monofásico'][M.ir.v]}</b></div>`;
+  $('measGrid').innerHTML=h||'<div class="note">Nenhuma medida ainda. Obtenha uma janela adequada, escolha o modo e toque em <b>Medir</b>.</div>';
+  const s=synth(); $('synth').innerHTML=s.length?s.map(([a,b,c])=>`<div class="sy ${c}"><b>${a}</b><span>${b}</span></div>`).join(''):'<div class="note">A síntese aparece conforme as medidas são feitas.</div>';
+}
+/* ---------- sonda / boneco ---------- */
+function probeSVG(){
+  const [x,y]=APP.pos, a=APP.rot*Math.PI/180, dx=Math.sin(a), dy=-Math.cos(a);
+  $('probe').setAttribute('transform',`translate(${x} ${y}) rotate(${APP.rot})`);
+  $('probeTilt').setAttribute('d',`M0 0 L${(APP.tilt/30)*14} -2`);
+}
+function setProbe(p,rot,tilt){ if(p) APP.pos=p; if(rot!=null) APP.rot=((rot%360)+360)%360; if(tilt!=null) APP.tilt=clamp(tilt,-30,30);
+  $('rot').value=APP.rot; $('tilt').value=APP.tilt; $('rotV').textContent=`${APP.rot}° · ${(Math.round(APP.rot/30)%12)||12} h`; $('tiltV').textContent=(APP.tilt>0?'+':'')+APP.tilt+'°';
+  probeSVG(); updView(true); }
+function updView(fromProbe){
+  const bv=bestView(); APP.q=bv.q;
+  const v=bv.q>.2?bv.view:null;
+  if(v&&v!==APP.view){ APP.view=v; APP.depth=VIEWS[v].depth; $('depth').value=APP.depth; if(!VIEWS[v].modes.includes(APP.mode)) APP.mode='2d'; buildModes(); APP.lastT=0; }
+  $('vname').textContent=v?VIEWS[v].nome:'Sem janela acústica adequada';
+  $('qbar').style.width=Math.round(bv.q*100)+'%'; $('qbar').style.background=bv.q>.75?'var(--ok)':bv.q>.45?'var(--warn)':'var(--bad)';
+  $('qv').textContent=Math.round(bv.q*100)+'%';
+  $('vdica').textContent=v?VIEWS[v].dica:'Clique no tórax para posicionar a sonda ou use uma janela predefinida.';
+  document.querySelectorAll('#presetViews button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v&&bv.q>.9));
+}
+function buildModes(){
+  const v=VIEWS[APP.view]; $('modes').innerHTML=v.modes.map(m=>`<button data-m="${m}" aria-pressed="${m===APP.mode}">${MODES[m].nome}</button>`).join('');
+  document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>{APP.mode=b.dataset.m; APP.lastT=0; const c=$('strip').getContext('2d'); c.fillStyle='#000'; c.fillRect(0,0,9999,9999); buildModes();});
+}
+/* ---------- fisiologia ---------- */
+const SL=[
+  ['vol','Volemia',-1200,1200,50,'mL'],['eesL','Contratilidade VE',.2,2,.05,'×'],['eesR','Contratilidade VD',.2,2,.05,'×'],['rsys','Resistência sistêmica',.25,2.5,.05,'×'],
+  ['pe','Resistência pulmonar',.5,14,.1,'×'],['hr','FC basal',40,150,1,'bpm'],['eff','Derrame pericárdico',0,320,5,''],['trg','Insuf. tricúspide',0,3,1,'grau'],['relax','Relaxamento do VE',.3,1,.05,'']
+];
+function loadPreset(k){
+  APP.key=k; APP.E=ecoCreate(k,{vm:APP.vm,peep:APP.peep}); APP.base=Object.assign({},APP.E.P); APP.adj={vol:0}; APP.meas={}; APP.lastT=0;
+  document.querySelectorAll('#presets button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===k));
+  $('pdesc').textContent=PRESETS[k].desc; $('plr').setAttribute('aria-pressed','false');
+  SL.forEach(([id])=>{ const el=$('s_'+id); if(!el) return; el.value=id==='vol'?0:(id==='eesL'||id==='eesR'||id==='rsys')?1:id==='pe'?APP.E.P.pe:id==='hr'?APP.E.P.hr:id==='eff'?APP.E.P.eff||0:id==='trg'?APP.E.P.trg||0:APP.E.P.relax||1; slLabel(id); });
+  $('measMsg').textContent=''; renderMeas();
+}
+function slLabel(id){ const el=$('s_'+id), sl=SL.find(s=>s[0]===id); let v=+el.value;
+  $('v_'+id).textContent=id==='eff'?(v?Math.round(v*3)+' mL':'ausente'):id==='trg'?['ausente','leve','moderada','importante'][v]:id==='relax'?(v>=.9?'normal':v>=.6?'lento':'muito lento'):(sl[5]==='×'?v.toFixed(2)+'×':(id==='vol'&&v>0?'+':'')+v+' '+sl[5]); }
+function slApply(id){ const E=APP.E,P=E.P,v=+$('s_'+id).value;
+  if(id==='vol'){ const d=v-APP.adj.vol; E.S.V.vc+=d; APP.adj.vol=v; }
+  else if(id==='eesL'||id==='eesR'||id==='rsys') P[id]=APP.base[id]*v;
+  else P[id]=v;
+  slLabel(id); }
+/* ---------- laço ---------- */
+function frame(ts){
+  const E=APP.E; const dt=Math.min(.05,(ts-(APP.ts||ts))/1000)||.016; APP.ts=ts;
+  ecoAdvance(E,dt);
+  APP.frame++;
+  if(!APP.frozen){
+    const bv=bestView(); APP.q=bv.q; const g=geo(E), V=VIEWS[APP.view];
+    const cursorFor={pwMV:m=>m.mvTip,tdiL:m=>m.latAnn,tdiS:m=>m.sepAnn,cwTR:m=>m.tvTip,mmTAPSE:m=>m.tvLat,pwLVOT:m=>m.lvot,mmIVC:m=>m.mm,pwHV:m=>m.hv,pwPV:m=>m.gate,pwIR:m=>m.gate}[APP.mode];
+    renderImage($('img'),{E,g,view:APP.view,q:bv.q,depth:APP.depth,gain:APP.gain,tgc:APP.tgc,color:APP.color,frame:APP.frame,ribs:APP.ribs,sgnX:angDiff(APP.rot,V.rot)>0?1:-1,sgnR:(APP.tilt-V.tilt)>0?1:-1,abdo:['pv','kid'].includes(APP.view),cursor:cursorFor,gate:APP.mode.startsWith('pw')||APP.mode.startsWith('tdi')||APP.mode==='cwTR'});
+    drawStrip();
+  }
+  if(APP.frame%15===0) renderModel();
+  requestAnimationFrame(frame);
+}
+function renderModel(){
+  const E=APP.E,m=E.S.m,b=E.beats.slice(-4); if(!b.length) return;
+  const ef=avg(b,x=>x.sv/x.edv)*100;
+  $('vitals').innerHTML=[['FC',m.hr.toFixed(0),'bpm'],['PA',m.aS.toFixed(0)+'/'+m.aD.toFixed(0),'('+m.map.toFixed(0)+')'],['SpO₂','97','%']].map(([a,v,u])=>`<div class="vt"><span>${a}</span><b>${v}</b><small>${u}</small></div>`).join('');
+  if(!APP.showModel){ $('model').innerHTML=''; return; }
+  $('model').innerHTML=[['PVC',m.cvp.toFixed(0),'mmHg'],['POAP',m.paop.toFixed(0),'mmHg'],['PAP',m.pS.toFixed(0)+'/'+m.pD.toFixed(0),'mmHg'],['DC',m.co.toFixed(1),'L/min'],['VS',m.sv.toFixed(0),'mL'],['FEVE',ef.toFixed(0),'%'],['FEVD',(avg(b,x=>x.rvef)*100).toFixed(0),'%'],['VExUS sev.',congSev(E).toFixed(2),'']].map(([a,v,u])=>`<div class="vt"><span>${a}</span><b>${v}</b><small>${u}</small></div>`).join('');
+}
+/* ---------- inicialização ---------- */
+function init(){
+  $('presets').innerHTML=Object.keys(PRESETS).map(k=>`<button class="cbtn" data-k="${k}">${PRESETS[k].nome}</button>`).join('');
+  document.querySelectorAll('#presets button').forEach(b=>b.onclick=()=>loadPreset(b.dataset.k));
+  $('presetViews').innerHTML=Object.keys(VIEWS).map(k=>`<button data-v="${k}">${VIEWS[k].nome.replace(' — ',' · ')}</button>`).join('');
+  document.querySelectorAll('#presetViews button').forEach(b=>b.onclick=()=>{const v=VIEWS[b.dataset.v]; setProbe(SITES[v.site].slice(),v.rot,v.tilt);});
+  $('sliders').innerHTML=SL.map(([id,n,a,b,st])=>`<label class="sl"><span>${n}<b id="v_${id}"></b></span><input type="range" id="s_${id}" min="${a}" max="${b}" step="${st}"></label>`).join('');
+  SL.forEach(([id])=>{ $('s_'+id).oninput=()=>slApply(id); });
+  const body=$('body');
+  const place=ev=>{ const pt=body.createSVGPoint(); pt.x=ev.clientX; pt.y=ev.clientY; const p=pt.matrixTransform(body.getScreenCTM().inverse()); setProbe([p.x,p.y]); };
+  let drag=false; body.addEventListener('pointerdown',e=>{drag=true; body.setPointerCapture(e.pointerId); place(e);}); body.addEventListener('pointermove',e=>{if(drag) place(e);}); body.addEventListener('pointerup',()=>drag=false);
+  $('rot').oninput=()=>setProbe(null,+$('rot').value,null); $('tilt').oninput=()=>setProbe(null,null,+$('tilt').value);
+  document.querySelectorAll('[data-nudge]').forEach(b=>b.onclick=()=>{const [k,d]=b.dataset.nudge.split(':'); if(k==='r') setProbe(null,APP.rot+ +d,null); else setProbe(null,null,APP.tilt+ +d);});
+  $('gain').oninput=()=>APP.gain=+$('gain').value; $('depth').oninput=()=>APP.depth=+$('depth').value; $('tgc').oninput=()=>APP.tgc=+$('tgc').value;
+  $('freeze').onclick=()=>{APP.frozen=!APP.frozen; $('freeze').setAttribute('aria-pressed',APP.frozen); $('freeze').textContent=APP.frozen?'Descongelar':'Congelar'; if(!APP.frozen) APP.lastT=0;};
+  $('color').onclick=()=>{APP.color=!APP.color; $('color').setAttribute('aria-pressed',APP.color);};
+  $('measure').onclick=measure;
+  $('plr').onclick=()=>{APP.E.plr=APP.E.plr?0:1; $('plr').setAttribute('aria-pressed',!!APP.E.plr); $('measMsg').textContent=APP.E.plr?'Elevação passiva das pernas em curso: aguarde ~1 min e meça o VTI de novo.':'Pernas de volta à posição basal.'; $('measMsg').className='mmsg';};
+  $('bolus').onclick=()=>{APP.E.S.fluidPend+=250; $('measMsg').textContent='Bolus de 250 mL em infusão (~5 min).'; $('measMsg').className='mmsg';};
+  $('sniff').onclick=()=>{ if(APP.vm){$('measMsg').textContent='Sniff só em ventilação espontânea.';return;} APP.E.sniff=0; APP.sniffAt=APP.E.t; };
+  $('vent').querySelectorAll('button').forEach(b=>b.onclick=()=>{ APP.vm=b.dataset.v==='vm'; $('vent').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('peepRow').hidden=!APP.vm;
+    const S=APP.E.S; if(APP.vm){ S.vent.mode='VCV'; S.vent.VT=.5; S.vent.RR=16; S.vent.Ti=1; S.vent.PEEP=APP.peep; } else S.vent.mode='spont'; APP.meas.ivcMax&&(delete APP.meas.ivcMax, delete APP.meas.ivcMin); renderMeas(); });
+  $('peep').oninput=()=>{APP.peep=+$('peep').value; $('peepV').textContent=APP.peep+' cmH₂O'; if(APP.vm) APP.E.S.vent.PEEP=APP.peep;};
+  $('showModel').onchange=()=>{APP.showModel=$('showModel').checked; renderModel();};
+  $('clearMeas').onclick=()=>{APP.meas={}; renderMeas();};
+  loadPreset('normal'); const v=VIEWS.a4c; setProbe(SITES.ap.slice(),v.rot,v.tilt); buildModes();
+  requestAnimationFrame(frame);
+}
+window.addEventListener('DOMContentLoaded',init);
+
+</script>
+
+
+</body></html>
