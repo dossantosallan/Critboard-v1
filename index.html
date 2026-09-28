@@ -1224,6 +1224,9 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
 
     <div id="calcGrid">
       <div class="calc-card"><div class="calc-title">&#x1F9E0; Glasgow (ECG)</div><div class="calc-body"><div class="calc-row"><label>Abertura ocular</label><select class="calc-select" id="c_gcs_e" onchange="calcGCS()"><option value="4">4 — Espontânea</option><option value="3">3 — À voz</option><option value="2">2 — À dor</option><option value="1">1 — Ausente</option></select></div><div class="calc-row"><label>Resposta verbal</label><select class="calc-select" id="c_gcs_v" onchange="calcGCS()"><option value="5">5 — Orientado</option><option value="4">4 — Confuso</option><option value="3">3 — Palavras</option><option value="2">2 — Sons</option><option value="1">1 — Ausente/T</option></select></div><div class="calc-row"><label>Resposta motora</label><select class="calc-select" id="c_gcs_m" onchange="calcGCS()"><option value="6">6 — Obedece</option><option value="5">5 — Localiza</option><option value="4">4 — Retirada</option><option value="3">3 — Flexão</option><option value="2">2 — Extensão</option><option value="1">1 — Ausente</option></select></div><div class="calc-result" id="r_gcs">—</div></div></div>
+      <div class="calc-card"><div class="calc-title">&#x1F62C; BPS — Behavioral Pain Scale</div><div class="calc-body"><div class="calc-row"><label>Paciente</label><select class="calc-select" id="c_bps_mod" onchange="calcBPS()"><option value="vm">Intubado (BPS)</option><option value="ni">Não intubado (BPS-NI)</option></select></div><div class="calc-row"><label>Expressão facial</label><select class="calc-select" id="c_bps_f" onchange="calcBPS()"><option value="1">1 — Relaxada</option><option value="2">2 — Parcialmente contraída</option><option value="3">3 — Totalmente contraída</option><option value="4">4 — Careta</option></select></div><div class="calc-row"><label>Membros superiores</label><select class="calc-select" id="c_bps_m" onchange="calcBPS()"><option value="1">1 — Sem movimento</option><option value="2">2 — Parcialmente fletidos</option><option value="3">3 — Fletidos + dedos</option><option value="4">4 — Permanentemente retraídos</option></select></div><div class="calc-row"><label id="c_bps_vl">Ventilação</label><select class="calc-select" id="c_bps_v" onchange="calcBPS()"><option value="1">1 — Tolera a ventilação</option><option value="2">2 — Tosse, mas tolera</option><option value="3">3 — Briga com o ventilador</option><option value="4">4 — Impossível controlar a ventilação</option></select></div><div class="calc-result" id="r_bps">—</div><div class="calc-note">Faixa 3–12; &gt; 5 indica dor (Payen 2001). Face: 2 = sobrancelhas abaixadas, 3 = pálpebras fechadas. BPS-NI (Chanques 2009) substitui ventilação por vocalização. Aplicar em quem não consegue autorrelatar; reavaliar após analgesia.</div></div></div>
+      <div class="calc-card"><div class="calc-title">&#x1F616; CPOT — Critical-Care Pain Observation Tool</div><div class="calc-body"><div class="calc-row"><label>Paciente</label><select class="calc-select" id="c_cpot_mod" onchange="calcCPOT()"><option value="vm">Intubado</option><option value="ext">Extubado</option></select></div><div class="calc-row"><label>Expressão facial</label><select class="calc-select" id="c_cpot_f" onchange="calcCPOT()"><option value="0">0 — Relaxada, neutra</option><option value="1">1 — Tensa (franze a testa)</option><option value="2">2 — Careta</option></select></div><div class="calc-row"><label>Movimentos corporais</label><select class="calc-select" id="c_cpot_b" onchange="calcCPOT()"><option value="0">0 — Ausentes</option><option value="1">1 — Proteção (toca o local)</option><option value="2">2 — Inquietação / agitação</option></select></div><div class="calc-row"><label>Tensão muscular</label><select class="calc-select" id="c_cpot_t" onchange="calcCPOT()"><option value="0">0 — Relaxado</option><option value="1">1 — Tenso, rígido</option><option value="2">2 — Muito tenso/rígido</option></select></div><div class="calc-row"><label id="c_cpot_vl">Ventilador</label><select class="calc-select" id="c_cpot_v" onchange="calcCPOT()"><option value="0">0 — Tolera</option><option value="1">1 — Tosse, mas tolera</option><option value="2">2 — Briga com o ventilador</option></select></div><div class="calc-result" id="r_cpot">—</div><div class="calc-note">Faixa 0–8; &gt; 2 indica dor (Gélinas 2006). Tensão: flexão/extensão passiva dos MMSS. Ventilador: 0 alarmes não disparam; 1 alarmes cessam sozinhos; 2 assincronia/alarmes frequentes. Validado em intubados e extubados.</div></div></div>
+      <div class="calc-card"><div class="calc-title">&#x1F300; CAM-ICU — Delirium</div><div class="calc-body"><div class="calc-row"><label>RASS atual</label><select class="calc-select" id="c_cam_rass" onchange="calcCAM()"><option value="4">+4 Combativo</option><option value="3">+3 Muito agitado</option><option value="2">+2 Agitado</option><option value="1">+1 Inquieto</option><option value="0" selected>0 Alerta e calmo</option><option value="-1">−1 Sonolento</option><option value="-2">−2 Sedação leve</option><option value="-3">−3 Sedação moderada</option><option value="-4">−4 Sedação profunda</option><option value="-5">−5 Não despertável</option></select></div><div class="calc-row"><label>1. Início agudo / flutuação</label><select class="calc-select" id="c_cam_f1" onchange="calcCAM()"><option value="0">Não</option><option value="1">Sim</option></select></div><div class="calc-row"><label>2. Desatenção (erros)</label><select class="calc-select" id="c_cam_f2" onchange="calcCAM()"><option value="0">0 erros</option><option value="1">1 erro</option><option value="2">2 erros</option><option value="3">3 erros</option><option value="4">4 erros</option><option value="5">5 erros</option><option value="6">6 erros</option><option value="7">7 erros</option><option value="8">8 erros</option><option value="9">9 erros</option><option value="10">10 erros</option></select></div><div class="calc-row"><label>4. Pens. desorganizado (erros)</label><select class="calc-select" id="c_cam_f4" onchange="calcCAM()"><option value="0">0 erros</option><option value="1">1 erro</option><option value="2">2 erros</option><option value="3">3 erros</option><option value="4">4 erros</option><option value="5">5 erros</option></select></div><div class="calc-result" id="r_cam">—</div><div class="calc-note">Item 1: mudança do basal ou flutuação nas últimas 24 h (RASS, GCS, avaliação prévia de delirium). Item 3 (nível de consciência alterado) = RASS ≠ 0, preenchido pelo RASS. Letras: aperte a mão a cada "A", 1 letra a cada 3 s; erro = não apertar no A ou apertar em outra letra. Perguntas: pedra flutua? há peixes no mar? 1 kg pesa mais que 2 kg? martelo serve para pregar? + "mostre estes dedos" e repita com a outra mão.</div></div></div>
 
       <!-- VC ideal + Peso predito + Complacência -->
       <div class="calc-card"><div class="calc-title">&#x1F4A4; Doses de Sedoanalgesia</div><div class="calc-body">
@@ -2552,6 +2555,38 @@ function dvaLabel(d, dose) {
 }
 
 
+
+function calcBPS() {
+  var ni = document.getElementById('c_bps_mod').value === 'ni';
+  var sel = document.getElementById('c_bps_v'), lab = document.getElementById('c_bps_vl'), cur = sel.value;
+  var opts = ni ? ['1 — Sem vocalização de dor','2 — Gemido ≤ 3/min e ≤ 3 s','3 — Gemido > 3/min ou > 3 s','4 — Grito, queixa verbal ou apneia']
+               : ['1 — Tolera a ventilação','2 — Tosse, mas tolera','3 — Briga com o ventilador','4 — Impossível controlar a ventilação'];
+  if (sel.dataset.mode !== (ni?'ni':'vm')) { sel.innerHTML = opts.map(function(t,i){return '<option value="'+(i+1)+'">'+t+'</option>';}).join(''); sel.value = cur; sel.dataset.mode = ni?'ni':'vm'; lab.textContent = ni ? 'Vocalização' : 'Ventilação'; }
+  var t = +document.getElementById('c_bps_f').value + +document.getElementById('c_bps_m').value + +sel.value;
+  var dor = t > 5;
+  document.getElementById('r_bps').innerHTML = '<span style="font-size:28px;font-weight:700;color:'+(dor?'var(--danger)':'var(--ok)')+'">'+t+'</span>&nbsp;/ 12 — '+(dor?'<span style="color:var(--danger)">Dor presente (&gt; 5): tratar e reavaliar</span>':'<span style="color:var(--ok)">Sem dor significativa (≤ 5)</span>');
+}
+function calcCPOT() {
+  var ext = document.getElementById('c_cpot_mod').value === 'ext';
+  var sel = document.getElementById('c_cpot_v'), lab = document.getElementById('c_cpot_vl'), cur = sel.value;
+  var opts = ext ? ['0 — Fala em tom normal ou sem som','1 — Suspira, geme','2 — Grita, soluça'] : ['0 — Tolera','1 — Tosse, mas tolera','2 — Briga com o ventilador'];
+  if (sel.dataset.mode !== (ext?'ext':'vm')) { sel.innerHTML = opts.map(function(t,i){return '<option value="'+i+'">'+t+'</option>';}).join(''); sel.value = cur; sel.dataset.mode = ext?'ext':'vm'; lab.textContent = ext ? 'Vocalização' : 'Ventilador'; }
+  var t = +document.getElementById('c_cpot_f').value + +document.getElementById('c_cpot_b').value + +document.getElementById('c_cpot_t').value + +sel.value;
+  var dor = t > 2;
+  document.getElementById('r_cpot').innerHTML = '<span style="font-size:28px;font-weight:700;color:'+(dor?'var(--danger)':'var(--ok)')+'">'+t+'</span>&nbsp;/ 8 — '+(dor?'<span style="color:var(--danger)">Dor presente (&gt; 2): tratar e reavaliar</span>':'<span style="color:var(--ok)">Sem dor significativa (≤ 2)</span>');
+}
+function calcCAM() {
+  var rass = +document.getElementById('c_cam_rass').value, f1 = +document.getElementById('c_cam_f1').value === 1,
+      f2 = +document.getElementById('c_cam_f2').value > 2, f3 = rass !== 0, f4 = +document.getElementById('c_cam_f4').value > 1;
+  var el = document.getElementById('r_cam'), res, col, why;
+  if (rass <= -4) { res = 'Não avaliável'; col = 'var(--warning)'; why = 'RASS −4/−5: paciente não responde à voz. Reduza a sedação e reavalie.'; }
+  else if (!f1) { res = 'CAM-ICU negativo'; col = 'var(--ok)'; why = 'Sem mudança aguda nem flutuação (item 1 ausente).'; }
+  else if (!f2) { res = 'CAM-ICU negativo'; col = 'var(--ok)'; why = 'Atenção preservada (≤ 2 erros no teste das letras).'; }
+  else if (f3) { res = 'CAM-ICU positivo — delirium'; col = 'var(--danger)'; why = 'Itens 1 + 2 + 3 (RASS ' + (rass>0?'+':'') + rass + ')' + (rass > 0 ? ': delirium hiperativo.' : ': delirium hipoativo.'); }
+  else if (f4) { res = 'CAM-ICU positivo — delirium'; col = 'var(--danger)'; why = 'Itens 1 + 2 + 4 (pensamento desorganizado, > 1 erro).'; }
+  else { res = 'CAM-ICU negativo'; col = 'var(--ok)'; why = 'RASS 0 e pensamento organizado (≤ 1 erro).'; }
+  el.innerHTML = '<span style="font-weight:700;color:'+col+'">'+res+'</span><br><span style="font-size:11px;color:var(--t2);">'+why+'</span>';
+}
 function calcGCS() {
   var e = parseInt(document.getElementById('c_gcs_e').value);
   var v = parseInt(document.getElementById('c_gcs_v').value);
@@ -5130,6 +5165,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (location.hash === '#simuladores') switchNav('sim');
 
   calcGCS();
+  calcBPS(); calcCPOT(); calcCAM();
   calcSAPS3();
   initCalcCollapse();
   initPEEPTable();
