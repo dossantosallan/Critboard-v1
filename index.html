@@ -196,6 +196,24 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
   box-shadow: 0 0 0 3px rgba(255,201,60,0.06);
 }
 .rta::placeholder { color: var(--t3); }
+.la-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.la-col .rta { min-height:260px; }
+@media (max-width:760px){ .la-grid { grid-template-columns:1fr; } }
+.la-bar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:18px 0 10px; font-family:var(--mono); font-size:11px; color:var(--t2); }
+.la-card { background:var(--surface); border:1px solid var(--border2); border-radius:var(--radius-lg); margin-bottom:12px; overflow:hidden; }
+.la-card.crit { border-left:3px solid var(--danger); }
+.la-head { display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.la-leito { font-family:var(--mono); font-size:11px; font-weight:700; color:var(--accent); background:rgba(255,201,60,.08); border:1px solid rgba(255,201,60,.25); border-radius:6px; padding:2px 8px; }
+.la-leito.xx { color:var(--t3); border-color:var(--border2); background:none; }
+.la-name { font-weight:700; flex:1; }
+.la-tag { font-family:var(--mono); font-size:10px; padding:2px 7px; border-radius:10px; border:1px solid var(--border2); color:var(--t3); }
+.la-tag.on { color:var(--ok); border-color:rgba(80,200,120,.35); }
+.la-tag.warn { color:var(--danger); border-color:rgba(255,80,80,.4); }
+.la-pre { margin:0; padding:12px 14px; font-family:var(--mono); font-size:11.5px; line-height:1.7; white-space:pre-wrap; color:var(--t1); }
+.la-leito-in { width:54px; font-family:var(--mono); font-size:11px; background:var(--bg,transparent); color:var(--t1); border:1px solid var(--border2); border-radius:6px; padding:2px 6px; }
+.la-det { margin-top:22px; }
+.la-det > summary { cursor:pointer; font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--t2); padding:8px 0; }
+
 
 .cc {
   text-align: right;
@@ -1054,8 +1072,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
 
 <main>
   <div class="nav-tabs">
-    <button class="nav-tab on" data-tab="lab" id="navLab">&#x1F9EA; Labs</button>
-    <button class="nav-tab" data-tab="vit" id="navVit">&#x1F493; Vitais</button>
+    <button class="nav-tab on" data-tab="lab" id="navLab">&#x1F9EA; Labs &amp; Aferições</button>
     <button class="nav-tab" data-tab="resume" id="navResume">&#x1F4CB; Passagem</button>
     <button class="nav-tab" data-tab="presc" id="navPresc">&#x1F48A; Prescrição</button>
     <button class="nav-tab" data-tab="calc" id="navCalc">&#x1F9EE; Calculadoras</button>
@@ -1142,11 +1159,34 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
 
   <!-- LAB -->
   <div class="tab-page on" id="pageLab">
-    <div class="slabel">Cole o Texto dos Laudos</div>
-    <textarea class="rta" id="rtaLab" oninput="onTxtLab()" placeholder="Cole aqui um ou vários laudos.&#10;Detecta automaticamente cada paciente pelo campo 'Paciente....:'.&#10;Funciona 100% offline, sem internet."></textarea>
-    <div class="cc" id="ccLab">0 caracteres</div>
-    <div class="hint"><strong>Como usar:</strong> Cole laudos de um ou vários pacientes juntos. O sistema detecta automaticamente pelo campo <strong>Paciente....:</strong></div>
-    <button class="btn-go" id="btnLab" onclick="runLab()" disabled>🔍 Extrair Laboratórios</button>
+    <div class="la-grid">
+      <div class="la-col">
+        <div class="slabel">Aferições (G-HOSP)</div>
+        <textarea class="rta" id="rtaVit" oninput="onTxtVit();laSched()" placeholder="Cole o Balanço Hídrico + Sinais Vitais do G-HOSP.&#10;Um ou vários pacientes (padrão 'Nome - RA').&#10;Pode colar aos poucos: cada colagem é somada."></textarea>
+        <div class="cc" id="ccVit">0 caracteres</div>
+      </div>
+      <div class="la-col">
+        <div class="slabel">Laboratórios (laudos)</div>
+        <textarea class="rta" id="rtaLab" oninput="onTxtLab();laSched()" placeholder="Cole um ou vários laudos (campo 'Paciente....:').&#10;Exames do mesmo paciente são agrupados por data da coleta.&#10;Funciona 100% offline."></textarea>
+        <div class="cc" id="ccLab">0 caracteres</div>
+      </div>
+    </div>
+    <div class="hint"><strong>Como funciona:</strong> conforme você cola, o CritBoard identifica cada paciente nos dois quadros, junta aferições e laboratórios do mesmo paciente e monta o texto no modelo <strong>Leito – Nome · Aferições · Laboratórios (data – exames)</strong>. Pacientes sem leito identificado aparecem como <strong>Leito XX</strong>.</div>
+    <div class="la-bar" id="laBar" style="display:none">
+      <span id="laCount"></span>
+      <span style="flex:1"></span>
+      <button class="btn-sm" onclick="laCopyAll()">📋 Copiar todos</button>
+      <button class="btn-sm" onclick="laExport()">⬇️ Exportar .txt</button>
+      <button class="btn-sm" onclick="laClear()">🔄 Limpar</button>
+      <span class="flash" id="flashLaAll">✓ Copiado!</span>
+    </div>
+    <div id="laCards"></div>
+
+    <details class="la-det"><summary>Visão detalhada (painéis, alertas e reposição de eletrólitos)</summary>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0">
+      <button class="btn-go" id="btnLab" onclick="runLab()" disabled style="flex:1;min-width:220px">🔍 Detalhar Laboratórios</button>
+      <button class="btn-go" id="btnVit" onclick="runVit()" disabled style="flex:1;min-width:220px">💓 Detalhar Aferições</button>
+    </div>
     <div class="results" id="resultsLab">
       <div class="summary-bar" id="sbLab"></div>
       <div id="patientsLab"></div>
@@ -1161,20 +1201,12 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
       </div>
     </div>
     </div>
-  </div>
-
-  <!-- VITAIS -->
-  <div class="tab-page" id="pageVit">
-    <div class="slabel">Cole o Texto dos Sinais Vitais</div>
-    <textarea class="rta" id="rtaVit" oninput="onTxtVit()" placeholder="Cole o texto copiado do G-HOSP (Balanço Hídrico + Sinais Vitais).&#10;&#10;Extrai: PAS/PAD/PAM, FC, SpO2, Temp, HGT, BH, Diurese, HD, Evacuações.&#10;&#10;Múltiplos pacientes: detecta pelo padrão 'Nome - RA'."></textarea>
-    <div class="cc" id="ccVit">0 caracteres</div>
-    <div class="hint"><strong>Formato G-HOSP:</strong> Cole o texto da tela de Balanço Hídrico. Detecta pelo padrão <strong>Nome - RA</strong>.</div>
-    <button class="btn-go" id="btnVit" onclick="runVit()" disabled>💓 Extrair Sinais Vitais</button>
     <div class="results" id="resultsVit">
       <div class="summary-bar" id="sbVit"></div>
       <div id="patientsVit"></div>
       <div class="global-actions" id="actionsVit"></div>
     </div>
+    </details>
   </div>
 
   <!-- PASSAGEM -->
@@ -1922,8 +1954,8 @@ function switchNav(tab) {
     t.classList.remove('on');
     t.style.display = 'none';
   });
-  var navMap = {lab:'navLab',vit:'navVit',resume:'navResume',presc:'navPresc',calc:'navCalc',atbdose:'navAtbDose',iot:'navIOT',ref:'navRef',sim:'navSim'};
-  var pageMap = {lab:'pageLab',vit:'pageVit',resume:'pageResume',presc:'pagePresc',calc:'pageCalc',atbdose:'pageAtbDose',iot:'pageIOT',ref:'pageRef',sim:'pageSim'};
+  var navMap = {lab:'navLab',resume:'navResume',presc:'navPresc',calc:'navCalc',atbdose:'navAtbDose',iot:'navIOT',ref:'navRef',sim:'navSim'};
+  var pageMap = {lab:'pageLab',vit:'pageLab',resume:'pageResume',presc:'pagePresc',calc:'pageCalc',atbdose:'pageAtbDose',iot:'pageIOT',ref:'pageRef',sim:'pageSim'};
   if (navMap[tab]) document.getElementById(navMap[tab]).classList.add('on');
   if (pageMap[tab]) {
     var pageEl = document.getElementById(pageMap[tab]);
@@ -1992,10 +2024,102 @@ function renderLab(){var tc=0,tw=0,te=0;labPatients.forEach(function(p){p.result
 function toggleLab(idx){var b=document.getElementById('bodyLab_'+idx);var c=document.getElementById('chevLab_'+idx);var o=b.classList.toggle('open');c.classList.toggle('open',o);}
 function expandAllLab(){labPatients.forEach(function(_,i){document.getElementById('bodyLab_'+i).classList.add('open');document.getElementById('chevLab_'+i).classList.add('open');});}
 function collapseAllLab(){labPatients.forEach(function(_,i){document.getElementById('bodyLab_'+i).classList.remove('open');document.getElementById('chevLab_'+i).classList.remove('open');});}
+
+// ═══ LABS & AFERIÇÕES — consolidação por paciente ═══
+var laTimer = null, laData = [], laLeitoOv = {};
+function laSched() { clearTimeout(laTimer); laTimer = setTimeout(laBuild, 250); }
+function laNorm(n) { return (n || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z ]/g, ' ').replace(/\s+/g, ' ').trim(); }
+function laSame(a, b) {
+  if (!a || !b) return false;
+  if (a === b || a.indexOf(b + ' ') === 0 || b.indexOf(a + ' ') === 0) return true;
+  var ta = a.split(' '), tb = b.split(' ');
+  if (ta.length < 2 || tb.length < 2) return false;
+  if (ta[0] !== tb[0] || ta[ta.length - 1] !== tb[tb.length - 1]) return false;
+  var sa = ta.slice(1, -1), sb = tb.slice(1, -1), sm = sa.length <= sb.length ? sa : sb, lg = sm === sa ? sb : sa;
+  return sm.every(function (t) { return lg.indexOf(t) !== -1; });
+}
+function laFind(list, nk) { for (var i = 0; i < list.length; i++) if (laSame(list[i].key, nk)) return list[i]; return null; }
+function laLabChunks(text) {
+  var re = /Paciente[\.\s]*:/gi, pos = [], m;
+  while ((m = re.exec(text)) !== null) pos.push(m.index);
+  if (!pos.length) return text.trim() ? [text] : [];
+  return pos.map(function (p, i) { return text.substring(i === 0 ? 0 : p, i + 1 < pos.length ? pos[i + 1] : text.length); });
+}
+function laDateKey(d) { var m = (d || '').match(/(\d{2})\/(\d{2})\/(\d{4})/); return m ? m[3] + m[2] + m[1] : '99999999'; }
+function laBuild() {
+  var pts = [];
+  var get = function (name) {
+    var nk = laNorm(name), p = laFind(pts, nk);
+    if (!p) { p = { key: nk, name: name.trim(), leito: '', vit: null, labs: {} }; pts.push(p); }
+    else if (name.trim().length > p.name.length) { p.name = name.trim(); p.key = nk; }
+    return p;
+  };
+  var vt = document.getElementById('rtaVit').value;
+  if (vt.trim().length >= 10) splitVitPatients(vt).forEach(function (b) {
+    var v = parseVitals(b.text);
+    if (v.bhDia === null && v.diureseTotal === null && v.tempMax === null && v.hgtMax === null && v.pasMax === null) return;
+    var p = get(b.name === 'Paciente' ? 'Paciente sem nome' : b.name);
+    p.vit = v; if (v.leito) p.leito = v.leito;
+  });
+  var lt = document.getElementById('rtaLab').value;
+  if (lt.trim().length >= 20) laLabChunks(lt).forEach(function (ch) {
+    var res = parseExams(ch); if (!res.length) return;
+    var meta = extractMeta(ch), p = get(meta.name || 'Paciente sem nome');
+    if (!p.leito) { var lm = ch.match(/Leito[\s.:]*(\d+[A-Za-z]?)/i); if (lm) p.leito = lm[1]; }
+    var d = meta.date || 'Sem data', slot = p.labs[d] || (p.labs[d] = []);
+    res.forEach(function (r) { if (!slot.some(function (x) { return x.exam.key === r.exam.key; })) slot.push(r); });
+  });
+  pts.sort(function (a, b) {
+    var la = laLeito(a), lb = laLeito(b), na = parseInt(la, 10), nb = parseInt(lb, 10);
+    if (isNaN(na) !== isNaN(nb)) return isNaN(na) ? 1 : -1;
+    if (!isNaN(na) && na !== nb) return na - nb;
+    return a.name.localeCompare(b.name);
+  });
+  laData = pts; laRender();
+}
+function laLeito(p) { for (var k in laLeitoOv) if (laSame(k, p.key)) return laLeitoOv[k]; return p.leito || ''; }
+function laPad(l) { return /^\d$/.test(l) ? '0' + l : l; }
+function laText(p) {
+  var l = laLeito(p), t = 'Leito ' + (l ? laPad(l) : 'XX') + ' - ' + p.name + '\nAferições:\n' + (p.vit ? buildVitLine(p.vit) : '—') + '\n\nLaboratórios:\n';
+  var ds = Object.keys(p.labs).sort(function (a, b) { return laDateKey(a).localeCompare(laDateKey(b)); });
+  t += ds.length ? ds.map(function (d) { return (d === 'Sem data' ? d : d.slice(0, 5)) + ' - ' + buildLine(p.labs[d]); }).join('\n') : '—';
+  return t;
+}
+function laEsc(x) { return String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function laRender() {
+  var box = document.getElementById('laCards'), bar = document.getElementById('laBar');
+  if (!laData.length) { box.innerHTML = ''; bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+  var nv = laData.filter(function (p) { return p.vit; }).length, nl = laData.filter(function (p) { return Object.keys(p.labs).length; }).length;
+  document.getElementById('laCount').textContent = laData.length + ' paciente' + (laData.length > 1 ? 's' : '') + ' · ' + nv + ' com aferições · ' + nl + ' com laboratórios';
+  box.innerHTML = laData.map(function (p, i) {
+    var l = laLeito(p), crit = 0, ds = Object.keys(p.labs).sort(function (a, b) { return laDateKey(a).localeCompare(laDateKey(b)); });
+    if (ds.length) p.labs[ds[ds.length - 1]].forEach(function (f) { if (classify(f.exam, f.value) === 'critical') crit++; });
+    return '<div class="la-card' + (crit ? ' crit' : '') + '"><div class="la-head">'
+      + '<span class="la-leito' + (l ? '' : ' xx') + '">Leito <input class="la-leito-in" value="' + laEsc(l) + '" placeholder="XX" onchange="laSetLeito(' + i + ',this.value)"></span>'
+      + '<span class="la-name">' + laEsc(p.name) + '</span>'
+      + '<span class="la-tag' + (p.vit ? ' on' : '') + '">' + (p.vit ? '✓' : '·') + ' aferições</span>'
+      + '<span class="la-tag' + (ds.length ? ' on' : '') + '">' + (ds.length ? '✓ ' + ds.length + ' data' + (ds.length > 1 ? 's' : '') : '· laboratórios') + '</span>'
+      + (crit ? '<span class="la-tag warn">⚠ ' + crit + ' crítico' + (crit > 1 ? 's' : '') + '</span>' : '')
+      + '<button class="btn-copy" onclick="laCopy(' + i + ')">Copiar</button><span class="flash" id="flashLa_' + i + '">✓</span></div>'
+      + '<pre class="la-pre" id="laPre_' + i + '">' + laEsc(laText(p)) + '</pre></div>';
+  }).join('');
+}
+function laSetLeito(i, v) { laLeitoOv[laData[i].key] = v.trim(); laBuild(); }
+function laAll() { return laData.map(laText).join('\n\n────────────\n\n'); }
+function laCopy(i) { copyToClipboard(laText(laData[i]), function () { flashEl('flashLa_' + i); }); }
+function laCopyAll() { copyToClipboard(laAll(), function () { flashEl('flashLaAll'); }); }
+function laExport() {
+  var d = new Date(), nm = 'afericoes-labs_' + ('0' + d.getDate()).slice(-2) + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '.txt';
+  var blob = new Blob([laAll() + '\n'], { type: 'text/plain;charset=utf-8' }), a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = nm; document.body.appendChild(a); a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function laClear() { laLeitoOv = {}; resetLab(); resetVit(); }
 function copyLineLab(idx){copyToClipboard(document.getElementById('lineLab_'+idx).textContent,function(){flashEl('flashLab_'+idx);});}
 function copyPatLab(idx){var pd=labPatients[idx];var line=document.getElementById('lineLab_'+idx).textContent;var crits=pd.results.filter(function(f){return classify(f.exam,f.value)==='critical';});var t='=== '+pd.meta.name+' ===\n'+(pd.meta.date?'Data: '+pd.meta.date+'\n':'')+'\nResumo:\n'+line;if(crits.length)t+='\n\nAlertas:\n'+crits.map(function(f){return'  * '+f.exam.abbr+': '+formatNum(f.exam,f.value)+' '+f.exam.unit;}).join('\n');copyToClipboard(t,function(){flashEl('flashPat_'+idx);});}
 function copyAllLab(){var t=labPatients.map(function(p,i){return'=== '+p.meta.name+' ===\n'+document.getElementById('lineLab_'+i).textContent;}).join('\n\n');copyToClipboard(t,function(){flashEl('flashAllLab');});}
-function resetLab(){document.getElementById('rtaLab').value='';document.getElementById('ccLab').textContent='0 caracteres';document.getElementById('btnLab').disabled=true;document.getElementById('resultsLab').classList.remove('on');var _rb=document.getElementById('repSummaryBlock');if(_rb){_rb.style.display='none';_rb.innerHTML='';}labPatients=[];window.scrollTo({top:0,behavior:'smooth'});}
+function resetLab(){document.getElementById('rtaLab').value='';document.getElementById('ccLab').textContent='0 caracteres';document.getElementById('btnLab').disabled=true;document.getElementById('resultsLab').classList.remove('on');var _rb=document.getElementById('repSummaryBlock');if(_rb){_rb.style.display='none';_rb.innerHTML='';}labPatients=[];window.scrollTo({top:0,behavior:'smooth'});if(typeof laBuild==='function')laBuild();}
 function parseTabRow(text,label){var re=new RegExp('^'+label+'\\t(.+)$','mi');var m=text.match(re);if(!m)return[];var vals=[];m[1].split('\t').forEach(function(cell){var n=parseFloat(cell.trim().replace('%','').replace(',','.'));if(!isNaN(n))vals.push(n);});return vals;}
 function splitVitPatients(text){var lines=text.replace(/\r/g,'').split('\n');var positions=[];for(var i=0;i<lines.length;i++){var m=lines[i].trim().match(/^([A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ\s]{2,}?)\s*-\s*(\d{4,})\s*$/);if(m)positions.push({lineIdx:i,name:m[1].trim()});}if(!positions.length)return[{name:'Paciente',text:text}];return positions.map(function(p,i){return{name:p.name,text:lines.slice(p.lineIdx,i+1<positions.length?positions[i+1].lineIdx:lines.length).join('\n')};});}
 function parseVitals(text){var mx=function(a){return a.length?Math.max.apply(null,a):null;};var mn=function(a){return a.length?Math.min.apply(null,a):null;};var pas=parseTabRow(text,'PAS'),pad=parseTabRow(text,'PAD'),pam=parseTabRow(text,'PAM'),fc=parseTabRow(text,'FC'),spo2=parseTabRow(text,'SPO2'),temp=parseTabRow(text,'TEMP'),hgt=parseTabRow(text,'HGT').filter(function(v){return v>0;});var bhM=text.match(/BH\s+Dia:\s*([+\-]?[\d.,]+)/i);var bhDia=bhM?parseFloat(bhM[1].replace(',','.')):null;var bhAM=text.match(/BH\s+Total:\s*([+\-]?[\d.,]+)/i);var bhAcum=bhAM?parseFloat(bhAM[1].replace(',','.')):null;var diureseTotal=null,diureseParciais=[];var dPerdas=text.match(/P\s*E\s*R\s*D\s*A\s*S[\s\S]*?DIURESE\s+([\d\s\n\r\t.]+?)(?=\n[A-Z]|\nTotal|BH\s|$)/i);if(dPerdas){var nums=(dPerdas[1].match(/\d+\.?\d*/g)||[]).map(parseFloat).filter(function(n){return n>0;});if(nums.length){diureseTotal=nums[nums.length-1];diureseParciais=nums.slice(0,-1);}}if(diureseTotal===null){var dRow=text.match(/^DIURESE\t([\t\d.\s]+)/mi);if(dRow){var nums=(dRow[1].match(/\d+\.?\d*/g)||[]).map(parseFloat).filter(function(n){return n>0;});if(nums.length){diureseTotal=nums[nums.length-1];diureseParciais=nums.slice(0,-1);}}}var evRow=text.match(/^EVAC\t([\t\d.\s]+)/mi);var evacua=null;if(evRow){var ns=(evRow[1].match(/\d+\.?\d*/g)||[]).map(parseFloat).filter(function(n){return n>0;});if(ns.length)evacua=ns[ns.length-1];}var hdRow=text.match(/^HD\t([\t\d.\s]+)/mi);var hd=null;if(hdRow){var ns2=(hdRow[1].match(/\d+\.?\d*/g)||[]).map(parseFloat).filter(function(n){return n>0;});if(ns2.length)hd=ns2[ns2.length-1];}var lM=text.match(/Leito:\s*([\d\-]+)/i);var dM=text.match(/(\d{2}\/\d{2}\/\d{4})\s+\d+:\d+\s+até/);return{leito:lM?lM[1]:'',date:dM?dM[1]:'',hgtMax:mx(hgt),hgtMin:mn(hgt),pasMax:mx(pas),pasMin:mn(pas),padMax:mx(pad),padMin:mn(pad),pamMax:mx(pam),pamMin:mn(pam),fcMax:mx(fc),fcMin:mn(fc),spo2Min:mn(spo2),tempMax:mx(temp),bhDia:bhDia,bhAcum:bhAcum,diureseTotal:diureseTotal,diureseParciais:diureseParciais,evacua:evacua,hd:hd};}
@@ -2007,7 +2131,7 @@ function renderVit(){document.getElementById('sbVit').innerHTML=sbItem(vitPatien
 function toggleVit(idx){var b=document.getElementById('bodyVit_'+idx);var c=document.getElementById('chevVit_'+idx);var o=b.classList.toggle('open');c.classList.toggle('open',o);}
 function copyLineVit(idx){copyToClipboard(document.getElementById('lineVit_'+idx).textContent,function(){flashEl('flashVit_'+idx);});}
 function copyAllVit(){var t=vitPatients.map(function(p,i){return'=== '+p.name+' ===\n'+document.getElementById('lineVit_'+i).textContent;}).join('\n\n');copyToClipboard(t,function(){flashEl('flashAllVit');});}
-function resetVit(){document.getElementById('rtaVit').value='';document.getElementById('ccVit').textContent='0 caracteres';document.getElementById('btnVit').disabled=true;document.getElementById('resultsVit').classList.remove('on');vitPatients=[];window.scrollTo({top:0,behavior:'smooth'});}
+function resetVit(){document.getElementById('rtaVit').value='';document.getElementById('ccVit').textContent='0 caracteres';document.getElementById('btnVit').disabled=true;document.getElementById('resultsVit').classList.remove('on');vitPatients=[];window.scrollTo({top:0,behavior:'smooth'});if(typeof laBuild==='function')laBuild();}
 
 
 
@@ -5238,7 +5362,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // Ensure pageLab is visible on load
   var pageLab = document.getElementById('pageLab');
   if (pageLab) { pageLab.style.display = 'block'; }
-  if (location.hash === '#simuladores') switchNav('sim');
 
   calcGCS();
   calcBPS(); calcCPOT(); calcCAM(); calcWean();
@@ -5248,6 +5371,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Ensure first tab visible on Safari iOS
   var firstPage = document.getElementById('pageLab');
   if (firstPage) firstPage.style.display = 'block';
+  if (location.hash === '#simuladores') switchNav('sim');
 });
 
 function initCalcCollapse() {
