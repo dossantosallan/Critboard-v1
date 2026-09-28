@@ -1637,6 +1637,8 @@ function makeLive(s){
       let lo=1e-4,hi=1e4; for(let i=0;i<90;i++){const m=Math.sqrt(lo*hi); if(ratio(m)<target) lo=m; else hi=m} A=Math.sqrt(lo*hi);
     }
     let beta=Math.log(P0/A+1)/(edv0-Vd);
+    // VE não limitante (VD/pericárdio): VE intrínseco normal, subenchido — EDPVR de complacência normal, não uma curva íngreme ajustada ao ponto
+    if(!lvDrv){ beta=L.beta||.027; A=P0/(Math.exp(beta*(edv0-Vd))-1); }
     // teto fisiológico de rigidez: a baixa fluido-responsividade da IC vem do acoplamento (Ees baixa, Ea alta), não de uma EDPVR vertical
     const bmax=L.bmax||.04; if(beta>bmax){ beta=bmax; A=P0/(Math.exp(beta*(edv0-Vd))-1); }
     LVm={A,beta,Vd,V0,pext,RF0,lv:lvDrv,Ees0:pes/(edv0-svt-V0),Ea0:pes/svt,hr0:s.hr,edv0,P0,svt0:svt,kr:L.kr??.8};
@@ -1717,9 +1719,12 @@ function tickModel(dt){
   const pen=p=>M.pc?Math.exp(-Math.max(0,p-M.pc)*M.pk):1;
   let preF=fsS(P,K)/fsS(Pb,K)*pen(P)/pen(Pb);
   if(dis.tamp){ const k=dis.tamp;   // acúmulo de líquido pericárdico (k>0) ou drenagem (k<0)
+    if(k<0) hr+=.25*k;   // alívio do tamponamento: cai o tônus simpático e a taquicardia compensatória
     cvp=Math.max(3,cvp+(k>0?6:13)*k); paop=Math.max(3,paop+(k>0?5:11)*k,cvp-1); preF*=clamp(1-(k>0?.45:.6)*k,.25,1.6); }
   if(dis.pvr) cvp=Math.max(3,cvp+(dis.pvr>0?4:10)*dis.pvr);   // TEP: VD dilata com a progressão e descomprime após a reperfusão
-  const pext=LVm.pext+(M.drv==='rv'?(b.id==='tamp'?.9:.4)*Math.max(0,cvp-b.cvp):0);
+  // pressão externa ao VE: no tamponamento é a pressão pericárdica (sobe com o acúmulo, cai com a drenagem);
+  // em VD dilatado (IAM de VD, TEP) é a interdependência pelo septo/pericárdio, proporcional à PVC acima da basal
+  let pext=b.id==='tamp'?Math.max(1,LVm.pext*(1+(dis.tamp>0?.6:1.1)*dis.tamp)):(M.drv==='rv'?Math.max(0,LVm.pext+.4*(cvp-b.cvp)):LVm.pext);
   // relaxamento incompleto: com diástole curta a pressão diastólica não chega ao mínimo (EDPVR efetiva desloca para cima);
   // referência = FC basal do cenário. Betabloqueio acrescenta um leve efeito lusitrópico negativo intrínseco.
   const Tej0=.3, relOff=h=>{const Td=60/h-Tej0*Math.pow(b.hr/h,.3); return 40*Math.max(0,.3-Td)};
@@ -1750,6 +1755,10 @@ function tickModel(dt){
       const hrSV=Math.pow(b.hr/HR,M.hrx||.25), perf=M.perf&&map0<70?Math.pow(MAP/map0,.3):1;
       SV=Math.max(SV0*.25,SV0*cfRV*preF*Math.pow(pvrR,-M.rvp)*hrSV*perf)*rf*(1+.06*ibU-.08*ibP);
       SVt=SV;
+      // o VE ejeta o que recebe do VD: VDF = V0 + VS + Pes/Ees (ESPVR fixa). Se o fluxo do VD aumenta (drenagem, reperfusão),
+      // o VE enche mais e a pressão de enchimento sobe pela EDPVR
+      const edvN=LVm.V0+SV+.9*sc.aS/Ees;
+      EDV=edvN;
     }
     Qs=HR*SV/1000;
     MAP=cvp+Qs*SVR0*svrR/80;
@@ -1757,6 +1766,8 @@ function tickModel(dt){
     if(evo.rhythm==='af') HR=Math.min(175,HR*1.3*(1-.3*fe)); else if(evo.rhythm==='vt') HR=185;
   }
   const Qp=Qs*q;
+  if(!lv){ // VDF fixado pelo débito do VD; POAP acima da EDPVR = constrição externa (interdependência septal/pericárdio)
+    const pe=LVm.A*(Math.exp(LVm.beta*(EDV-LVm.Vd))-1); paop=Math.max(paop,pe+pext); pext=Math.max(pext,paop-pe); }
   if(IB.E){ paop=Math.max(3,paop-Math.max(0,paop-8)*.2*ibU+3*ibP); }
   if(M.lvoto){ paop+=16*(ob-M.lvoto); sc.ob=ob; }   // IM por SAM e pressão sistólica do VE maior elevam a pressão do AE
   // pressão de pulso: Windkessel de 2 elementos. PP ∝ (VS/Cart) × F(Tej/τ), τ = R·Cart.
@@ -1916,7 +1927,7 @@ function renderResp(){
    bmax: rigidez máxima da EDPVR (β, 1/mL) · kr: sensibilidade do enchimento ao encurtamento da diástole (relaxamento incompleto) */
 const LVP={vsve:{edv:70,ees:3.6,bmax:.05,kr:.3},neurog:{edv:140,ees:1.6},normal:{edv:140,ees:2.3},hipo:{edv:40,ees:3,kr:.3},sephiper:{edv:115,ees:1.9},
  vasopl:{edv:120,ees:1.6},sephipo:{edv:130,ees:.9,bmax:.045,kr:.8},cardio:{edv:150,ees:.8,bmax:.045,kr:.8},
- iamvd:{edv:90,pext:3,ees:2.3},tamp:{edv:50,pext:15,ees:2.4,kr:.3},tep:{edv:50,pext:4,ees:2.3,kr:.3},hap:{edv:80,pext:2,ees:2.3},
+ iamvd:{edv:90,pext:3,ees:2.3},tamp:{edv:50,pext:15,ees:2.4,kr:.3},tep:{edv:50,pext:6,ees:2.3,kr:.3,beta:.022},hap:{edv:80,pext:2,ees:2.3},
  cpc:{edv:200,ees:.6,bmax:.03,kr:.6},iminsuf:{edv:150,ees:1,bmax:.035},civ:{edv:160,ees:.9,bmax:.04}};
 const PV_V0=5;
 /* VD (cateter de AP volumétrico, termistor de resposta rápida + ECG): FEVD basal por cenário.
