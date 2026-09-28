@@ -62,6 +62,12 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outlin
 .btn.on{border-color:var(--pap);color:var(--pap)}
 
 /* panels */
+.grid1{display:block}
+.dxd>summary{cursor:pointer;color:var(--muted);font-size:13px;letter-spacing:.04em;padding:2px 0}
+.dxd[open]>summary{margin-bottom:8px}
+#casePanel .caseTop{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;align-items:start}
+#casePanel .caseL{display:flex;flex-direction:column;gap:8px}
+@media (max-width:900px){#casePanel .caseTop{grid-template-columns:1fr}}
 .grid2{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:16px;align-items:start}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .panel h2{font-family:var(--num);font-size:20px;font-weight:600;letter-spacing:.04em;margin:0;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;gap:8px}
@@ -159,8 +165,22 @@ summary{cursor:pointer;font-family:var(--num);font-size:16px;letter-spacing:.05e
 .evmap{position:absolute;right:10px;top:4px;color:#ff4b55;font-size:13px;z-index:2;font-variant-numeric:tabular-nums;background:rgba(11,12,13,.75);padding:0 4px;border-radius:4px}
 .evmap b{font-size:22px}
 .evzero{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:#ffd84a;font-weight:700;font-size:13px;z-index:3}
-.evtrend{height:320px;position:relative;margin:10px}
-.evtrend canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.evtrend{position:relative;margin:8px 10px;display:flex;flex-direction:column;gap:6px;color:#e8eef3;font-family:var(--ev-f)}
+.trbar{display:flex;flex-wrap:wrap;gap:6px;justify-content:space-between}
+.trseg{display:inline-flex;background:#17191c;border:1px solid #3a3e44;border-radius:6px;overflow:hidden}
+.trseg button{background:transparent;border:0;color:#c9ced3;font:600 12px var(--ev-f);padding:5px 9px;cursor:pointer}
+.trseg button[aria-pressed=true]{background:#3f7fd6;color:#fff}
+.trsel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.trsel select{background:#17191c;color:#fff;border:1px solid #3a3e44;border-left:4px solid var(--c);border-radius:5px;font:600 12px var(--ev-f);padding:4px 6px;min-width:0}
+.trplot{height:330px;position:relative}
+.trplot canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.trtab{max-height:330px;overflow:auto;border:1px solid #3a3e44;border-radius:6px}
+.trtab table{width:100%;border-collapse:collapse;font:13px var(--ev-f);font-variant-numeric:tabular-nums}
+.trtab th,.trtab td{padding:5px 8px;border-bottom:1px solid #2b2e33;text-align:right;white-space:nowrap}
+.trtab th{position:sticky;top:0;background:#1d2024;color:#c9ced3;font-weight:600}
+.trtab td:first-child,.trtab th:first-child{text-align:left;color:#9fb0bd}
+.trtab td.ev{color:#ffd84a;text-align:left;white-space:normal;font-size:12px}
+.trtab td.out{color:#ffb020}
 .hpiAlert{position:absolute;left:10px;right:10px;top:10px;background:#2a0b12;border:2px solid #ff4d5a;border-radius:10px;padding:12px;z-index:5;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.6)}
 .tpov{background:#14202c;border-color:#5fb0ff}
 .tpov h4{color:#9fd0ff !important}
@@ -193,7 +213,7 @@ summary{cursor:pointer;font-family:var(--num);font-size:16px;letter-spacing:.05e
   .evbar{margin:0 8px 8px;gap:7px;font-size:11.5px}
   .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
   .hpisec{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .evtrend{height:240px}
+  .trplot{height:280px} .trsel{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 .ivtop{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .drugs{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
@@ -322,6 +342,20 @@ tr[data-info] td:first-child::after{content:" ⓘ";color:var(--muted);font-size:
     </div>
     </div>
   </header>
+  <section class="panel" id="casePanel">
+      <h2><span id="caseTitle">Caso</span><span class="tag score" id="score"></span></h2>
+      <div class="caseTop">
+        <div class="caseL">
+          <div id="trainSel">
+            <label for="scSel" class="note">Tipo e perfil hemodinâmico</label>
+            <select id="scSel"></select>
+          </div>
+          <p class="vign" id="vign"></p>
+        </div>
+        <div class="labs" id="labs"></div>
+      </div>
+      <div id="caseBody" style="display:flex;flex-direction:column;gap:12px"></div>
+  </section>
 
   <section class="evmon" id="ev" aria-label="Monitor minimamente invasivo" hidden>
     <div class="evscreen">
@@ -334,7 +368,7 @@ tr[data-info] td:first-child::after{content:" ⓘ";color:var(--muted);font-size:
           <button class="ico i-red" id="nvMute" title="Silenciar alarme" aria-label="Silenciar alarme"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z" fill="rgba(255,255,255,.25)"/><path d="M10 20a2 2 0 0 0 4 0"/><path d="M3 3l18 18"/></svg></button>
         </div>
         <div class="icogrp">
-          <button class="ico i-sky" id="nvTr" aria-pressed="false" title="Tendência 30 min" aria-label="Tendência"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="9" fill="rgba(255,255,255,.2)"/><path d="M12 7v5l3 2"/></svg></button>
+          <button class="ico i-sky" id="nvTr" aria-pressed="false" title="Tendências (gráfica e tabular)" aria-label="Tendência"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="9" fill="rgba(255,255,255,.2)"/><path d="M12 7v5l3 2"/></svg></button>
           <button class="ico i-orange" id="nvHpi" title="Tela secundária do HPI" aria-label="Tela secundária HPI"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 20h18M4 16l5-5 4 3 7-8"/></svg></button>
         </div>
       </nav>
@@ -405,7 +439,15 @@ tr[data-info] td:first-child::after{content:" ⓘ";color:var(--muted);font-size:
           <div class="tiles sec" id="tiles2"></div>
           <div class="evwave"><canvas id="gEV"></canvas><canvas id="cEV"></canvas><span class="lab">ART</span><span class="evzero" id="evZeroL" hidden>ZERANDO…</span><div class="evmap">PAM <b id="evMAP">--</b> <span id="evSD">--/--</span></div></div>
         </div>
-        <div class="evtrend" id="evTrend" hidden><canvas id="cTR"></canvas></div>
+        <div class="evtrend" id="evTrend" hidden>
+          <div class="trbar">
+            <div class="trseg" id="trScale" role="group" aria-label="Escala de tempo"><button data-s="900">15 min</button><button data-s="1800" aria-pressed="true">30 min</button><button data-s="3600">1 h</button><button data-s="7200">2 h</button><button data-s="14400">4 h</button></div>
+            <div class="trseg" id="trKind" role="group" aria-label="Tipo de tendência"><button data-k="g" aria-pressed="true">Gráfica</button><button data-k="t">Tabular</button></div>
+          </div>
+          <div class="trsel" id="trSel"></div>
+          <div class="trplot" id="trPlot"><canvas id="cTR"></canvas></div>
+          <div class="trtab" id="trTab" hidden></div>
+        </div>
         <div class="hpiAlert" id="hpiAlert" hidden></div>
         <div class="hpiAlert tpov" id="tpOv" hidden><h4 id="tpH">Termodiluição transpulmonar</h4><div style="height:110px;position:relative;background:#0b0c0d;border-radius:6px"><canvas id="cTP" style="position:absolute;inset:0;width:100%;height:100%"></canvas></div><p class="note" id="tpTxt" style="color:#c9d2d9"></p><div class="acts" id="tpActs"></div></div>
       </div>
@@ -545,18 +587,7 @@ tr[data-info] td:first-child::after{content:" ⓘ";color:var(--muted);font-size:
       <p class="note" style="margin-top:6px">Modelo didático. VE: a POAP define o VDF pela EDPVR de cada cenário (a fluido-responsividade é a inclinação da EDPVR no ponto atual e cai a cada bolus), e o VS sai do acoplamento ventrículo-arterial, VS = (VDF − V0)·Ees/(Ees + Ea): inotrópico aumenta a Ees, vasopressor aumenta a Ea (Ea ∝ RVS × FC). Ees e V0 próprios de cada cenário (normal ≈ 2,3 mmHg/mL); EDPVR exponencial com teto de rigidez; diástole curta (taquicardia) desloca a EDPVR efetiva para cima por relaxamento incompleto e reduz o VDF. Esmolol: t½ ≈ 9 min, efeito concentração-dependente sobre FC, contratilidade e reflexo barorreceptor, antagonizando os efeitos β das catecolaminas. Cenários limitados pelo VD ou pericárdio usam curva de Frank-Starling na PVC com interdependência. Inclui redistribuição do cristaloide, reposição plasmática, hemodiluição, barorreflexo e Fick com VO₂ constante. Direção e ordem de grandeza das respostas; a farmacocinética é simplificada.</p></details>
   </section>
 
-  <div class="grid2">
-    <section class="panel" id="casePanel">
-      <h2><span id="caseTitle">Caso</span><span class="tag score" id="score"></span></h2>
-      <div id="trainSel">
-        <label for="scSel" class="note">Cenário</label>
-        <select id="scSel"></select>
-      </div>
-      <p class="vign" id="vign"></p>
-      <div class="labs" id="labs"></div>
-      <div id="caseBody" style="display:flex;flex-direction:column;gap:12px"></div>
-    </section>
-
+  <div class="grid1">
     <section class="panel">
       <h2>Variáveis derivadas <span class="tag">cálculo a partir das medidas</span></h2>
       <div id="derived"></div>
@@ -963,7 +994,7 @@ function frame(ts){
 /* ============ NUMÉRICOS ============ */
 const mean=(s,d)=>(s+2*d)/3;
 function updateNums(){
-  if(B&&$('drugs').children.length){if(evo.arrest) evoArrestTick(); else tickModel(1); sgCO=sgCO==null?sc.co:sgCO+(sc.co-sgCO)*.25;drawPV();$('labs').innerHTML=labsHTML();updateMeasured();if(monitor==='ev')renderTiles();}
+  if(B&&$('drugs').children.length){if(evo.arrest) evoArrestTick(); else tickModel(1); trPush(); if(monitor==='ev'&&evView==='tr') drawTrend(); sgCO=sgCO==null?sc.co:sgCO+(sc.co-sgCO)*.25;drawPV();$('labs').innerHTML=labsHTML();updateMeasured();if(monitor==='ev')renderTiles();}
   const j=()=>Math.round(rnd(-1,1));
   ibNums(); if(iabp.placed&&iabp.assist&&mode==='treino'&&!iabp.practice) ibFeedback();
   const arr=evo.arrest?evo.rhythm:null;
@@ -987,7 +1018,7 @@ function updateNums(){
     $('evDate').textContent=p2(dt.getDate())+'/'+p2(dt.getMonth()+1)+'/'+dt.getFullYear();
     $('evBT').textContent=fmt(sc.temp,1);
     $('evMAP').textContent=Math.round(mean(s,d)); $('evSD').textContent=s+'/'+d;
-    evNext-=1; if(evNext<=0){evNext=20;evJitter();renderTiles();if(evView==='tr')drawTrend()}
+    evNext-=1; if(evNext<=0){evNext=20;evJitter();renderTiles()}
     $('evCd').textContent=Math.max(1,Math.ceil(evNext));
   }
 }
@@ -1149,30 +1180,92 @@ function renderHPI(v,force){
   $('hpiS').onclick=()=>{hpiSec=!hpiSec;renderHPI(evVals(),true)};
   $('hpiOk').onclick=()=>{hpiDismissed=true;el.hidden=true};
 }
-function buildHist(){
-  const e=EVP[sc.id]; const mapT=mean(sc.aS,sc.aD), coT=sc.coSys; hist=[];
-  for(let i=0;i<=90;i++){const f=1/(1+Math.exp(-(i-58)/7));
-    hist.push({map:88+(mapT-88)*f+rnd(-1.5,1.5),co:5.8+(coT-5.8)*f+rnd(-.12,.12)})}
+/* ============ TENDÊNCIAS (HemoSphere) ============
+   Registro contínuo do paciente (independe do monitor em uso): 1 amostra por tick = 20 s fisiológicos.
+   Os 30 min anteriores ao início do caso são a história até a apresentação (reconstruída). */
+const TR_REF={map:88,co:5.8,ci:3.1,sv:78,svi:42,svv:8,ppv:9,svr:1050,svri:2000,pr:78,cvp:5,scvo2:72,svo2:70,hpi:25,dpdt:900,eadyn:1};
+const TR_COL=['#ffffff','#ffd84a','#5fd7ff','#ff7ad9'];
+let TR={rows:[],ev:[],t:0,scale:1800,kind:'g',sel:null};
+function trNow(){
+  const e=EVP[sc.id], map=mean(sc.aS,sc.aD), co=Math.max(.1,sc.coSys), sv=co/sc.hr*1000, cvp=sc.cvp, svr=80*(map-cvp)/co;
+  const svv=sc.svvNow, ppv=sc.ppvNow;
+  return {map,co,ci:co/sc.bsa,sv,svi:sv/sc.bsa,svv,ppv,svr,svri:svr*sc.bsa,pr:sc.hr,cvp,scvo2:sc.svc,svo2:sc.svo2,
+    hpi:map<65?100:clamp(Math.round(e.hpi+sc.hpiD),0,100),dpdt:e.dpdt*sc.dpF,eadyn:ppv/svv};
 }
+function buildHist(){
+  TR.rows=[]; TR.ev=[]; TR.t=0; const cur=trNow();
+  for(let i=-90;i<=0;i++){ const f=1/(1+Math.exp(-(i+32)/7)), r={t:i*TICK_S};
+    for(const k in cur){ const a=TR_REF[k]??cur[k], v=a+(cur[k]-a)*f; r[k]=v*(1+rnd(-.012,.012)); }
+    TR.rows.push(r); }
+  TR.ev.push({t:0,txt:'Admissão'});
+  if(!TR.sel) TR.sel=['map','ci','svv','svr'];
+  trBuildSel();
+}
+function trPush(){ TR.t+=TICK_S; const r=trNow(); for(const k in r) r[k]*=1+rnd(-.008,.008); r.t=TR.t; TR.rows.push(r); if(TR.rows.length>1400) TR.rows.shift(); }
+function trEvent(txt){ if(!TR.rows.length) return; TR.ev.push({t:TR.t,txt}); if(TR.ev.length>80) TR.ev.shift(); if(monitor==='ev'&&evView==='tr') drawTrend(); }
+function trAvail(){ const v=evVals(); return Object.keys(TR_REF).filter(k=>PAR[k]&&v[k]!=null&&v[k]!==undefined); }
+function trBuildSel(){
+  const el=$('trSel'); if(!el) return; const av=trAvail();
+  TR.sel=TR.sel.map((k,i)=>av.includes(k)?k:av.find(x=>!TR.sel.includes(x))||av[i]);
+  el.innerHTML=TR.sel.map((k,i)=>`<select data-i="${i}" style="--c:${TR_COL[i]}" aria-label="Parâmetro ${i+1}">${av.map(x=>`<option value="${x}"${x===k?' selected':''}>${PAR[x][0]}</option>`).join('')}</select>`).join('');
+  el.querySelectorAll('select').forEach(sl=>sl.onchange=()=>{TR.sel[+sl.dataset.i]=sl.value; drawTrend();});
+}
+const trClock=t=>{const m=Math.round(t/60); return m===0?'agora':(m<0?'−':'')+(Math.abs(m)>=60?Math.floor(Math.abs(m)/60)+'h'+String(Math.abs(m)%60).padStart(2,'0'):Math.abs(m)+' min')};
 function drawTrend(){
-  const c=$('cTR'); if(!c||!hist) return; const ctx=c.getContext('2d'), W=c.width, H=c.height; ctx.clearRect(0,0,W,H);
-  if(W<30) return;
-  const L=34*dpr,R=34*dpr,T=14*dpr,B=22*dpr, pw=W-L-R, ph=H-T-B;
-  const ym=v=>T+ph-(v-40)/(120-40)*ph, yc=v=>T+ph-v/10*ph, xi=i=>L+i/90*pw;
-  ctx.font=`${11*dpr}px "Barlow Condensed",sans-serif`;
-  ctx.strokeStyle='rgba(120,150,170,.18)';ctx.lineWidth=dpr;
-  [40,65,80,100,120].forEach(v=>{const y=ym(v);ctx.setLineDash(v===65?[4*dpr,4*dpr]:[]);ctx.strokeStyle=v===65?'rgba(255,77,90,.55)':'rgba(120,150,170,.18)';ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(W-R,y);ctx.stroke();ctx.fillStyle='#ff8088';ctx.fillText(v,4*dpr,y+4*dpr)});
-  ctx.setLineDash([]);ctx.fillStyle='#e8eef3';[0,5,10].forEach(v=>ctx.fillText(v,W-R+6*dpr,yc(v)+4*dpr));
-  ctx.fillStyle='#8aa3ba';ctx.fillText('−30 min',L,H-6*dpr);ctx.fillText('agora',W-R-26*dpr,H-6*dpr);
-  ctx.fillStyle='#ff8088';ctx.fillText('PAM',L+4*dpr,T+2*dpr);ctx.fillStyle='#e8eef3';ctx.fillText('DC',L+34*dpr,T+2*dpr);
-  const line=(key,fy,col)=>{ctx.strokeStyle=col;ctx.lineWidth=2*dpr;ctx.beginPath();hist.forEach((p,i)=>{const x=xi(i),y=fy(p[key]);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke();
-    const p=hist[hist.length-1];ctx.fillStyle=col;ctx.beginPath();ctx.arc(xi(90),fy(p[key]),3.5*dpr,0,7);ctx.fill()};
-  line('map',ym,'#ff4b55'); line('co',yc,'#e8eef3');
+  const c=$('cTR'); if(!c||!TR.rows.length||!TR.sel) return;
+  const tab=TR.kind==='t'; $('trPlot').hidden=tab; $('trTab').hidden=!tab;
+  const now=TR.t, t0=now-TR.scale, rows=TR.rows.filter(r=>r.t>=t0-TICK_S);
+  if(tab){ drawTrendTab(rows,t0); return; }
+  const ctx=c.getContext('2d'), W=c.width, H=c.height; ctx.clearRect(0,0,W,H); if(W<60) return;
+  const L=62*dpr, R=86*dpr, T=16*dpr, B=22*dpr, n=TR.sel.length, gap=6*dpr, ph=(H-T-B-gap*(n-1))/n, pw=W-L-R;
+  const X=t=>L+(t-t0)/TR.scale*pw;
+  ctx.font=`${11*dpr}px Helvetica,Arial,sans-serif`; ctx.textBaseline='middle';
+  // pré-admissão
+  if(t0<0){ ctx.fillStyle='rgba(255,255,255,.035)'; ctx.fillRect(L,T,Math.min(pw,X(0)-L),H-T-B); ctx.fillStyle='#7f8a93'; ctx.fillText('antes da admissão',L+4*dpr,T-8*dpr); }
+  TR.sel.forEach((k,i)=>{
+    const y0=T+i*(ph+gap), P=PAR[k], col=TR_COL[i], tgt=P[3];
+    const vals=rows.map(r=>r[k]).filter(v=>v!=null&&isFinite(v));
+    let lo=Math.min(...vals,tgt?tgt[0]:Infinity), hi=Math.max(...vals,tgt?tgt[1]:-Infinity);
+    if(!isFinite(lo)){lo=0;hi=1} const pad=(hi-lo)*.12||1; lo-=pad; hi+=pad; if(k!=='eadyn'&&k!=='svv'&&k!=='ppv') lo=Math.max(0,lo);
+    const Y=v=>y0+ph-(v-lo)/(hi-lo)*ph;
+    ctx.fillStyle='#16181b'; ctx.fillRect(L,y0,pw,ph);
+    if(tgt){ ctx.fillStyle='rgba(47,211,90,.10)'; const ya=Y(Math.min(hi,tgt[1])), yb=Y(Math.max(lo,tgt[0])); ctx.fillRect(L,ya,pw,yb-ya);
+      ctx.strokeStyle='rgba(47,211,90,.45)'; ctx.setLineDash([4*dpr,4*dpr]); ctx.lineWidth=dpr; [tgt[0],tgt[1]].forEach(v=>{if(v>lo&&v<hi){ctx.beginPath();ctx.moveTo(L,Y(v));ctx.lineTo(L+pw,Y(v));ctx.stroke()}}); ctx.setLineDash([]); }
+    // eixo y
+    ctx.fillStyle='#9fb0bd'; ctx.textAlign='right'; const dec=P[2];
+    [hi-pad,lo+pad].forEach(v=>ctx.fillText(fmt(v,dec),L-5*dpr,Y(v)));
+    ctx.textAlign='left'; ctx.fillStyle=col; ctx.font=`bold ${12*dpr}px Helvetica,Arial,sans-serif`; ctx.fillText(P[0],6*dpr,y0+10*dpr);
+    ctx.font=`${10*dpr}px Helvetica,Arial,sans-serif`; ctx.fillStyle='#8a969f'; ctx.fillText(P[1],6*dpr,y0+24*dpr);
+    ctx.font=`${11*dpr}px Helvetica,Arial,sans-serif`;
+    // linha
+    ctx.save(); ctx.beginPath(); ctx.rect(L,y0,pw,ph); ctx.clip();
+    ctx.strokeStyle=col; ctx.lineWidth=2*dpr; ctx.beginPath(); let started=false;
+    rows.forEach(r=>{const v=r[k]; if(v==null||!isFinite(v)){started=false;return} const x=X(r.t), y=Y(v); if(started) ctx.lineTo(x,y); else {ctx.moveTo(x,y); started=true;}}); ctx.stroke(); ctx.restore();
+    // valor atual
+    const cur=rows.length?rows[rows.length-1][k]:null, out=tgt&&cur!=null&&(cur<tgt[0]||cur>tgt[1]);
+    ctx.fillStyle='#1d2024'; ctx.fillRect(L+pw+6*dpr,y0,R-8*dpr,ph); ctx.strokeStyle=out?'#ffb020':'#2fd35a'; ctx.lineWidth=2*dpr; ctx.strokeRect(L+pw+6*dpr,y0+dpr,R-8*dpr,ph-2*dpr);
+    ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.font=`bold ${Math.min(26,ph/dpr*.42)*dpr}px Helvetica,Arial,sans-serif`; ctx.fillText(cur==null?'--':fmt(cur,dec),L+pw+6*dpr+(R-8*dpr)/2,y0+ph/2);
+    ctx.font=`${11*dpr}px Helvetica,Arial,sans-serif`; ctx.textAlign='left';
+  });
+  // eventos
+  TR.ev.filter(e=>e.t>=t0&&e.t<=now).forEach((e,j)=>{ const x=X(e.t); ctx.strokeStyle='rgba(255,216,74,.75)'; ctx.setLineDash([3*dpr,3*dpr]); ctx.lineWidth=dpr; ctx.beginPath(); ctx.moveTo(x,T); ctx.lineTo(x,H-B); ctx.stroke(); ctx.setLineDash([]);
+    ctx.save(); ctx.translate(x+3*dpr,T+4*dpr); ctx.rotate(Math.PI/2); ctx.fillStyle='#ffd84a'; ctx.font=`${10*dpr}px Helvetica,Arial,sans-serif`; ctx.textBaseline='bottom'; ctx.fillText(e.txt.slice(0,26),0,0); ctx.restore(); });
+  // eixo do tempo
+  ctx.fillStyle='#9fb0bd'; ctx.textAlign='center'; const nT=W/dpr<520?3:6, st=TR.scale/nT;
+  for(let k=0;k<=nT;k++){ const t=t0+k*st; ctx.fillText(trClock(t-now),X(t),H-9*dpr); }
+  ctx.textAlign='left';
+}
+function drawTrendTab(rows,t0){
+  const step={900:60,1800:300,3600:300,7200:600,14400:1800}[TR.scale]||300, now=TR.t, out=[];
+  for(let t=now;t>=Math.max(t0,TR.rows[0].t);t-=step){ const r=rows.reduce((b,x)=>Math.abs(x.t-t)<Math.abs(b.t-t)?x:b,rows[0]);
+    const evs=TR.ev.filter(e=>e.t<=t&&e.t>t-step).map(e=>e.txt).join(' · '); out.push({t,r,evs}); }
+  $('trTab').innerHTML='<table><thead><tr><th>Tempo</th>'+TR.sel.map((k,i)=>`<th style="color:${TR_COL[i]}">${PAR[k][0]}<br><small>${PAR[k][1]}</small></th>`).join('')+'<th style="text-align:left">Eventos</th></tr></thead><tbody>'+
+    out.map(({t,r,evs})=>'<tr><td>'+trClock(t-now)+'</td>'+TR.sel.map(k=>{const v=r[k], g=PAR[k][3], o=g&&v!=null&&(v<g[0]||v>g[1]); return `<td class="${o?'out':''}">${v==null?'--':fmt(v,PAR[k][2])}</td>`}).join('')+`<td class="ev">${evs}</td></tr>`).join('')+'</tbody></table>';
 }
 function setSensor(s){sensor=s;$('evSensL').textContent={ft:'FloTrac',aq:'Acumen IQ',vv:'EV1000 · VolumeView',sg:'Swan-Ganz CCOmbo V'}[s];$('aqOnly').style.display=s==='aq'?'':'none';$('vvOnly').style.display=s==='vv'?'':'none';$('sgOnly').style.display=s==='sg'?'':'none';
   document.querySelectorAll('#physSvg .nosg').forEach(e=>e.style.display=s==='sg'?'none':'');$('scvL').textContent=s==='sg'?'SvO':'ScvO';
   $('evCVP').disabled=s==='sg';$('evCVPl').textContent=s==='sg'?'PVC medida pelo cateter (lúmen proximal)':'PVC (entrada manual para RVS)';
-  $('bTP').hidden=s!=='vv';$('sFT').setAttribute('aria-pressed',s==='ft');$('sAQ').setAttribute('aria-pressed',s==='aq');$('sVV').setAttribute('aria-pressed',s==='vv');$('sSG').setAttribute('aria-pressed',s==='sg');if(s!=='vv')$('tpOv').hidden=true;hpiDismissed=false;hpiSec=false;renderTiles();renderDerived()}
+  $('bTP').hidden=s!=='vv';$('sFT').setAttribute('aria-pressed',s==='ft');$('sAQ').setAttribute('aria-pressed',s==='aq');$('sVV').setAttribute('aria-pressed',s==='vv');$('sSG').setAttribute('aria-pressed',s==='sg');if(s!=='vv')$('tpOv').hidden=true;hpiDismissed=false;hpiSec=false;renderTiles();renderDerived();trBuildSel();drawTrend()}
 $('sFT').onclick=()=>setSensor('ft'); $('sAQ').onclick=()=>setSensor('aq'); $('sVV').onclick=()=>setSensor('vv'); $('sSG').onclick=()=>setSensor('sg');
 /* ---- termodiluição transpulmonar ---- */
 let tpTimer=null;
@@ -1211,6 +1304,8 @@ function runTPTD(){
 $('bTP').onclick=runTPTD;
 function setView(v){evView=v;[['nvMon','mon'],['nvPh','phys'],['nvTr','tr']].forEach(([b,x])=>$(b).setAttribute('aria-pressed',v===x));
   $('evPhys').hidden=v!=='phys';$('evMon').hidden=v!=='mon';$('evTrend').hidden=v!=='tr';setupCanvases()}
+document.querySelectorAll('#trScale button').forEach(b=>b.onclick=()=>{TR.scale=+b.dataset.s;document.querySelectorAll('#trScale button').forEach(x=>x.setAttribute('aria-pressed',x===b));drawTrend()});
+document.querySelectorAll('#trKind button').forEach(b=>b.onclick=()=>{TR.kind=b.dataset.k;document.querySelectorAll('#trKind button').forEach(x=>x.setAttribute('aria-pressed',x===b));drawTrend()});
 $('nvMon').onclick=()=>setView('mon'); $('nvPh').onclick=()=>setView('phys'); $('nvTr').onclick=()=>setView('tr');
 $('nvSens').onclick=()=>setSensor({ft:'aq',aq:'vv',vv:'sg',sg:'ft'}[sensor]);
 $('nvZero').onclick=()=>{zeroUntil=t+3;if(evView!=='mon')setView('mon');$('evZeroL').hidden=false;setTimeout(()=>{$('evZeroL').hidden=true},3000)};
@@ -1220,8 +1315,10 @@ $('evCVP').oninput=e=>{const x=parseFloat(e.target.value);cvpIn=isNaN(x)?null:x;
 function setMonitor(m){
   monitor=m; $('vPAC').setAttribute('aria-pressed',m==='pac');$('vEV').setAttribute('aria-pressed',m==='ev');
   $('pac').hidden=m!=='pac'; $('ev').hidden=m!=='ev';
-  setupCanvases();
-  if(mode==='prova') newCase(); else loadScenario(sc);
+  // mesmo paciente, mesma evolução: só muda a forma de monitorizar
+  if(m!=='pac'&&wedge) deflate();
+  if(m==='ev'){ if(tpTimer){clearInterval(tpTimer);tpTimer=null} $('tpOv').hidden=true; evJitter(); }
+  setupCanvases(); updateNums(); updateMeasured(); renderTiles(); renderDerived(); renderCase(); applyScales(); drawTrend();
 }
 $('vPAC').onclick=()=>setMonitor('pac'); $('vEV').onclick=()=>setMonitor('ev');
 
@@ -1388,7 +1485,7 @@ function fmtT(n){const s=n*TICK_S, m=Math.floor(s/60); return m>=60?`${Math.floo
 function doProc(k){
   const Z=DZ[B.id]||{};
   if(evo.arrest) return;
-  if(Z.proc===k){ if(!evo.done){evo.done={k,t:evo.t}; evoLog(`${PROCS[k]} realizada`);} }
+  if(Z.proc===k){ if(!evo.done){evo.done={k,t:evo.t}; evoLog(`${PROCS[k]} realizada`); trEvent(PROCS[k]);} }
   else {
     evo.wrong++;
     if(k==='trombo'&&B.id==='hipo'){ evo.trombo=true; evoLog('Trombólise em paciente sangrando: sangramento acelerou'); }
@@ -1760,16 +1857,16 @@ function buildDrugUI(){
    <span class="cls">Cristaloide redistribui para o interstício (mais rápido na sepse)</span>
    <div class="drow"><button class="btn" data-vol="250">+250 mL</button><button class="btn" data-vol="500">+500 mL</button><button class="btn" id="bCH">+1 CH</button><button class="btn" id="bPLR" aria-pressed="false">Elevação passiva das pernas</button></div>
    <div class="dfoot"><span class="ref">Responsivo: ↑ VS/DC ≥ 10–15%</span><span class="ref" id="volOut">Intravascular: 0 mL</span></div></div>`;
-  DRUGS.forEach(d=>{$('dr-'+d.id).oninput=e=>{dose[d.id]=parseFloat(e.target.value);renderDrugUI()}});
-  document.querySelectorAll('[data-stop]').forEach(b=>b.onclick=()=>{dose[b.dataset.stop]=0;renderDrugUI()});
+  DRUGS.forEach(d=>{$('dr-'+d.id).oninput=e=>{dose[d.id]=parseFloat(e.target.value);renderDrugUI()}; $('dr-'+d.id).onchange=()=>trEvent(dose[d.id]?`${d.nome} ${fmt(dose[d.id],d.dec)}`:`${d.nome} suspenso`)});
+  document.querySelectorAll('[data-stop]').forEach(b=>b.onclick=()=>{if(dose[b.dataset.stop]) trEvent(DRUGS.find(d=>d.id===b.dataset.stop).nome+' suspenso'); dose[b.dataset.stop]=0;renderDrugUI()});
   // ataque de 500 µg/kg em 1 min: pico de distribuição + carga que leva ao equilíbrio em ~5 min (bula)
-  document.querySelectorAll('[data-bolus]').forEach(b=>b.onclick=()=>{esmB+=160; de.esm+=Math.max(0,Math.min(60,(dose.esm||50)-de.esm)); if(!dose.esm){dose.esm=50;} renderDrugUI(); $('ivActive').textContent+=' · ataque de esmolol 500 µg/kg';});
-  document.querySelectorAll('[data-vol]').forEach(b=>b.onclick=()=>{crGiven+=+b.dataset.vol;renderDrugUI()});
-  $('bCH').onclick=()=>{chU++;renderDrugUI()};
-  $('bPLR').onclick=()=>{plr=!plr;renderDrugUI()};
-  $('bFuro').onclick=()=>{const m=+$('furoDose').value;furoTotal+=m;diurTarget+=Math.min(m*15,2000);renderDrugUI()};
-  $('bHC').onclick=()=>{hc=!hc;renderDrugUI()};
-  $('bStopAll').onclick=()=>{DRUGS.forEach(d=>dose[d.id]=0);plr=false;renderDrugUI()};
+  document.querySelectorAll('[data-bolus]').forEach(b=>b.onclick=()=>{trEvent('Esmolol ataque 500 µg/kg'); esmB+=160; de.esm+=Math.max(0,Math.min(60,(dose.esm||50)-de.esm)); if(!dose.esm){dose.esm=50;} renderDrugUI(); $('ivActive').textContent+=' · ataque de esmolol 500 µg/kg';});
+  document.querySelectorAll('[data-vol]').forEach(b=>b.onclick=()=>{crGiven+=+b.dataset.vol;trEvent('Cristaloide +'+b.dataset.vol+' mL');renderDrugUI()});
+  $('bCH').onclick=()=>{chU++;trEvent('+1 CH');renderDrugUI()};
+  $('bPLR').onclick=()=>{plr=!plr;trEvent(plr?'Elevação das pernas':'Pernas baixadas');renderDrugUI()};
+  $('bFuro').onclick=()=>{const m=+$('furoDose').value;furoTotal+=m;trEvent('Furosemida '+m+' mg');diurTarget+=Math.min(m*15,2000);renderDrugUI()};
+  $('bHC').onclick=()=>{hc=!hc;trEvent(hc?'Hidrocortisona':'Hidrocortisona suspensa');renderDrugUI()};
+  $('bStopAll').onclick=()=>{DRUGS.forEach(d=>dose[d.id]=0);plr=false;trEvent('Suspende todas as drogas');renderDrugUI()};
 }
 function renderDrugUI(){
   DRUGS.forEach(d=>{const r=$('dr-'+d.id); if(!r) return; if(+r.value!==dose[d.id]) r.value=dose[d.id]; $('dv-'+d.id).textContent=fmt(dose[d.id],d.dec);
@@ -1925,7 +2022,8 @@ function renderCase(){
   $('score').innerHTML=mode==='prova'?`Acertos <b>${score.ok}</b>/${score.n}${score.pcr?` · PCR <b style="color:var(--bad)">${score.pcr}</b>`:''}`:'';
   if(mode==='treino'){
     $('caseTitle').textContent='Caso';$('trainSel').hidden=false;$('stName').textContent='ADULTO';
-    body.innerHTML=`<div class="dxname">${sc.nome}</div>${keysHTML(sc)}<div class="fb ok"><strong>Conduta</strong><span>${sc.cq.opts[sc.cq.c]}</span><span class="muted">${sc.cq.exp}</span></div>`;
+    const op=body.querySelector('details.dxd')?.open;
+    body.innerHTML=`<details class="dxd"${op?' open':''}><summary>Diagnóstico, achados-chave e conduta</summary><div class="dxname">${sc.nome}</div>${keysHTML(sc)}<div class="fb ok"><strong>Conduta</strong><span>${sc.cq.opts[sc.cq.c]}</span><span class="muted">${sc.cq.exp}</span></div></details>`;
     return;
   }
   $('trainSel').hidden=true;$('caseTitle').textContent='Caso oculto';$('stName').textContent='ADULTO';
