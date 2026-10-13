@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Leitos UTI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --papel:#ffffff;--papel2:#f4f6f8;--papel3:#e9edf1;
+  --tinta:#15202b;--tinta2:#4f5b66;--tinta3:#7c8790;
+  --fio:#d9dee3;--fio2:#c3cbd2;
+  --rubro:#a3171f;--rubro2:#7d1118;--rubro-claro:#f8e9ea;
+  --certo:#1d6b45;--certo-claro:#e5f2ea;--alerta:#8a5a00;--alerta-claro:#fbf1dc;
+  --nora:#a3171f;--vaso:#6a3fa0;--dobu:#1f5f8b;--adre:#b4590a;
+  --prec:#1f7a6d;--mida:#4f5b9e;--fent:#7a4a8c;--ceta:#8a6a12;--roc:#59636e;
+  --sans:'Source Sans 3','Segoe UI',system-ui,-apple-system,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --papel:#12171c;--papel2:#1a2027;--papel3:#232b33;
+  --tinta:#e6ebef;--tinta2:#aab4bd;--tinta3:#7f8a94;
+  --fio:#2a333c;--fio2:#3a4550;
+  --rubro:#ff6b6b;--rubro2:#ff8a8a;--rubro-claro:#3a1c1f;
+  --certo:#5fd394;--certo-claro:#15301f;--alerta:#f0b44c;--alerta-claro:#33280f;
+  --nora:#ff6b6b;--vaso:#b48cff;--dobu:#6cb6f0;--adre:#f0a050;
+  --prec:#5fd3c0;--mida:#9aa6ff;--fent:#d39af0;--ceta:#e6c25a;--roc:#aab4bd;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --papel:#12171c;--papel2:#1a2027;--papel3:#232b33;
+  --tinta:#e6ebef;--tinta2:#aab4bd;--tinta3:#7f8a94;
+  --fio:#2a333c;--fio2:#3a4550;
+  --rubro:#ff6b6b;--rubro2:#ff8a8a;--rubro-claro:#3a1c1f;
+  --certo:#5fd394;--certo-claro:#15301f;--alerta:#f0b44c;--alerta-claro:#33280f;
+  --nora:#ff6b6b;--vaso:#b48cff;--dobu:#6cb6f0;--adre:#f0a050;
+  --prec:#5fd3c0;--mida:#9aa6ff;--fent:#d39af0;--ceta:#e6c25a;--roc:#aab4bd;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--papel);color:var(--tinta);font:16px/1.45 var(--sans);font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font:inherit;color:inherit}
+.wrap{max-width:1100px;margin:0 auto;padding-inline:16px;padding-block:0 48px}
+header.top{position:sticky;top:0;padding-top:env(safe-area-inset-top,0px);z-index:10;background:var(--papel);border-bottom:1px solid var(--fio)}
+.bar{display:flex;align-items:baseline;gap:12px;padding-block:12px 8px}
+.bar h1{margin:0;font-size:21px;font-weight:700;letter-spacing:-.01em}
+.bar h1 span{color:var(--rubro)}
+.voltar{font-size:14px;color:var(--tinta2);text-decoration:none;margin-right:4px}.voltar:hover{color:var(--rubro)}
+.st{margin-left:auto;font-size:13px;color:var(--tinta3);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.st i{width:8px;height:8px;border-radius:50%;background:var(--tinta3);display:inline-block}
+.st.ok i{background:var(--certo)}.st.busy i{background:var(--alerta)}.st.local i{background:var(--alerta)}.st.err i{background:var(--rubro)}
+.tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-block:4px 10px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;min-width:80px;border:1px solid var(--fio2);background:var(--papel);border-radius:6px;padding:5px 20px 6px 10px;text-align:left;cursor:pointer;position:relative}
+.tab b{display:block;font-size:12px;color:var(--tinta3);font-weight:600}
+.tab span{display:block;font:600 15px var(--mono);min-height:20px;white-space:nowrap}
+.tab span:empty::before{content:"—";color:var(--tinta3);font-weight:400}
+.tab[aria-selected=true]{border-color:var(--rubro);background:var(--rubro-claro)}
+.tab[aria-selected=true] b{color:var(--rubro)}
+.tab .dv{position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--nora)}
+.tab .vm{position:absolute;bottom:6px;right:5px;font:600 9px var(--mono);color:var(--tinta3)}
+main{display:grid;gap:14px;padding-top:16px}
+.sec{border:1px solid var(--fio);border-radius:8px;background:var(--papel)}
+.sec>h2{margin:0;font-size:14px;font-weight:700;color:var(--tinta2);padding:10px 14px;border-bottom:1px solid var(--fio);display:flex;align-items:center;gap:10px}
+.sec>h2 small{margin-left:auto;font-weight:400;color:var(--tinta3);font-size:13px}
+.body{padding:14px;display:grid;gap:14px}
+.g{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+.g2{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:640px){.g2{grid-template-columns:1fr}}
+label.f,.f{display:grid;gap:4px;min-width:0;align-content:start}
+.lb,label.f>span{font-size:13px;color:var(--tinta2);font-weight:600}
+.lb em,label.f>span em{font-style:normal;font-weight:400;color:var(--tinta3)}
+input[type=text],input[type=number],input[type=date],textarea,select{width:100%;min-width:0;border:1px solid var(--fio2);border-radius:6px;background:var(--papel);padding:8px 10px;font-size:16px}
+select{padding:7px 8px}
+input[type=number]{font-family:var(--mono)}
+input.ini{font:600 22px var(--mono);text-transform:uppercase;letter-spacing:.04em}
+textarea{resize:vertical;min-height:84px;line-height:1.45}
+textarea.big{min-height:140px}
+textarea.sm{min-height:60px}
+input:focus-visible,textarea:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid var(--rubro);outline-offset:1px}
+.calc{font:500 13px var(--mono);color:var(--tinta3);min-height:18px}
+.calc b{color:var(--tinta);font-weight:600}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--fio2);border-radius:6px;overflow:hidden;align-self:start;justify-self:start}
+.seg button{border:0;background:var(--papel);padding:6px 13px;font-size:14px;font-weight:600;color:var(--tinta2);cursor:pointer}
+.seg button+button{border-left:1px solid var(--fio2)}
+.seg button[aria-pressed=true]{background:var(--tinta);color:var(--papel)}
+.seg.ef button[data-v=n][aria-pressed=true]{background:var(--certo);color:#fff}
+.seg.ef button[data-v=a][aria-pressed=true]{background:var(--rubro);color:#fff}
+.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.big-n{font:600 26px var(--mono);line-height:1}
+.big-n small{font:500 13px var(--sans);color:var(--tinta3);margin-left:6px}
+/* ATB */
+.atb{display:grid;gap:8px}
+.ahead,.arow{display:grid;grid-template-columns:minmax(0,1fr) 160px 52px 34px;gap:8px;align-items:center}
+.ahead span{font-size:12px;color:var(--tinta3);font-weight:600}
+.arow .d{font:600 14px var(--mono);color:var(--rubro);text-align:center}
+.x{border:1px solid var(--fio2);background:var(--papel);border-radius:6px;width:34px;height:38px;cursor:pointer;color:var(--tinta3);font-size:18px;line-height:1}
+.x:hover{color:var(--rubro);border-color:var(--rubro)}
+.add{justify-self:start;border:1px dashed var(--fio2);background:transparent;border-radius:6px;padding:6px 12px;font-size:14px;color:var(--tinta2);cursor:pointer}
+.add:hover{border-color:var(--rubro);color:var(--rubro)}
+@media (max-width:520px){.ahead{display:none}.arow{grid-template-columns:minmax(0,1fr) 128px 34px}.arow .d{grid-column:1/-1;text-align:left;margin-top:-4px}}
+/* infusões */
+.drogas{display:grid;gap:10px;grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:760px){.drogas{grid-template-columns:1fr}}
+.dr{border:1px solid var(--fio);border-left:4px solid var(--c);border-radius:6px;padding:10px 12px;display:grid;gap:8px;background:var(--papel)}
+.dr.on{background:var(--papel2)}
+.dr .h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.dr .h b{font-size:15px}
+.dr .h .dose{margin-left:auto;font:600 24px var(--mono);color:var(--c);white-space:nowrap}
+.dr .h .dose small{font:500 12px var(--sans);color:var(--tinta3);margin-left:4px}
+.dr .abs{font:500 12px var(--mono);color:var(--tinta3);text-align:right;margin-top:-6px;min-height:16px}
+.dr .ctl{display:grid;grid-template-columns:34px minmax(0,1fr) 34px 84px;gap:8px;align-items:center}
+.dr input[type=range]{width:100%;accent-color:var(--c);height:28px}
+.dr .ctl input[type=number]{padding:6px;text-align:right}
+.dr .pm{width:34px;height:34px;border:1px solid var(--fio2);border-radius:6px;background:var(--papel);cursor:pointer;font:600 18px var(--mono);line-height:1;color:var(--tinta2)}
+.dil{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:13px;color:var(--tinta3)}
+.dil input{width:72px;padding:3px 6px;font-size:14px;border:1px solid var(--fio);border-radius:4px;background:transparent;font-family:var(--mono)}
+.dil .cc{font-family:var(--mono)}
+.chk{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;cursor:pointer;justify-self:start}
+.chk input{width:18px;height:18px;accent-color:var(--rubro)}
+.warn{font-size:13px;color:var(--alerta);background:var(--alerta-claro);border-radius:6px;padding:6px 10px}
+/* exame físico */
+.ef-row{display:grid;grid-template-columns:200px minmax(0,1fr);gap:10px 14px;align-items:start;padding-block:2px}
+.ef-row+.ef-row{border-top:1px solid var(--fio);padding-top:12px}
+.ef-row .lb{padding-top:6px;font-size:14px;color:var(--tinta)}
+.ef-row .rr{display:grid;gap:8px}
+@media (max-width:560px){.ef-row{grid-template-columns:1fr}.ef-row .lb{padding-top:0}}
+.foot{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:13px;color:var(--tinta3)}
+.foot .sp{margin-left:auto}
+.btn{border:1px solid var(--fio2);background:var(--papel);border-radius:6px;padding:7px 14px;font-size:14px;font-weight:600;cursor:pointer;color:var(--tinta)}
+.btn.danger{color:var(--rubro);border-color:var(--rubro)}
+.btn.danger.go{background:var(--rubro);color:var(--papel)}
+.note{font-size:13px;color:var(--tinta3);padding-top:4px}
+.prev{white-space:pre-wrap;font-size:16px;line-height:1.6;background:var(--papel2);border:1px solid var(--fio);border-radius:6px;padding:12px 14px;user-select:text;-webkit-user-select:text}
+.prev:empty::before{content:'Preencha os campos acima para montar o texto.';color:var(--tinta3)}
+</style>
+
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="bar"><a href="index.html" class="voltar">← CritBoard</a><h1>Leitos <span>UTI</span></h1><div class="st" id="st" role="status"><i></i><span>Conectando…</span></div></div>
+  <div class="tabs" id="tabs" role="tablist" aria-label="Leitos"></div>
+</div></header>
+
+<div class="wrap"><main id="main" role="tabpanel"></main>
+<p class="note" id="note">Use só iniciais. Confira as diluições com o protocolo da sua unidade.</p></div>
+
+<script>
+(() => {
+const N = 10;
+/* qun = unidade da quantidade na diluição; out = unidade da dose exibida; abs = dose absoluta exibida abaixo */
+const DVA = [
+  {k:'nora', g:'drogas', nome:'Noradrenalina', c:'--nora', qun:'mg', q:16,  ml:250, max:80, dec:2, out:'mcg/kg/min', abs:'mcg/min'},
+  {k:'vaso', g:'drogas', nome:'Vasopressina',  c:'--vaso', qun:'U',  q:20,  ml:100, max:30, dec:3, out:'U/min',      abs:null},
+  {k:'dobu', g:'drogas', nome:'Dobutamina',    c:'--dobu', qun:'mg', q:250, ml:250, max:60, dec:1, out:'mcg/kg/min', abs:'mcg/min'},
+  {k:'adre', g:'drogas', nome:'Adrenalina',    c:'--adre', qun:'mg', q:4,   ml:250, max:80, dec:2, out:'mcg/kg/min', abs:'mcg/min'},
+];
+const SED = [
+  {k:'prec', g:'sed', nome:'Dexmedetomidina (Precedex)', c:'--prec', qun:'mcg', q:200,  ml:50,  max:30, dec:2, out:'mcg/kg/h',   abs:'mcg/h'},
+  {k:'mida', g:'sed', nome:'Midazolam',                  c:'--mida', qun:'mg',  q:100,  ml:100, max:30, dec:2, out:'mg/kg/h',    abs:'mg/h'},
+  {k:'fent', g:'sed', nome:'Fentanil',                   c:'--fent', qun:'mcg', q:1000, ml:100, max:40, dec:2, out:'mcg/kg/h',   abs:'mcg/h'},
+  {k:'ceta', g:'sed', nome:'Cetamina',                   c:'--ceta', qun:'mg',  q:500,  ml:250, max:60, dec:2, out:'mg/kg/h',    abs:'mg/h'},
+  {k:'roc',  g:'sed', nome:'Rocurônio',                  c:'--roc',  qun:'mg',  q:500,  ml:100, max:30, dec:1, out:'mcg/kg/min', abs:'mg/h'},
+];
+const ALL = [...DVA, ...SED];
+const VM_MODOS = ['Sem VM','VCV','PCV','PSV'];
+const EF = [['pup','Pupilas'],['ac','Aparelho cardiovascular'],['ap','Ausculta pulmonar'],['abd','Abdome'],['tec','TEC'],['hgt','HGT'],['evac','Evacuações']];
+const RASS = [['4','+4 Combativo'],['3','+3 Muito agitado'],['2','+2 Agitado'],['1','+1 Inquieto'],['0','0 Alerta e calmo'],['-1','−1 Sonolento'],['-2','−2 Sedação leve'],['-3','−3 Sedação moderada'],['-4','−4 Sedação profunda'],['-5','−5 Não despertável']];
+
+const blank = () => ({ini:'',peso:'',altura:'',sexo:'',dx:'',atb:[{n:'',d:''}],
+  gcsO:'',gcsV:'',gcsM:'',rass:'',
+  fonte:'PAI',pas:'',pad:'',pam:'',fc:'',ritmo:'',temp:'',diu:'',bh:'',
+  ef:Object.fromEntries(EF.map(([k])=>[k,{s:'',t:''}])),
+  vm:{modo:'',vc:'',fr:'',fluxo:'',peep:'',fio2:'',ppico:'',pplat:'',pinsp:'',tinsp:'',ps:'',vce:'',spo2:'',pao2:'',o2:''},
+  drogas:Object.fromEntries(DVA.map(d=>[d.k,{v:0,q:d.q,ml:d.ml}])),
+  sed:Object.fromEntries(SED.map(d=>[d.k,{v:0,q:d.q,ml:d.ml}])), sedEnt:false, sedEntTxt:'',
+  exames:'',conduta:'',upd:null});
+const fill = b => { const z = blank(), o = Object.assign(z, b||{});
+  o.drogas = Object.assign(blank().drogas, o.drogas||{}); o.sed = Object.assign(blank().sed, o.sed||{});
+  for (const d of ALL) o[d.g][d.k] = Object.assign({v:0,q:d.q,ml:d.ml}, o[d.g][d.k]);
+  o.vm = Object.assign(blank().vm, o.vm||{}); const ef = blank().ef;
+  for (const k in ef) ef[k] = Object.assign(ef[k], (o.ef||{})[k]||{}); o.ef = ef;
+  if (!Array.isArray(o.atb) || !o.atb.length) o.atb = [{n:'',d:''}]; return o; };
+
+let beds = Array.from({length:N}, blank);
+let cur = 0; try { cur = Math.min(N-1, Math.max(0, +localStorage.getItem('leitos-cur')||0)); } catch {}
+let col = null, mode = 'local';
+const timers = {}, dirty = new Set(), pendingRemote = {};
+const $ = s => document.querySelector(s);
+const num = v => { const x = parseFloat(String(v ?? '').replace(',', '.')); return isFinite(x) ? x : null; };
+const fmt = (x, d) => x == null || !isFinite(x) ? '—' : x.toFixed(d).replace('.', ',');
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const getP = (o, p) => p.split('.').reduce((a, k) => a == null ? a : a[k], o);
+const setP = (o, p, v) => { const ks = p.split('.'), last = ks.pop(); ks.reduce((a, k) => a[k], o)[last] = v; };
+function status(cls, txt){ const e=$('#st'); e.className='st '+cls; e.lastElementChild.textContent=txt; }
+
+/* ---------- cálculos ---------- */
+function concPer(d, dr, unit){ // concentração por mL na unidade pedida (mcg, mg ou U)
+  const q = num(dr.q), ml = num(dr.ml); if (!q || !ml) return null; const c = q/ml;
+  if (d.qun === unit || d.qun === 'U') return c;
+  return d.qun === 'mg' ? c*1000 : c/1000; // mg→mcg ou mcg→mg
+}
+function dose(d, dr, peso){
+  const v = num(dr.v); if (v == null) return null;
+  const [u, per, t] = d.out.split('/'); // ex.: mcg/kg/min, U/min, mg/kg/h
+  const c = concPer(d, dr, u); if (c == null) return null;
+  const porHora = v * c;
+  if (per === 'min') return porHora / 60;               // U/min
+  if (!peso) return null;
+  return t === 'min' ? porHora/60/peso : porHora/peso;
+}
+function absDose(d, dr){
+  if (!d.abs) return null; const v = num(dr.v); if (!v) return null;
+  const [u, t] = d.abs.split('/'); const c = concPer(d, dr, u); if (c == null) return null;
+  return t === 'min' ? v*c/60 : v*c;
+}
+function pamCalc(b){ const s=num(b.pas), d=num(b.pad); return s!=null && d!=null ? Math.round((s+2*d)/3) : null; }
+function atbDia(dt){ if(!dt) return ''; const a=new Date(dt+'T00:00:00'), h=new Date(); h.setHours(0,0,0,0);
+  const n=Math.floor((h-a)/864e5)+1; return n>=1 ? 'D'+n : ''; }
+function pbw(b){ const a=num(b.altura); if(!a || !b.sexo) return null; return (b.sexo==='M'?50:45.5) + 0.91*(a-152.4); }
+function gcsTxt(b){ if (!b.gcsO || !b.gcsV || !b.gcsM) return ''; const t = b.gcsV==='T';
+  const s = +b.gcsO + (t?0:+b.gcsV) + +b.gcsM; return t ? s+'T' : String(s); }
+const hasInf = (b, list) => list.some(d => (num(b[d.g][d.k].v)||0) > 0);
+const hoje = () => new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
+
+/* ---------- abas ---------- */
+function renderTabs(){
+  $('#tabs').innerHTML = beds.map((b,i)=>`<button class="tab" role="tab" aria-selected="${i===cur}" data-i="${i}"><b>Leito ${i+1}</b><span>${esc(b.ini.toUpperCase())}</span>${hasInf(b,DVA)?'<i class="dv" title="Em droga vasoativa"></i>':''}${b.vm.modo && b.vm.modo!=='Sem VM'?'<i class="vm">VM</i>':''}</button>`).join('');
+}
+$('#tabs').addEventListener('click', e => { const t=e.target.closest('.tab'); if(!t) return; cur=+t.dataset.i;
+  try{localStorage.setItem('leitos-cur',cur)}catch{} renderTabs(); renderBed(); });
+
+/* ---------- componentes ---------- */
+const inp = (p, lab, un, b, extra='') => `<label class="f"><span>${lab}${un?` <em>${un}</em>`:''}</span><input type="number" inputmode="decimal" step="any" data-p="${p}" value="${esc(getP(b,p))}" ${extra}></label>`;
+const sel = (p, opts, b) => `<select data-p="${p}">${opts.map(([v,t])=>`<option value="${esc(v)}"${String(getP(b,p))===String(v)?' selected':''}>${t}</option>`).join('')}</select>`;
+function infCard(d, b){ const dr = b[d.g][d.k]; return `
+  <div class="dr" data-d="${d.k}" style="--c:var(${d.c})">
+    <div class="h"><b>${d.nome}</b><span class="dose"><span data-dose></span><small>${d.out}</small></span></div>
+    <div class="abs" data-abs></div>
+    <div class="ctl">
+      <button type="button" class="pm" data-step="-1" aria-label="Diminuir">−</button>
+      <input type="range" min="0" max="${d.max}" step="0.5" value="${Math.min(d.max,num(dr.v)||0)}" data-v aria-label="${d.nome} mL/h">
+      <button type="button" class="pm" data-step="1" aria-label="Aumentar">+</button>
+      <input type="number" inputmode="decimal" step="0.1" min="0" value="${esc(dr.v)}" data-vn aria-label="${d.nome} mL/h">
+    </div>
+    <div class="dil">Diluição <input type="number" inputmode="decimal" step="any" data-q value="${esc(dr.q)}" aria-label="Quantidade"> ${d.qun} em <input type="number" inputmode="decimal" step="any" data-ml value="${esc(dr.ml)}" aria-label="Volume"> mL · <span class="cc" data-cc></span></div>
+  </div>`; }
+
+function vmFields(b){
+  const m = b.vm.modo;
+  if (!m) return '<p class="calc" style="margin:0">Escolha o modo.</p>';
+  if (m === 'Sem VM') return `<div class="g2"><label class="f"><span>Suporte de O₂</span><input type="text" data-p="vm.o2" value="${esc(b.vm.o2)}" placeholder="Ex.: cateter 3 L/min, CNAF 50 L/min, VNI"></label>
+    <div class="g">${inp('vm.fio2','FiO₂','%',b)}${inp('vm.spo2','SpO₂','%',b)}${inp('vm.pao2','PaO₂','mmHg',b)}</div></div>`;
+  const comum = inp('vm.peep','PEEP','cmH₂O',b) + inp('vm.fio2','FiO₂','%',b);
+  const gas = inp('vm.spo2','SpO₂','%',b) + inp('vm.pao2','PaO₂','mmHg',b);
+  if (m === 'VCV') return `<div class="g">${inp('vm.vc','Volume corrente','mL',b)}${inp('vm.fr','FR','irpm',b)}${inp('vm.fluxo','Fluxo','L/min',b)}${comum}${inp('vm.ppico','P. pico','cmH₂O',b)}${inp('vm.pplat','P. platô','cmH₂O',b)}${gas}</div>`;
+  if (m === 'PCV') return `<div class="g">${inp('vm.pinsp','P. inspiratória','acima da PEEP',b)}${inp('vm.tinsp','T. inspiratório','s',b)}${inp('vm.fr','FR','irpm',b)}${comum}${inp('vm.vce','VC obtido','mL',b)}${gas}</div>`;
+  return `<div class="g">${inp('vm.ps','Pressão de suporte','cmH₂O',b)}${comum}${inp('vm.vce','VC obtido','mL',b)}${inp('vm.fr','FR total','irpm',b)}${gas}</div>`;
+}
+
+/* ---------- leito ---------- */
+function renderBed(){
+  const b = beds[cur], m = $('#main');
+  m.innerHTML = `
+  <section class="sec"><h2>Paciente <small>Leito ${cur+1}</small></h2><div class="body">
+    <div class="g">
+      <label class="f"><span>Iniciais</span><input type="text" class="ini" data-p="ini" maxlength="6" autocomplete="off" value="${esc(b.ini)}"></label>
+      ${inp('peso','Peso','kg',b)}${inp('altura','Altura','cm',b)}
+      <label class="f"><span>Sexo <em>p/ peso predito</em></span>${sel('sexo',[['',''],['M','Masculino'],['F','Feminino']],b)}<div class="calc" id="pbwc"></div></label>
+    </div>
+    <label class="f"><span>Diagnósticos</span><textarea data-p="dx" rows="3">${esc(b.dx)}</textarea></label>
+    <div class="f" style="gap:6px"><span class="lb">Antibióticos</span>
+      <div class="atb"><div class="ahead"><span>Antibiótico e posologia</span><span>Início</span><span></span><span></span></div><div class="atb" id="atb"></div></div>
+      <button class="add" id="addAtb" type="button">+ Antibiótico</button></div>
+  </div></section>
+
+  <section class="sec"><h2>Neurológico</h2><div class="body">
+    <div class="g" style="grid-template-columns:repeat(auto-fill,minmax(175px,1fr))">
+      <label class="f"><span>Glasgow · ocular</span>${sel('gcsO',[['',''],['4','4 Espontânea'],['3','3 Ao chamado'],['2','2 À pressão'],['1','1 Ausente']],b)}</label>
+      <label class="f"><span>Glasgow · verbal</span>${sel('gcsV',[['',''],['5','5 Orientado'],['4','4 Confuso'],['3','3 Palavras'],['2','2 Sons'],['1','1 Ausente'],['T','T Intubado']],b)}</label>
+      <label class="f"><span>Glasgow · motora</span>${sel('gcsM',[['',''],['6','6 Obedece'],['5','5 Localiza'],['4','4 Flexão normal'],['3','3 Flexão anormal'],['2','2 Extensão'],['1','1 Ausente']],b)}</label>
+      <div class="f"><span class="lb">Glasgow total</span><div class="big-n" id="gcs" style="padding-top:6px"></div></div>
+      <label class="f"><span>RASS</span>${sel('rass',[['','']].concat(RASS),b)}</label>
+    </div>
+  </div></section>
+
+  <section class="sec"><h2>Sedoanalgesia <small>vazão em mL/h</small></h2><div class="body">
+    <div class="warn" data-pw="sed" hidden>Informe o peso para calcular as doses por kg.</div>
+    <div class="drogas">${SED.map(d=>infCard(d,b)).join('')}</div>
+    <label class="chk"><input type="checkbox" id="sedEnt" ${b.sedEnt?'checked':''}> Sedação enteral</label>
+    <textarea class="sm" data-p="sedEntTxt" placeholder="Ex.: quetiapina 25 mg 12/12 h, clonazepam 2 mg 12/12 h, metadona…" ${b.sedEnt?'':'hidden'}>${esc(b.sedEntTxt)}</textarea>
+  </div></section>
+
+  <section class="sec"><h2>Sinais vitais e balanço</h2><div class="body">
+    <div class="row"><span class="lb">Pressão</span>
+      <div class="seg" role="group" aria-label="Fonte da pressão"><button type="button" data-f="PAI" aria-pressed="${b.fonte==='PAI'}">PAI</button><button type="button" data-f="PNI" aria-pressed="${b.fonte==='PNI'}">PNI</button></div></div>
+    <div class="g">
+      ${inp('pas','PAS','mmHg',b)}${inp('pad','PAD','mmHg',b)}
+      <label class="f"><span>PAM <em>mmHg</em></span><input type="number" inputmode="decimal" step="any" data-p="pam" id="pam" value="${esc(b.pam)}" placeholder="auto"><div class="calc" id="pamc"></div></label>
+      ${inp('fc','FC','bpm',b)}<label class="f"><span>Ritmo</span>${sel('ritmo',[['',''],['RR','Regular (RR)'],['irregular','Irregular'],['FA','FA']],b)}</label>${inp('temp','Temp','°C',b)}
+    </div>
+    <div class="g2">
+      <label class="f"><span>Diurese 24 h <em>mL</em></span><input type="number" inputmode="decimal" step="any" data-p="diu" value="${esc(b.diu)}"><div class="calc" id="diuc"></div></label>
+      <label class="f"><span>Balanço hídrico 24 h <em>mL</em></span><input type="number" inputmode="decimal" step="any" data-p="bh" value="${esc(b.bh)}" placeholder="ex.: +850 ou −400"><div class="calc" id="bhc"></div></label>
+    </div>
+  </div></section>
+
+  <section class="sec"><h2>Exame físico</h2><div class="body">
+    ${EF.map(([k,lab])=>`<div class="ef-row" data-ef="${k}"><span class="lb">${lab}</span><div class="rr">
+      <div class="seg ef" role="group" aria-label="${lab}"><button type="button" data-v="n" aria-pressed="${b.ef[k].s==='n'}">Normal</button><button type="button" data-v="a" aria-pressed="${b.ef[k].s==='a'}">Alterado</button></div>
+      <textarea class="sm" data-p="ef.${k}.t" placeholder="Descreva a alteração" ${b.ef[k].s==='a'?'':'hidden'}>${esc(b.ef[k].t)}</textarea></div></div>`).join('')}
+  </div></section>
+
+  <section class="sec"><h2>Ventilação</h2><div class="body">
+    <div class="seg" role="group" aria-label="Modo ventilatório" id="vmModo">${VM_MODOS.map(x=>`<button type="button" data-m="${x}" aria-pressed="${b.vm.modo===x}">${x}</button>`).join('')}</div>
+    <div id="vmF">${vmFields(b)}</div>
+    <div class="calc" id="vmc"></div>
+  </div></section>
+
+  <section class="sec"><h2>Drogas vasoativas <small>vazão em mL/h</small></h2><div class="body">
+    <div class="warn" data-pw="dva" hidden>Informe o peso para calcular as doses por kg.</div>
+    <div class="drogas">${DVA.map(d=>infCard(d,b)).join('')}</div>
+  </div></section>
+
+  <section class="sec"><h2>Exames</h2><div class="body"><textarea class="big" data-p="exames">${esc(b.exames)}</textarea></div></section>
+  <section class="sec"><h2>Conduta</h2><div class="body"><textarea class="big" data-p="conduta">${esc(b.conduta)}</textarea></div></section>
+
+  <section class="sec"><h2>Prévia do exame físico <small><button type="button" class="btn" id="copy">Copiar</button></small></h2><div class="body"><div class="prev" id="prev"></div></div></section>
+
+  <div class="foot"><span id="upd"></span><span class="sp"></span><button type="button" class="btn danger" id="clr">Liberar leito</button></div>`;
+  renderAtb(); derived();
+}
+
+function renderAtb(){
+  const b = beds[cur];
+  $('#atb').innerHTML = b.atb.map((a,i)=>`<div class="arow" data-a="${i}">
+    <input type="text" data-an value="${esc(a.n)}" placeholder="Ex.: meropeném 1 g 8/8 h" aria-label="Antibiótico">
+    <input type="date" data-ad value="${esc(a.d)}" aria-label="Data de início">
+    <span class="d">${atbDia(a.d)}</span>
+    <button type="button" class="x" data-rm aria-label="Remover">×</button></div>`).join('');
+}
+
+function derived(){
+  const b = beds[cur], peso = num(b.peso);
+  const pc = pamCalc(b);
+  $('#pam').placeholder = pc!=null ? String(pc) : 'auto';
+  $('#pamc').innerHTML = pc!=null && !b.pam ? `calculada: <b>${pc}</b> mmHg` : (b.pam && pc!=null && +b.pam!==pc ? `pela PAS/PAD: ${pc}` : '');
+  const diu = num(b.diu);
+  $('#diuc').innerHTML = diu!=null && peso ? `<b>${fmt(diu/peso/24,2)}</b> mL/kg/h` : (diu!=null ? 'informe o peso' : '');
+  const bh = num(b.bh);
+  $('#bhc').innerHTML = bh!=null ? `<b>${bh>0?'+':''}${fmt(bh,0)}</b> mL ${bh>0?'positivo':bh<0?'negativo':''}` : '';
+  const g = gcsTxt(b); $('#gcs').innerHTML = g ? `${g}<small>/15</small>` : '<small style="margin:0">—</small>';
+  const pw = pbw(b); $('#pbwc').innerHTML = pw ? `peso predito <b>${fmt(pw,1)}</b> kg` : '';
+  // ventilação
+  const v = b.vm, out = [];
+  const vc = num(v.modo==='VCV' ? v.vc : v.vce);
+  if (vc && pw) out.push(`VC <b>${fmt(vc/pw,1)}</b> mL/kg predito`);
+  if (v.modo==='VCV'){ const pl=num(v.pplat), pe=num(v.peep), pk=num(v.ppico);
+    if (pl!=null && pe!=null){ out.push(`ΔP <b>${fmt(pl-pe,0)}</b> cmH₂O`); if (vc && pl-pe>0) out.push(`Cst <b>${fmt(vc/(pl-pe),0)}</b> mL/cmH₂O`); }
+    if (pk!=null && pl!=null) out.push(`Ppico − Pplatô <b>${fmt(pk-pl,0)}</b>`); }
+  if (v.modo==='PCV'){ const pi=num(v.pinsp); if (pi!=null && vc) out.push(`Cdin ≈ <b>${fmt(vc/pi,0)}</b> mL/cmH₂O`); }
+  const f = num(v.fio2), po = num(v.pao2);
+  if (f && po) out.push(`P/F <b>${fmt(po/(f/100),0)}</b>`);
+  $('#vmc').innerHTML = v.modo && v.modo!=='Sem VM' || (f && po) ? out.join(' · ') : '';
+  // infusões
+  document.querySelectorAll('[data-pw]').forEach(w=>{ const list = w.dataset.pw==='dva'?DVA:SED;
+    w.hidden = !!peso || !list.some(d=>d.out.includes('/kg/') && (num(b[d.g][d.k].v)||0)>0); });
+  for (const d of ALL){
+    const box = document.querySelector(`.dr[data-d="${d.k}"]`), dr = b[d.g][d.k];
+    const x = dose(d, dr, peso), vv = num(dr.v)||0, a = absDose(d, dr);
+    box.classList.toggle('on', vv>0);
+    box.querySelector('[data-dose]').textContent = vv>0 ? fmt(x, d.dec) : '0';
+    box.querySelector('[data-abs]').textContent = vv>0 && a!=null ? `${fmt(a, a<10?2:a<100?1:0)} ${d.abs}` : '';
+    const cu = d.qun==='U' ? 'U' : (d.out.startsWith('mg') ? 'mg' : 'mcg'), c = concPer(d, dr, cu);
+    box.querySelector('[data-cc]').textContent = c==null ? '—' : `${fmt(c, c<10?2:c<100?1:0)} ${cu}/mL`;
+  }
+  $('#prev').textContent = previa(b);
+  $('#upd').textContent = b.upd ? 'Atualizado ' + new Date(b.upd).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : 'Sem registro';
+}
+
+/* ---------- prévia ---------- */
+const lower = s => s.charAt(0).toLowerCase() + s.slice(1);
+function infTxt(d, b, peso){ const dr = b[d.g][d.k], v = num(dr.v); if (!v) return null;
+  const x = dose(d, dr, peso), nome = lower(d.nome.replace(' (Precedex)', ''));
+  const vs = fmt(v, v % 1 ? 1 : 0) + ' mL/h';
+  return x != null ? `${nome} ${fmt(x, d.dec)} ${d.out} (${vs})` : `${nome} ${vs}`; }
+const lista = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' e ' + a[a.length - 1];
+function efTxt(b, k, normal, rotulo){ const e = b.ef[k]; if (e.s === 'n') return normal; if (e.s === 'a') return (rotulo + ' ' + (e.t.trim() || 'alterado')).trim(); return null; }
+function previa(b){
+  const peso = num(b.peso), L = [];
+  // neuro
+  const n = []; const g = gcsTxt(b), r = b.rass !== '' ? (+b.rass > 0 ? '+' + b.rass : b.rass.replace('-', '−')) : '';
+  if (g || r) n.push('Paciente em ' + [g && 'Glasgow ' + g, r && 'RASS ' + r].filter(Boolean).join(' / '));
+  const pu = efTxt(b, 'pup', 'pupilas isofotorreagentes', 'pupilas:'); if (pu) n.push(n.length ? pu : pu.charAt(0).toUpperCase() + pu.slice(1));
+  if (n.length) L.push(n.join(', ') + '.');
+  // sedação
+  const sd = SED.map(d => infTxt(d, b, peso)).filter(Boolean);
+  const se = b.sedEnt ? 'Sedação enteral' + (b.sedEntTxt.trim() ? ': ' + b.sedEntTxt.trim() : '') + '.' : '';
+  if (sd.length) L.push('Sedado recebendo ' + lista(sd) + '.' + (se ? ' ' + se : ''));
+  else if (se) L.push(se); else if (g || r) L.push('Sem sedoanalgesia contínua.');
+  // FC e ritmo
+  const fc = num(b.fc), rit = {RR:'RR', irregular:'ritmo irregular', FA:'FA'}[b.ritmo];
+  if (fc != null || rit) L.push([fc != null && `FC ${fc} bpm`, rit && (fc != null ? rit : rit.charAt(0).toUpperCase() + rit.slice(1)) + ' ao scope'].filter(Boolean).join(', ') + '.');
+  // pressão, DVA, TEC
+  const h = []; const pas = num(b.pas), pad = num(b.pad), pam = num(b.pam) ?? pamCalc(b);
+  if (pas != null && pad != null) h.push(`${b.fonte} ${pas}/${pad} mmHg` + (pam != null ? ` (PAM ${pam})` : ''));
+  else if (pam != null) h.push(`${b.fonte} com PAM ${pam} mmHg`);
+  const dv = DVA.map(d => infTxt(d, b, peso)).filter(Boolean);
+  if (dv.length) h.push('recebendo ' + lista(dv)); else if (h.length) h.push('sem DVA');
+  const tec = efTxt(b, 'tec', 'TEC < 3 s', 'TEC');
+  if (h.length || tec) L.push((h.length ? h.join(', ') : '') + (tec ? (h.length ? ' – ' : '') + tec : '') + '.');
+  // AC e AP
+  const ca = [efTxt(b, 'ac', 'AC sp', 'AC:'), efTxt(b, 'ap', 'AP MV+ bilateral', 'AP:')].filter(Boolean);
+  if (ca.length) L.push(ca.join('. ') + '.');
+  // ventilação
+  const v = b.vm, pw = pbw(b);
+  if (v.modo === 'Sem VM'){ const o = [v.o2.trim() ? v.o2.trim() : 'Em ar ambiente', num(v.fio2) && `FiO₂ ${v.fio2}%`, num(v.spo2) && `SpO₂ ${v.spo2}%`].filter(Boolean); L.push(o.join(', ') + '.'); }
+  else if (v.modo){ const vc = num(v.modo === 'VCV' ? v.vc : v.vce), o = [];
+    if (v.modo === 'VCV'){ if (vc) o.push(`VC ${vc} mL` + (pw ? ` (${fmt(vc / pw, 1)} mL/kg)` : '')); if (num(v.fr)) o.push(`FR ${v.fr}`); }
+    if (v.modo === 'PCV'){ if (num(v.pinsp)) o.push(`Pinsp ${v.pinsp}`); if (num(v.tinsp)) o.push(`Tinsp ${fmt(num(v.tinsp), 1)} s`); if (num(v.fr)) o.push(`FR ${v.fr}`); }
+    if (v.modo === 'PSV'){ if (num(v.ps)) o.push(`PS ${v.ps}`); }
+    if (num(v.peep) != null) o.push(`PEEP ${v.peep}`); if (num(v.fio2)) o.push(`FiO₂ ${v.fio2}%`);
+    if (v.modo !== 'VCV'){ if (vc) o.push(`VC ${vc} mL` + (pw ? ` (${fmt(vc / pw, 1)} mL/kg)` : '')); if (v.modo === 'PSV' && num(v.fr)) o.push(`FR ${v.fr}`); }
+    if (v.modo === 'VCV' && num(v.pplat) != null){ o.push(`Pplatô ${v.pplat}`); if (num(v.peep) != null) o.push(`ΔP ${num(v.pplat) - num(v.peep)}`); }
+    if (num(v.spo2)) o.push(`SpO₂ ${v.spo2}%`); if (num(v.fio2) && num(v.pao2)) o.push(`P/F ${fmt(num(v.pao2) / (num(v.fio2) / 100), 0)}`);
+    L.push(`Em VM, modo ${v.modo}` + (o.length ? ': ' + o.join(', ') : '') + '.'); }
+  // abdome e evacuações
+  const ab = [efTxt(b, 'abd', 'Abdome flácido e depressível, indolor à palpação', 'Abdome:'), efTxt(b, 'evac', 'Evacuações presentes', 'Evacuações:')].filter(Boolean);
+  if (ab.length) L.push(ab.join('. ') + '.');
+  const hg = efTxt(b, 'hgt', 'HGT dentro do alvo', 'HGT:'); if (hg) L.push(hg + '.');
+  // diurese e BH
+  const diu = num(b.diu), bh = num(b.bh), db = [];
+  if (diu != null) db.push(`Diurese ${diu} mL/24 h` + (peso ? ` (${fmt(diu / peso / 24, 2)} mL/kg/h)` : ''));
+  if (bh != null) db.push(`BH ${bh > 0 ? '+' : bh < 0 ? '−' : ''}${Math.abs(bh)} mL`);
+  if (db.length) L.push(db.join(', ') + '.');
+  // temperatura
+  const tp = num(b.temp); if (tp != null) L.push((tp >= 37.8 ? 'Febril' : 'Afebril') + ` (T ${fmt(tp, 1)} °C).`);
+  return L.join('\n');
+}
+
+/* ---------- edição ---------- */
+function touch(i){ beds[i].upd = new Date().toISOString(); dirty.add(i); clearTimeout(timers[i]);
+  timers[i] = setTimeout(()=>save(i), 700); status('busy','Salvando…'); }
+const main = $('#main');
+const infOf = box => ALL.find(x => x.k === box.dataset.d);
+main.addEventListener('input', e => {
+  const t = e.target, b = beds[cur];
+  if (t.dataset.p){ let v = t.value; if (t.dataset.p==='ini') v = v.toUpperCase().slice(0,6);
+    setP(b, t.dataset.p, v); if (t.dataset.p==='ini') renderTabs(); }
+  if (t.id==='sedEnt'){ b.sedEnt = t.checked; const ta = main.querySelector('[data-p=sedEntTxt]'); ta.hidden = !t.checked; if (t.checked) ta.focus(); }
+  const ar = t.closest('.arow');
+  if (ar){ const a = b.atb[+ar.dataset.a]; if ('an' in t.dataset) a.n = t.value; if ('ad' in t.dataset){ a.d = t.value; ar.querySelector('.d').textContent = atbDia(t.value);} }
+  const box = t.closest('.dr');
+  if (box){ const d = infOf(box), dr = b[d.g][d.k];
+    if ('v' in t.dataset){ dr.v = +t.value; box.querySelector('[data-vn]').value = t.value; }
+    if ('vn' in t.dataset){ dr.v = t.value; const r = box.querySelector('[data-v]'); r.value = Math.min(+r.max, num(t.value)||0); }
+    if ('q' in t.dataset) dr.q = t.value; if ('ml' in t.dataset) dr.ml = t.value;
+    renderTabs(); }
+  derived(); touch(cur);
+});
+main.addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t) return; const b = beds[cur];
+  if (t.dataset.f){ b.fonte = t.dataset.f; t.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed', x===t)); derived(); touch(cur); }
+  if (t.dataset.m){ b.vm.modo = t.dataset.m; t.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed', x===t));
+    $('#vmF').innerHTML = vmFields(b); renderTabs(); derived(); touch(cur); }
+  const efr = t.closest('.ef-row');
+  if (efr && t.dataset.v){ const k = efr.dataset.ef; b.ef[k].s = b.ef[k].s===t.dataset.v ? '' : t.dataset.v;
+    efr.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed', x.dataset.v===b.ef[k].s));
+    const ta = efr.querySelector('textarea'); ta.hidden = b.ef[k].s!=='a'; if (!ta.hidden) ta.focus(); derived(); touch(cur); }
+  if (t.id==='addAtb'){ b.atb.push({n:'', d:hoje()}); renderAtb(); touch(cur); main.querySelector('.arow:last-child [data-an]').focus(); }
+  if ('rm' in t.dataset){ b.atb.splice(+t.closest('.arow').dataset.a,1); if(!b.atb.length) b.atb.push({n:'',d:''}); renderAtb(); touch(cur); }
+  if (t.dataset.step){ const box=t.closest('.dr'), d=infOf(box), dr=b[d.g][d.k];
+    const v = Math.max(0, Math.round(((num(dr.v)||0) + 0.5*+t.dataset.step)*10)/10); dr.v = v;
+    box.querySelector('[data-vn]').value = v; box.querySelector('[data-v]').value = Math.min(d.max, v);
+    renderTabs(); derived(); touch(cur); }
+  if (t.id==='copy'){ const txt = $('#prev').textContent; const ok = () => { t.textContent='Copiado'; setTimeout(()=>{ if(t.isConnected) t.textContent='Copiar'; }, 1500); };
+    const fb = () => { const r=document.createRange(); r.selectNodeContents($('#prev')); const s=getSelection(); s.removeAllRanges(); s.addRange(r); t.textContent='Selecionado: copie'; };
+    try { navigator.clipboard.writeText(txt).then(ok, fb); } catch { fb(); } return; }
+  if (t.id==='clr'){
+    if (!t.classList.contains('go')){ t.classList.add('go'); t.textContent='Confirmar: apagar dados do leito '+(cur+1);
+      setTimeout(()=>{ if(t.isConnected){ t.classList.remove('go'); t.textContent='Liberar leito'; } }, 4000); return; }
+    beds[cur] = blank(); beds[cur].upd = new Date().toISOString(); renderTabs(); renderBed(); dirty.add(cur); save(cur); }
+});
+main.addEventListener('focusout', () => setTimeout(()=>{
+  if (pendingRemote[cur] && !main.contains(document.activeElement)){ delete pendingRemote[cur]; renderBed(); }
+}, 0));
+
+/* ---------- persistência ---------- */
+function saveLocal(){ try{ localStorage.setItem('leitos-uti-v1', JSON.stringify(beds)); }catch{} }
+async function save(i){
+  clearTimeout(timers[i]);
+  if (mode !== 'db'){ saveLocal(); dirty.delete(i); status('local','Salvo só neste aparelho'); return; }
+  try { await col.doc('leito-'+(i+1)).set(JSON.parse(JSON.stringify(beds[i]))); dirty.delete(i);
+    if (!dirty.size) status('ok','Salvo na nuvem'); saveLocal();
+  } catch(e){
+    if (e && e.code==='unavailable'){ setTimeout(()=>save(i), 1500+Math.random()*1500); return; }
+    status('err', e && e.code==='quota_exceeded' ? 'Espaço esgotado' : 'Erro ao salvar'); saveLocal();
+  }
+}
+window.addEventListener('pagehide', ()=>{ for (const i of dirty) save(i); });
+function loadLocal(){ try{ const s=JSON.parse(localStorage.getItem('leitos-uti-v1')||'null'); if(Array.isArray(s)) beds = Array.from({length:N},(_,i)=>fill(s[i])); }catch{} }
+
+loadLocal(); renderTabs(); renderBed(); status('local','Carregando…');
+
+(async () => {
+  let db = null, uid = null;
+  try { if (window.claude && claude.use){ db = await claude.use('db'); const user = await claude.use('user'); uid = user ? await user.id() : null; } } catch {}
+  const note = $('#note');
+  if (!db || !uid){ mode='local'; status('local','Salvo só neste aparelho');
+    note.textContent = 'Os dados ficam salvos apenas neste navegador, neste aparelho, e não são enviados a nenhum servidor. Use só iniciais. Confira as diluições com o protocolo da sua unidade.'; return; }
+  note.textContent = 'Os dados ficam salvos na sua conta e aparecem em qualquer aparelho em que você abrir este link. São privados: mesmo que você compartilhe a página, ninguém mais vê os pacientes. Use só iniciais. Confira as diluições com o protocolo da sua unidade.';
+  col = db.collection('data/users/'+uid); mode = 'db';
+  col.onSnapshot(snap => {
+    let mudouAtual = false;
+    for (const d of snap.docs){
+      const m = /^leito-(\d+)$/.exec(d.id); if (!m) continue; const i = +m[1]-1; if (i<0||i>=N) continue;
+      if (d.metadata.hasPendingWrites || dirty.has(i)) continue;
+      const nb = fill(d.data());
+      if (JSON.stringify(nb) === JSON.stringify(beds[i])) continue;
+      beds[i] = nb; if (i===cur) mudouAtual = true;
+    }
+    renderTabs(); saveLocal();
+    if (mudouAtual){ if (main.contains(document.activeElement)) pendingRemote[cur]=true; else renderBed(); }
+    if (!dirty.size && !snap.metadata.fromCache) status('ok','Salvo na nuvem');
+  }, () => { mode='local'; status('local','Sem conexão: salvando neste aparelho'); });
+})();
+})();
+</script>
+
+</body>
+</html>
