@@ -84,6 +84,9 @@ input:focus-visible,textarea:focus-visible,button:focus-visible,select:focus-vis
 .seg button[aria-pressed=true]{background:var(--tinta);color:var(--papel)}
 .seg.ef button[data-v=n][aria-pressed=true]{background:var(--certo);color:#fff}
 .seg.ef button[data-v=a][aria-pressed=true]{background:var(--rubro);color:#fff}
+.bhrow{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:stretch}
+.seg.sig button{font:600 18px var(--mono);padding:4px 14px}
+.seg.sig button[data-sig="-"][aria-pressed=true]{background:var(--rubro);color:#fff}
 .row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .big-n{font:600 26px var(--mono);line-height:1}
 .big-n small{font:500 13px var(--sans);color:var(--tinta3);margin-left:6px}
@@ -172,7 +175,7 @@ const blank = () => ({ini:'',peso:'',altura:'',sexo:'',dx:'',atb:[{n:'',d:''}],
   vm:{modo:'',vc:'',fr:'',fluxo:'',peep:'',fio2:'',ppico:'',pplat:'',pinsp:'',tinsp:'',ps:'',vce:'',spo2:'',pao2:'',o2:''},
   drogas:Object.fromEntries(DVA.map(d=>[d.k,{v:0,q:d.q,ml:d.ml}])),
   sed:Object.fromEntries(SED.map(d=>[d.k,{v:0,q:d.q,ml:d.ml}])), sedEnt:false, sedEntTxt:'',
-  exames:'',conduta:'',upd:null});
+  bhNeg:false, exames:'',conduta:'',upd:null});
 const fill = b => { const z = blank(), o = Object.assign(z, b||{});
   o.drogas = Object.assign(blank().drogas, o.drogas||{}); o.sed = Object.assign(blank().sed, o.sed||{});
   for (const d of ALL) o[d.g][d.k] = Object.assign({v:0,q:d.q,ml:d.ml}, o[d.g][d.k]);
@@ -220,6 +223,7 @@ function atbDia(dt){ if(!dt) return ''; const a=new Date(dt+'T00:00:00'), h=new 
 function pbw(b){ const a=num(b.altura); if(!a || !b.sexo) return null; return (b.sexo==='M'?50:45.5) + 0.91*(a-152.4); }
 function gcsTxt(b){ if (!b.gcsO || !b.gcsV || !b.gcsM) return ''; const t = b.gcsV==='T';
   const s = +b.gcsO + (t?0:+b.gcsV) + +b.gcsM; return t ? s+'T' : String(s); }
+const bhNeg = b => num(b.bh) != null ? num(b.bh) < 0 : !!b.bhNeg;
 const hasInf = (b, list) => list.some(d => (num(b[d.g][d.k].v)||0) > 0);
 const hoje = () => new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
 
@@ -301,7 +305,7 @@ function renderBed(){
     </div>
     <div class="g2">
       <label class="f"><span>Diurese 24 h <em>mL</em></span><input type="number" inputmode="decimal" step="any" data-p="diu" value="${esc(b.diu)}"><div class="calc" id="diuc"></div></label>
-      <label class="f"><span>Balanço hídrico 24 h <em>mL</em></span><input type="number" inputmode="decimal" step="any" data-p="bh" value="${esc(b.bh)}" placeholder="ex.: +850 ou −400"><div class="calc" id="bhc"></div></label>
+      <div class="f"><span class="lb">Balanço hídrico 24 h <em>mL</em></span><div class="bhrow"><div class="seg sig" role="group" aria-label="Sinal do balanço"><button type="button" data-sig="+" aria-pressed="${!bhNeg(b)}">+</button><button type="button" data-sig="-" aria-pressed="${bhNeg(b)}">−</button></div><input type="number" inputmode="decimal" step="any" min="0" data-bh value="${esc(num(b.bh)==null?'':Math.abs(num(b.bh)))}" aria-label="Balanço hídrico em mL"></div><div class="calc" id="bhc"></div></div>
     </div>
   </div></section>
 
@@ -348,7 +352,7 @@ function derived(){
   const diu = num(b.diu);
   $('#diuc').innerHTML = diu!=null && peso ? `<b>${fmt(diu/peso/24,2)}</b> mL/kg/h` : (diu!=null ? 'informe o peso' : '');
   const bh = num(b.bh);
-  $('#bhc').innerHTML = bh!=null ? `<b>${bh>0?'+':''}${fmt(bh,0)}</b> mL ${bh>0?'positivo':bh<0?'negativo':''}` : '';
+  $('#bhc').innerHTML = bh!=null ? `<b>${bh>0?'+':bh<0?'−':''}${fmt(Math.abs(bh),0)}</b> mL ${bh>0?'positivo':bh<0?'negativo':''}` : '';
   const g = gcsTxt(b); $('#gcs').innerHTML = g ? `${g}<small>/15</small>` : '<small style="margin:0">—</small>';
   const pw = pbw(b); $('#pbwc').innerHTML = pw ? `peso predito <b>${fmt(pw,1)}</b> kg` : '';
   // ventilação
@@ -448,6 +452,9 @@ main.addEventListener('input', e => {
   if (t.dataset.p){ let v = t.value; if (t.dataset.p==='ini') v = v.toUpperCase().slice(0,6);
     setP(b, t.dataset.p, v); if (t.dataset.p==='ini') renderTabs(); }
   if (t.id==='sedEnt'){ b.sedEnt = t.checked; const ta = main.querySelector('[data-p=sedEntTxt]'); ta.hidden = !t.checked; if (t.checked) ta.focus(); }
+  if ('bh' in t.dataset){ const raw = t.value; if (/^-/.test(raw)){ b.bhNeg = true; t.value = raw.replace(/^-/, ''); }
+    const v = num(t.value); b.bh = v == null ? '' : String(b.bhNeg ? -Math.abs(v) : Math.abs(v));
+    main.querySelectorAll('[data-sig]').forEach(x=>x.setAttribute('aria-pressed', (x.dataset.sig==='-')===!!b.bhNeg)); }
   const ar = t.closest('.arow');
   if (ar){ const a = b.atb[+ar.dataset.a]; if ('an' in t.dataset) a.n = t.value; if ('ad' in t.dataset){ a.d = t.value; ar.querySelector('.d').textContent = atbDia(t.value);} }
   const box = t.closest('.dr');
@@ -460,6 +467,8 @@ main.addEventListener('input', e => {
 });
 main.addEventListener('click', e => {
   const t = e.target.closest('button'); if (!t) return; const b = beds[cur];
+  if (t.dataset.sig){ b.bhNeg = t.dataset.sig==='-'; const v = num(b.bh); if (v != null) b.bh = String(b.bhNeg ? -Math.abs(v) : Math.abs(v));
+    t.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed', x===t)); derived(); touch(cur); }
   if (t.dataset.f){ b.fonte = t.dataset.f; t.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed', x===t)); derived(); touch(cur); }
   if (t.dataset.m){ b.vm.modo = t.dataset.m; t.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed', x===t));
     $('#vmF').innerHTML = vmFields(b); renderTabs(); derived(); touch(cur); }
