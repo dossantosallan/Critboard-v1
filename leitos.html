@@ -155,8 +155,8 @@ const DVA = [
 ];
 const SED = [
   {k:'prec', g:'sed', nome:'Dexmedetomidina (Precedex)', c:'--prec', qun:'mcg', q:200,  ml:50,  max:30, dec:2, out:'mcg/kg/h',   abs:'mcg/h'},
-  {k:'mida', g:'sed', nome:'Midazolam',                  c:'--mida', qun:'mg',  q:100,  ml:100, max:30, dec:2, out:'mg/kg/h',    abs:'mg/h'},
-  {k:'fent', g:'sed', nome:'Fentanil',                   c:'--fent', qun:'mcg', q:1000, ml:100, max:40, dec:2, out:'mcg/kg/h',   abs:'mcg/h'},
+  {k:'mida', g:'sed', nome:'Midazolam',                  c:'--mida', qun:'mg',  q:500,  ml:250, max:50, dec:2, out:'mg/kg/h',    abs:'mg/h'},
+  {k:'fent', g:'sed', nome:'Fentanil',                   c:'--fent', qun:'mcg', q:5000, ml:250, max:40, dec:2, out:'mcg/kg/h',   abs:'mcg/h'},
   {k:'ceta', g:'sed', nome:'Cetamina',                   c:'--ceta', qun:'mg',  q:500,  ml:250, max:60, dec:2, out:'mg/kg/h',    abs:'mg/h'},
   {k:'roc',  g:'sed', nome:'Rocurônio',                  c:'--roc',  qun:'mg',  q:500,  ml:100, max:30, dec:1, out:'mcg/kg/min', abs:'mg/h'},
 ];
@@ -176,6 +176,8 @@ const blank = () => ({ini:'',peso:'',altura:'',sexo:'',dx:'',atb:[{n:'',d:''}],
 const fill = b => { const z = blank(), o = Object.assign(z, b||{});
   o.drogas = Object.assign(blank().drogas, o.drogas||{}); o.sed = Object.assign(blank().sed, o.sed||{});
   for (const d of ALL) o[d.g][d.k] = Object.assign({v:0,q:d.q,ml:d.ml}, o[d.g][d.k]);
+  // diluição padrão antiga (midazolam 100 mg/100 mL, fentanil 1.000 mcg/100 mL) → padrão da unidade
+  for (const [k,q0,m0] of [['mida',100,100],['fent',1000,100]]){ const s=o.sed[k], d=SED.find(x=>x.k===k); if (+s.q===q0 && +s.ml===m0){ s.q=d.q; s.ml=d.ml; } }
   o.vm = Object.assign(blank().vm, o.vm||{}); const ef = blank().ef;
   for (const k in ef) ef[k] = Object.assign(ef[k], (o.ef||{})[k]||{}); o.ef = ef;
   if (!Array.isArray(o.atb) || !o.atb.length) o.atb = [{n:'',d:''}]; return o; };
